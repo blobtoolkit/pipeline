@@ -1,0 +1,53 @@
+assembly:
+  name: CaeLat1.0
+  insdc: NIPN01000000
+  accession: GCA_002259235.1
+  bioproject: PRJNA248912
+  source: ebi
+
+reads:
+  source: ebi
+  paired:
+    - SRR5831577
+    - SRR5831578
+    - SRR5831580
+
+similarity:
+  taxrule: bestsumorder
+  defaults:
+    type: prot
+    tool: diamond
+    source: ncbi
+    local: /path/to/ncbi_YYYY_MM
+    root: 1
+    mask_ids:
+      - 6237
+    evalue: 1e-25
+    max_target_seqs: 10
+  databases:
+    - type: nucl
+      name: nt
+      tool: blast
+      idmap:
+        - nucl_est
+        - nucl_gb
+        - nucl_gss
+        - nucl_wgs
+        - pdb
+    - name: nr
+      idmap:
+        - prot
+      max_target_seqs: 1
+    - name: reference_proteomes
+      source: uniprot
+      local: /path/to/uniprot_YYYY_MM
+      max_target_seqs: 1
+
+settings:
+  taxonomy: /path/to/ncbi_taxonomy
+  blobtools: /path/to/blobtools
+  out: /path/to/outdir
+  tmp: /dev/shm
+  chunk: 1000000
+  environment: ''
+  gridengine_environment: 'PATH=${PATH-}:/ceph/software/conda/bin/ && PS1=${PS1-} && CONDA_PATH_BACKUP=${CONDA_PATH_BACKUP-} && source activate btk_env && '

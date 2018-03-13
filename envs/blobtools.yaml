@@ -1,0 +1,33 @@
+name: blobtools
+channels:
+  - bioconda
+  - r
+  - defaults
+  - conda-forge
+dependencies:
+  - samtools=1.7=1
+  - bzip2=1.0.6=h9a117a8_4
+  - ca-certificates=2017.08.26=h1d4fec5_0
+  - certifi=2018.1.18=py27_0
+  - curl=7.58.0=h84994c4_0
+  - docopt=0.6.2=py27_0
+  - libcurl=7.58.0=h1ad7b7a_0
+  - libedit=3.1=heed3624_0
+  - libffi=3.2.1=hd88cf55_4
+  - libgcc=7.2.0=h69d50b8_2
+  - libgcc-ng=7.2.0=hdf63c60_3
+  - libssh2=1.8.0=h9cfc8f7_4
+  - libstdcxx-ng=7.2.0=hdf63c60_3
+  - ncurses=6.0=h9df7e31_2
+  - openssl=1.0.2n=hb7f436b_0
+  - pigz=2.3=0
+  - pip=9.0.1=py27_5
+  - python=2.7.14=h1571d57_29
+  - readline=7.0=ha6073c6_4
+  - setuptools=38.5.1=py27_0
+  - sqlite=3.22.0=h1bed415_0
+  - system=5.8=2
+  - tk=8.6.7=hc745277_3
+  - wheel=0.30.0=py27h2bc6bb2_1
+  - xz=5.2.3=h55aa19d_2
+  - zlib=1.2.11=ha838bed_2
