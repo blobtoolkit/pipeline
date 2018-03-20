@@ -13,4 +13,6 @@ dependencies:
   - libgcc-ng=7.2.0=hdf63c60_3
   - libssh2=1.8.0=h9cfc8f7_4
   - openssl=1.0.2n=hb7f436b_0
+  - pigz=2.3=0
+  - system=5.8=2
   - zlib=1.2.11=ha838bed_2
