@@ -1,0 +1,14 @@
+name: diamond
+channels:
+  - bioconda
+  - r
+  - defaults
+  - conda-forge
+dependencies:
+  - diamond=0.9.19=1
+  - parallel=20170422=pl5.22.0_0
+  - perl=5.22.0.1=0
+  - libgcc=7.2.0=h69d50b8_2
+  - libgcc-ng=7.2.0=hdf63c60_3
+  - libstdcxx-ng=7.2.0=hdf63c60_3
+  - zlib=1.2.11=ha838bed_2

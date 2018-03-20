@@ -18,7 +18,9 @@ rule split_fasta_by_taxid:
     params:
         tmpdir="%s/by_taxid" % config['settings']['tmp'],
         chunk=config['settings']['chunk']
-    threads: 1
+    conda:
+         '../envs/py3.yaml'
+    threads: 16
     resources:
         tmpdir=128
     script:
@@ -34,12 +36,14 @@ rule list_sequence_files:
         nodes="%s/nodes.dmp" % config['settings']['taxonomy'],
         split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name)
     output:
-        '{name}.root.{root}{masked}list.gz'
+        '{name}.root.{root}{masked}/list'
     wildcard_constraints:
         root='\d+'
     params:
         mask_ids=lambda wc: similarity[wc.name]['mask_ids'],
         indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name)
+    conda:
+         '../envs/py3.yaml'
     threads: 1
     script:
         '../scripts/masked_list_by_root.py'
@@ -51,25 +55,35 @@ rule make_diamond_db:
     """
     input:
         split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
-        lists='{name}.root.{root}{masked}list.gz'
+        lists='{name}.root.{root}{masked}/list'
     output:
-        '{name}.root.{root}{masked}dmnd'
+        '{name}.root.{root}{masked}.dmnd'
     params:
-        outfile=lambda wc: str("%s.root.%s%sdmnd" % (wc.name,wc.root,wc.masked)).rstrip('.')
+        outfile=lambda wc: str("%s.root.%s%s.dmnd" % (wc.name,wc.root,wc.masked)),
+        db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked)),
+        tmpdir="%s" % config['settings']['tmp']
     wildcard_constraints:
         root='\d+'
+    conda:
+         '../envs/diamond.yaml'
     threads: 32
     resources:
         tmpdir=64
     priority:10
     shell:
         '{ENV} \
-        pigz -dc {input.lists} | \
-        xargs cat | \
-        pigz -dc | \
+        mkdir -p {params.tmpdir} && \
+        parallel --no-notice -m -P {threads} \
+            "awk \'{{print \\$0}}\' {{}} | \
+            awk \'{{print \\$0\\".fa\\"}}\' | \
+            xargs cat" \
+            :::: {input.lists} \
+            > {params.tmpdir}/{params.db}.fa && \
         diamond makedb \
+            --in {params.tmpdir}/{params.db}.fa \
             -p {threads} \
-            -d {params.outfile}'
+            -d {params.outfile} && \
+        rm {params.tmpdir}/{params.db}.fa'
 
 
 rule make_blast_db:
@@ -80,40 +94,48 @@ rule make_blast_db:
     input:
         split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
         idmap=lambda wc: "%s/full/%s.taxid_map.gz" % (similarity[wc.name]['local'],wc.name),
-        lists='{name}.root.{root}{masked}list.gz'
+        lists='{name}.root.{root}{masked}/list'
     output:
-        db='{name}.root.{root}{masked}{suffix}'
+        db='blast/{name}.root.{root}{masked}.{suffix}'
     wildcard_constraints:
         suffix='\wal',
         root='\d+'
     params:
         dbtype=lambda wc: 'prot' if wc.suffix == 'pal' else 'nucl',
-        db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked)).rstrip('.'),
-        block='500M'
+        db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked)),
+        tmpdir="%s" % config['settings']['tmp']
+    conda:
+         '../envs/blast.yaml'
     threads: 32
     resources:
         tmpdir=64
     shell:
         '{ENV} \
         set +o pipefail && \
-        > {params.db}.dblist && \
-        pigz -dc {input.lists} | \
-        xargs cat | \
-        pigz -dc | \
-        parallel -k \
-            -j {threads} \
-            --block {params.block} \
-            --recstart \'>\' \
+        mkdir -p blast && \
+        mkdir -p {params.tmpdir} && \
+        > {params.tmpdir}/{params.db}.dblist && \
+        parallel -j {threads} \
             --no-notice \
-            --pipe \
-            "makeblastdb -dbtype {params.dbtype} \
-                         -title {params.db}_{{#}} \
-                         -out {params.db}_{{#}} \
-                         -parse_seqids \
-                         -taxid_map <(pigz -dc {input.idmap}) && \
-            echo {params.db}_{{#}} >> {params.db}.dblist" && \
-        blastdb_aliastool -dblist_file {params.db}.dblist \
+            "cat {{}} | \
+            awk \'{{print \\$0\\".taxid_map\\"}}\' | \
+            xargs cat > {params.tmpdir}/{params.db}.taxid_map_{{#}} && \
+            cat {{}} | \
+            awk \'{{print \\$0\\".fa\\"}}\' | \
+            xargs cat > {params.tmpdir}/{params.db}.fa_{{#}} && \
+            makeblastdb -dbtype {params.dbtype} \
+                        -in {params.tmpdir}/{params.db}.fa_{{#}} \
+                        -title {params.db}_{{#}} \
+                        -out blast/{params.db}_{{#}} \
+                        -parse_seqids \
+                        -taxid_map {params.tmpdir}/{params.db}.taxid_map_{{#}} && \
+            echo {params.db}_{{#}} >> {params.tmpdir}/{params.db}.dblist && \
+            rm {params.tmpdir}/{params.db}.fa_{{#}} && \
+            rm {params.tmpdir}/{params.db}.taxid_map_{{#}}" \
+            :::: {input.lists} && \
+        cd blast && \
+        blastdb_aliastool -dblist_file {params.tmpdir}/{params.db}.dblist \
              -dbtype {params.dbtype} \
              -out {params.db} \
              -title {params.db} && \
-        rm {params.db}.dblist'
+        rm {params.tmpdir}/{params.db}.dblist'

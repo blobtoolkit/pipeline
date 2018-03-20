@@ -18,6 +18,8 @@ rule fetch_ncbi_fasta:
     params:
         ftp_url='ftp.ncbi.nlm.nih.gov',
         ftp_dir='/blast/db/FASTA'
+    conda:
+         '../envs/fetch.yaml'
     threads: 1
     resources:
         download=1
@@ -36,6 +38,8 @@ rule fetch_ncbi_idmap:
         path='.+ncbi.+'
     params:
         idmap=lambda wildcards: ncbi_idmap(wildcards.name)
+    conda:
+         '../envs/fetch.yaml'
     threads: 1
     resources:
         download=1
@@ -61,6 +65,8 @@ rule fetch_taxdump:
         temp('gc.prt')
     params:
         outdir=config['settings']['taxonomy']
+    conda:
+         '../envs/fetch.yaml'
     threads: 1
     resources:
         download=1
@@ -79,6 +85,8 @@ rule update_blobtools_nodesdb:
         nodes="%s/nodes.dmp" % config['settings']['taxonomy']
     output:
         "%s/data/nodesDB.txt" % config['settings']['blobtools']
+    conda:
+         '../envs/blobtools.yaml'
     threads: 1
     shell:
         '{ENV} \
@@ -99,6 +107,8 @@ rule fetch_uniprot:
     params:
         ftp_url='ftp.ebi.ac.uk',
         ftp_dir='pub/databases/uniprot/current_release/knowledgebase/{name}'
+    conda:
+         '../envs/fetch.yaml'
     threads: 1
     resources:
         download=1
@@ -122,6 +132,8 @@ rule extract_uniprot:
     wildcard_constraints:
         # NB: the path to the local copy of the file must contain the string 'uniprot'
         path='.+uniprot.+'
+    conda:
+         '../envs/py3.yaml'
     threads: 1
     resources:
         tmpdir=24

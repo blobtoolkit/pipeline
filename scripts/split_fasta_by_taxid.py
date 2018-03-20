@@ -1,32 +1,25 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # ===================================================================== #
-# This script takes too long to run, particularly on nt.                #
-# Need to improve efficiency but size of dataset caused problems with a #
-# simple multiprocessing approach, hence commented out.                 #
+# NB: runnning this script on nt creates ~2.8M files across 100         #
+#     directories.                                                      #
 # ===================================================================== #
 
-# ===================================================================== #
-# NB: runnning this script on nt will create directories with >100000   #
-#     files. Would probably be best to split further to avoid           #
-#     challenging filesystems (would require corresponding changes to   #
-#     masked_list_by_root.py).                                          #
-# ===================================================================== #
-
+import subprocess
 import os
 import shutil
 import gzip
 import sys
+import re
 from itertools import groupby
 from collections import defaultdict
 from subprocess import call
-# from pathlib import Path
-# from multiprocessing import Pool
+from multiprocessing import Pool
+import timeit
 
 # set variables from snakemake params, wildcards, input and threads
 CHUNK = snakemake.params.chunk
-# TODO: fix the unique tmpdir name as no snakemake.jobid
-TMPDIR = "%s/%s/" % (snakemake.params.tmpdir,snakemake.jobid)
+TMPDIR = "%s/%s/" % (snakemake.params.tmpdir,snakemake.wildcards.name)
 PATH = snakemake.wildcards.path
 NAME = snakemake.wildcards.name
 THREADS = snakemake.threads
@@ -43,63 +36,74 @@ else:
 
 # read the id mapping file into a dict
 mapping = {}
-ctr = 0;
-with gzip.open(MAPFILE, 'rt', encoding='utf-8') as gz:
-    for line in gz:
-        if line.strip():
-            ctr += 1
-            a,b =  line.strip().split()
-            mapping.update({a:b})
+with subprocess.Popen(['pigz', '-dc', MAPFILE], stdout=subprocess.PIPE, encoding='utf-8', bufsize=4096) as proc:
+    for line in proc.stdout:
+        l = line[:-1].split()
+        mapping.update({l[0]:l[1]})
 
 def fasta_chunks(fastafile,chunk):
     """
     Read batches of sequences from a gzipped fasta file
-    return list of header/sequence tuples
+    return dict of id mapping and fasta sequence by taxid
     """
-    fh = gzip.open(fastafile, 'rt', encoding='utf-8')
-    faiter = (x[1] for x in groupby(fh, lambda line: line[0] == '>'))
-    seqs = []
-    for header in faiter:
-        header_str = header.__next__()[1:]
-        seq = ''.join(map(lambda s: s.strip(),faiter.__next__()))
-        seqs.append((header_str,seq))
-        if len(seqs) % CHUNK == 0:
-            yield seqs
-            seqs = []
-    return seqs
+    by_taxid = defaultdict(lambda: {'acc':[],'fa':[]})
+    ctr = 0
+    with subprocess.Popen(['pigz', '-dc', fastafile], stdout=subprocess.PIPE, encoding='utf-8', bufsize=4096) as proc:
+        faiter = (x[1] for x in groupby(proc.stdout, lambda line: line[0] == '>'))
+        for header in faiter:
+            taxids = header_to_taxid(header.__next__()[1:].strip())
+            seq = ''.join(map(lambda s: s.strip(),faiter.__next__()))
+            if taxids:
+                ctr += 1
+                for taxid,acc in taxids.items():
+                    by_taxid[taxid]['acc'].append("%s\t%s\n" % (acc,taxid))
+                    by_taxid[taxid]['fa'].append(">%s\n%s\n" % (acc,seq))
+            if ctr % CHUNK == 0:
+                yield by_taxid
+                by_taxid = defaultdict(lambda: {'acc':[],'fa':[]})
+    return by_taxid
 
-def duplicate_seqs(sequence):
+def header_to_taxid(header):
     """
     Split each sequence header on '\\x01' and return a dict with one fasta
     format sequence per taxid
     """
-    header,seq = sequence
+    seen_taxids = {}
     taxids = {}
     for entry in header.split('\x01'):
         acc = entry.split(' ',1)[0]
         try:
             taxid = mapping[acc]
         except:
+            continue
             # failure may be due to mismatched naming convention with pdb
-            # accessions, removing the last character can help
-            if acc[:-1] in mapping:
-                taxid = mapping[acc[:-1]]
-            else:
-                # TODO: log missing entries
-                continue
-        if taxid not in taxids:
-            taxids[taxid] = ">%s\n%s\n" % (acc,seq)
+            # accessions, removing the last character can help but prone to
+            # error so just ignore anything that doesn't match
+            # if acc[:-1] in mapping:
+            #     taxid = mapping[acc[:-1]]
+            # else:
+            #     # TODO: log missing entries
+            #     continue
+        if taxid not in seen_taxids:
+            seen_taxids[taxid] = True
+            taxids[taxid] = acc
     return taxids
 
-def write_file(data):
+by_tax = {}
+
+def write_files(taxid):
     """
-    Write a list of sequences to a gzipped fasta file
+    Write a list of sequences to a gzipped fasta file and corresponding taxid
+    map file
     """
-    taxid,lines = data
-    filepath = "%s/%s/%s.fa.gz" % (TMPDIR,taxid[-1],taxid)
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    with gzip.open(filepath, 'at', encoding='utf-8') as gz:
-        gz.writelines(lines)
+    l = by_tax[taxid]
+    fileroot = "%s/%s/%s" % (TMPDIR,taxid[-2:].zfill(2),taxid)
+    fafile = "%s.fa" % fileroot
+    with open(fafile, 'a') as fh:
+        fh.write(''.join(l['fa']))
+    accfile = "%s.taxid_map" % fileroot
+    with open(accfile, 'a') as fh:
+        fh.write(''.join(l['acc']))
     return 1
 
 def make_redundant(fastafile,chunk,threads,outdir,tmpdir):
@@ -107,28 +111,28 @@ def make_redundant(fastafile,chunk,threads,outdir,tmpdir):
     read a non-redundant fasta file, duplicate sequences where necessary and
     write one sequence file per taxid
     """
+    global by_tax
     fiter = fasta_chunks(fastafile,chunk)
-    if os.path.exists(outdir):
-        shutil.rmtree(outdir)
     if not tmpdir:
         tmpdir = outdir
+    for i in range(0,100):
+        os.makedirs(os.path.dirname("%s/%s/" % (tmpdir,str(i).zfill(2))), exist_ok=True)
     ctr = 0
-    for seqs in fiter:
+    start_time = timeit.default_timer()
+    total_time = 0
+    for by_taxid in fiter:
         ctr += 1
-        print("processing %d sequences..." % (chunk * ctr), file=sys.stderr)
-        by_taxid = defaultdict(list)
-        for seq in seqs:
-            taxids = duplicate_seqs(seq)
-            for taxid,fasta in taxids.items():
-                by_taxid[taxid].append(fasta)
-        # TODO: Hit multiprocessing bug due to size of dataset when processing nt
-        # need to find a way to reinstate multiprocessing as otherwise
-        # processing nt can take ~ 3 days
-        # os.makedirs(os.path.dirname(outdir), exist_ok=True)
-        # with Pool(threads) as p:
-        #     p.map(write_file,by_taxid.items())
-        list(map(write_file,by_taxid.items()))
-        print('\t...done', file=sys.stderr)
+        elapsed = timeit.default_timer() - start_time
+        print(" - prepared (%s)" % str(elapsed), file=sys.stderr)
+        # write sequences and taxid maps to file
+        by_tax = by_taxid
+        with Pool(processes=threads) as p:
+            p.map(write_files,by_taxid.keys())
+        elapsed = timeit.default_timer() - start_time
+        print(" - written (%s)" % str(elapsed), file=sys.stderr)
+        total_time += elapsed
+        print("Processed %d sequences in %s seconds" % (chunk * ctr,str(total_time)), file=sys.stderr)
+        start_time = timeit.default_timer()
     if not tmpdir == outdir:
         # move files to outdir
         os.makedirs(os.path.dirname(outdir), exist_ok=True)

@@ -9,8 +9,10 @@ def list_similarity_results(config):
         program = 'blastn' if db['type'] == 'nucl' else 'blastx' if db['tool'] == 'blast' else 'diamond'
         masked = ''
         if 'mask_ids' in db and isinstance(db['mask_ids'],(list,)):
-            masked = ".minus.%s" % '.'.join(str(mask) for mask in db['mask_ids'])
-        path.append("%s.%s.%s.root.%s%s.%s" % (config['assembly']['name'],program,db['name'],db['root'],masked,suffix))
+            masked = "minus.%s" % '.'.join(str(mask) for mask in db['mask_ids'])
+        else:
+            masked = 'full'
+        path.append("%s.%s.%s.root.%s.%s.%s" % (config['assembly']['name'],program,db['name'],db['root'],masked,suffix))
     return path
 
 rule blobtools_create:
@@ -28,7 +30,8 @@ rule blobtools_create:
     params:
         dbs=expand('-t {db}',db=list_similarity_results(config)),
         coverage=lambda wc: expand('-c '+wc.assembly+'.{sample}.bam.cov',sample=config['reads']['paired']),
-        taxrule=config['similarity']['taxrule'] if 'taxrule' in config['similarity'] else 'bestsumorder'
+        taxrule=config['similarity']['taxrule'] if 'taxrule' in config['similarity'] else 'bestsumorder',
+        assembly=lambda wc: wc.assembly
     conda:
         '../envs/blobtools.yaml'
     threads: 1
@@ -40,4 +43,5 @@ rule blobtools_create:
             {params.dbs} \
             -x "{params.taxrule}" \
             --db {input.taxonomy} \
-            {params.coverage}'
+            {params.coverage} \
+            -o {params.assembly}'

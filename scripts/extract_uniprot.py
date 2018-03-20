@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import re
 import gzip
@@ -8,7 +8,7 @@ import glob
 import shutil
 
 # Set variables from snakemake params/wildcards
-TMPDIR = "%s/%s/" % (snakemake.params.tmpdir,snakemake.jobid)
+TMPDIR = "%s/%s/" % (snakemake.params.tmpdir,snakemake.wildcards.name)
 PATH = snakemake.wildcards.path
 NAME = snakemake.wildcards.name
 TARFILE = "%s/full/%s.tar.gz" % (PATH,NAME)

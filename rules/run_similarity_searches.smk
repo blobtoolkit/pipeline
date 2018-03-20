@@ -4,29 +4,31 @@ rule run_blastn:
     """
     input:
         fna='{assembly}.fna',
-        db='{name}.root.{root}{masked}.nal'
+        db='blast/{name}.root.{root}{masked}.nal'
     output:
         '{assembly}.blastn.{name}.root.{root}{masked}.out'
     wildcard_constraints:
         root='\d+',
-        masked='[minus\d\.]+'
+        masked='.[fm][ulins\d\.]+'
     params:
         db=lambda wc: "%s.root.%s%s" % (wc.name,wc.root,wc.masked),
         evalue=lambda wc:similarity[wc.name]['evalue'],
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
+    conda:
+         '../envs/blast.yaml'
     threads: 32
-    priority: 10
     shell:
         '{ENV} \
+        cd blast && \
         blastn \
-            -query {input.fna} \
+            -query ../{input.fna} \
             -db {params.db} \
             -outfmt "6 qseqid staxids bitscore std" \
             -max_target_seqs {params.max_target_seqs} \
             -max_hsps 1 \
             -evalue {params.evalue} \
             -num_threads {threads} \
-            > {output}'
+            > ../{output}'
 
 rule run_blastx:
     """
@@ -34,29 +36,31 @@ rule run_blastx:
     """
     input:
         fna='{assembly}.fna',
-        db='{name}.root.{root}{masked}.pal'
+        db='blast/{name}.root.{root}{masked}.pal'
     output:
         '{assembly}.blastx.{name}.root.{root}{masked}.out'
     wildcard_constraints:
         root='\d+',
-        masked='[minus\d\.]+'
+        masked='.[fm][ulins\d\.]+'
     params:
         db=lambda wc: "%s.root.%s%s" % (wc.name,wc.root,wc.masked),
         evalue=lambda wc:similarity[wc.name]['evalue'],
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
+    conda:
+         '../envs/blast.yaml'
     threads: 32
-    priority: 20
     shell:
         '{ENV} \
+        cd blast && \
         blastx \
-            -query {input.fna} \
+            -query ../{input.fna} \
             -db {params.db} \
             -outfmt "6 qseqid staxids bitscore std" \
             -max_target_seqs {params.max_target_seqs} \
             -max_hsps 1 \
             -evalue {params.evalue} \
             -num_threads {threads} \
-            > {output}'
+            > ../{output}'
 
 
 rule run_diamond_blastx:
@@ -70,11 +74,13 @@ rule run_diamond_blastx:
         '{assembly}.diamond.{name}.root.{root}{masked}.out'
     wildcard_constraints:
         root='\d+',
-        masked='[minus\d\.]+'
+        masked='.[fm][ulins\d\.]+'
     params:
         db=lambda wc: "%s.root.%s%s" % (wc.name,wc.root,wc.masked),
         evalue=lambda wc:similarity[wc.name]['evalue'],
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
+    conda:
+         '../envs/diamond.yaml'
     threads: 32
     shell:
         '{ENV} \
@@ -94,24 +100,25 @@ rule run_blobtools_taxify:
     """
     input:
         dmnd='{assembly}.diamond.{name}.root.{root}{masked}.out',
+        nodes="%s/data/nodesDB.txt" % config['settings']['blobtools'],
         idmap=lambda wc: "%s/full/%s.taxid_map.gz" % (similarity[wc.name]['local'],wc.name),
-        nodes="%s/data/nodesDB.txt" % config['settings']['blobtools']
     output:
         '{assembly}.diamond.{name}.root.{root}{masked}.taxified.out'
     params:
-        idmap=lambda wc: "%s/full/%s.taxid_map" % (similarity[wc.name]['local'],wc.name),
+        idmap=lambda wc: "%s/%s.taxid_map" % (config['settings']['tmp'],wc.name)
     wildcard_constraints:
         root='\d+',
-        masked='[minus\d\.]+'
+        masked='.[fm][ulins\d\.]+'
     conda:
         '../envs/blobtools.yaml'
     threads: 1
     shell:
         '{ENV} \
-        pigz -dc {input.idmap} > {params.idmap} && \
         PATH=' + config['settings']['blobtools'] + ':$PATH && \
+        pigz -dc {input.idmap} > {params.idmap} && \
         blobtools taxify \
             -f {input.dmnd} \
             -m {params.idmap} \
             -s 0 \
-            -t 1'
+            -t 1 && \
+        rm {params.idmap}'

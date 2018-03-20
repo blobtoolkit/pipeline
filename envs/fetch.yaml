@@ -1,0 +1,16 @@
+name: fetch
+channels:
+  - bioconda
+  - r
+  - defaults
+  - conda-forge
+dependencies:
+  - sra-tools=2.8.2=0
+  - tar=1.29=0
+  - ca-certificates=2017.08.26=h1d4fec5_0
+  - curl=7.58.0=h84994c4_0
+  - libcurl=7.58.0=h1ad7b7a_0
+  - libgcc-ng=7.2.0=hdf63c60_3
+  - libssh2=1.8.0=h9cfc8f7_4
+  - openssl=1.0.2n=hb7f436b_0
+  - zlib=1.2.11=ha838bed_2

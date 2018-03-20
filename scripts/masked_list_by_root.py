@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import gzip
@@ -17,12 +17,9 @@ def graph_to_filenames(graph,root,masks,indir,prefix):
     """
     Generate a list of filenames for the sequences of nested taxids from a root.
     """
-    filenames = {}
-    suffix = ''
-    if masks:
-        suffix = ".minus.%s" % '.'.join(str(mask) for mask in masks)
+    filenames = defaultdict(list)
 
-    def descend(root,list_file):
+    def descend(root):
         """
         Iteratively descend from a root to generate a list of
         filenames unless the child taxid is in the list of taxids to mask.
@@ -32,15 +29,13 @@ def graph_to_filenames(graph,root,masks,indir,prefix):
                 if masks and child in masks:
                     continue
                 taxid = str(child)
-                taxid_file = "%s/%s/%s.fa.gz" %(indir,taxid[-1],taxid)
-                if Path(taxid_file).is_file():
-                    filenames[list_file].append(taxid_file)
-                descend(child,list_file)
+                taxid_file = "%s/%s/%s" %(indir,taxid[-2:].zfill(2),taxid)
+                if Path("%s.fa" % taxid_file).is_file():
+                    filenames[taxid[-2:]].append(taxid_file)
+                descend(child)
         return
 
-    list_file = "%s.root.%s%s.list.gz" % (prefix,root,suffix)
-    filenames[list_file] = []
-    descend(root,list_file)
+    descend(root)
     return filenames
 
 def node_graph(nodes_file):
@@ -65,6 +60,15 @@ def node_graph(nodes_file):
 # optionally with one or more lineages masked.
 graph = node_graph(NODES)
 filenames = graph_to_filenames(graph,ROOT,MASKS,INDIR,PREFIX)
-for filename,filelist in filenames.items():
-    with gzip.open(filename, 'wt') as fh:
-        fh.write('\n'.join(filelist))
+suffix = ''
+if MASKS:
+    suffix = ".minus.%s" % '.'.join(str(mask) for mask in MASKS)
+outdir = "%s.root.%s%s/" %(PREFIX,ROOT,suffix)
+os.makedirs(os.path.dirname(outdir), exist_ok=True)
+dir_list = "%s.root.%s%s/list" % (PREFIX,ROOT,suffix)
+with open(dir_list, 'w') as dl:
+    for directory,files in filenames.items():
+        file_list = "%s%s.list" %(outdir,directory)
+        with open(file_list, 'w') as fh:
+            fh.write('\n'.join(files))
+        dl.write("%s\n" % file_list)

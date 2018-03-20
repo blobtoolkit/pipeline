@@ -34,6 +34,8 @@ rule fetch_assembly:
         temp('{assembly}.fna')
     params:
         url=prepare_assembly_url(config)
+    conda:
+         '../envs/fetch.yaml'
     threads: 1
     resources:
         download=1
@@ -75,6 +77,8 @@ rule fetch_interleaved_sra:
             dict([i, prepare_sra_url(i)] for i in config['reads']['paired'])[wildcards.input]
     output:
         temp('{input}.interleaved.sra')
+    conda:
+         '../envs/fetch.yaml'
     threads: 1
     resources:
         download=1
@@ -89,6 +93,8 @@ rule interleaved_fastq_dump:
         '{sample}.interleaved.sra'
     output:
         temp('{sample}.interleaved.fastq')
+    conda:
+         '../envs/fetch.yaml'
     params:
         sample=lambda wc: wc.sample
     threads: 1

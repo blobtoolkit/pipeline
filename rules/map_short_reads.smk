@@ -6,6 +6,8 @@ rule bwa_index:
         '{assembly}.fna'
     output:
         '{assembly}.fna.bwt'
+    conda:
+         '../envs/bwa.yaml'
     threads: 1
     shell:
         '{ENV} \
@@ -21,10 +23,12 @@ rule interleaved_bwa_mem:
         index='{assembly}.fna.bwt'
     output:
         '{assembly}.{sample}.bam'
+    conda:
+         '../envs/bwa.yaml'
     threads: 32
     shell:
         '{ENV} \
-        bwa mem -M -t {threads} -p {input.fna} {input.fastq} > {output} | \
+        bwa mem -M -t {threads} -p {input.fna} {input.fastq} | \
         samtools sort -O BAM -o {output} -'
 
 rule blobtools_map2cov:
@@ -36,9 +40,12 @@ rule blobtools_map2cov:
         fna='{assembly}.fna'
     output:
         '{assembly}.{sample}.bam.cov'
+    conda:
+         '../envs/blobtools.yaml'
     threads: 1
     shell:
         '{ENV} \
-        PATH=' + config['settings']['blobtools'] + ':$PATH && blobtools map2cov \
+        PATH=' + config['settings']['blobtools'] + ':$PATH && \
+        blobtools map2cov \
             -i {input.fna} \
             -b {input.bam}'
