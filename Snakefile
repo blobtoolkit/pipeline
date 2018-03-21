@@ -1,7 +1,3 @@
-configfile: 'config.yaml'
-
-ENV = config['settings']['environment']
-
 # apply defaults to similarity search databases
 similarity = {}
 for key,value in config['similarity']['defaults'].items():

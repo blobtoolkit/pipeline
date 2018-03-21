@@ -9,16 +9,16 @@ and databases to run the following steps:
 - run similarity searches
 - create Blob
 
-run using a command similar to:
+This is a very resource intensive pipeline wit individual steps requiring up to 128GB RAM. It can be run using a command similar to:
 ```
 snakemake -p --use-conda --directory working_directory/ --resources tmpdir=128 -j 64
 ```
-
-## Before you run the pipeline
-Please note that some steps have yet to be optimised so this is likely to take several days to run and requires a machine with at least 128GB RAM.
+or on a GridEngine cluster:
+```
+snakemake -p --use-conda --directory working_directory/ -j 64 --resources tmpdir=128 --cluster "qsub -v PATH=$PATH -pe smp {threads}"
+```
 
 ## Requirements
 - [Conda](https://conda.io/docs/commands/conda-install.html)
 - [BlobTools](https://github.com/DRL/blobtools)
 - [SnakeMake](http://snakemake.readthedocs.io/en/stable/)
-- Additional conda packages not yet listed

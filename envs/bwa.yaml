@@ -6,17 +6,17 @@ channels:
   - conda-forge
 dependencies:
   - bwa=0.7.17=pl5.22.0_2
-  - samtools=1.7=2
-  - ca-certificates=2018.1.18=0
-  - ncurses=5.9=10
-  - openssl=1.0.2n=0
+  - samtools=1.7=1
   - perl=5.22.0.1=0
   - bzip2=1.0.6=h9a117a8_4
+  - ca-certificates=2017.08.26=h1d4fec5_0
   - curl=7.58.0=h84994c4_0
   - libcurl=7.58.0=h1ad7b7a_0
   - libgcc=7.2.0=h69d50b8_2
   - libgcc-ng=7.2.0=hdf63c60_3
   - libssh2=1.8.0=h9cfc8f7_4
   - libstdcxx-ng=7.2.0=hdf63c60_3
+  - ncurses=6.0=h9df7e31_2
+  - openssl=1.0.2n=hb7f436b_0
   - xz=5.2.3=h55aa19d_2
   - zlib=1.2.11=ha838bed_2

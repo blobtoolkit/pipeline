@@ -38,7 +38,8 @@ rule fetch_assembly:
          '../envs/fetch.yaml'
     threads: 1
     resources:
-        download=1
+        download=1,
+        threads=1
     shell:
         'curl {params.url} | pigz -dc > {output}'
 
@@ -81,7 +82,8 @@ rule fetch_interleaved_sra:
          '../envs/fetch.yaml'
     threads: 1
     resources:
-        download=1
+        download=1,
+        threads=1
     shell:
         'curl {params.url} > {output}'
 
@@ -98,6 +100,7 @@ rule interleaved_fastq_dump:
     params:
         sample=lambda wc: wc.sample
     threads: 1
+    resources:
+        threads=1
     shell:
-        '{ENV} \
-        fastq-dump {input}'
+        'fastq-dump {input}'

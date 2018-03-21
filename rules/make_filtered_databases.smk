@@ -1,9 +1,3 @@
-# ===================================================================== #
-# NB: The rule split_fasta_by_taxid takes too long to run.                  #
-# Need to improve efficiency but size of dataset caused problems with a #
-# simple multiprocessing approach.                                      #
-# ===================================================================== #
-
 rule split_fasta_by_taxid:
     """
     Use taxid_map to split FASTA into one file per taxon.
@@ -22,7 +16,8 @@ rule split_fasta_by_taxid:
          '../envs/py3.yaml'
     threads: 16
     resources:
-        tmpdir=128
+        tmpdir=128,
+        threads=16
     script:
         '../scripts/split_fasta_by_taxid.py'
 
@@ -45,6 +40,8 @@ rule list_sequence_files:
     conda:
          '../envs/py3.yaml'
     threads: 1
+    resources:
+        threads=1
     script:
         '../scripts/masked_list_by_root.py'
 
@@ -68,11 +65,10 @@ rule make_diamond_db:
          '../envs/diamond.yaml'
     threads: 32
     resources:
-        tmpdir=64
-    priority:10
+        tmpdir=64,
+        threads=32
     shell:
-        '{ENV} \
-        mkdir -p {params.tmpdir} && \
+        'mkdir -p {params.tmpdir} && \
         parallel --no-notice -m -P {threads} \
             "awk \'{{print \\$0}}\' {{}} | \
             awk \'{{print \\$0\\".fa\\"}}\' | \
@@ -108,19 +104,19 @@ rule make_blast_db:
          '../envs/blast.yaml'
     threads: 32
     resources:
-        tmpdir=64
+        tmpdir=64,
+        threads=32
     shell:
-        '{ENV} \
-        set +o pipefail && \
+        'set +o pipefail && \
         mkdir -p blast && \
         mkdir -p {params.tmpdir} && \
         > {params.tmpdir}/{params.db}.dblist && \
         parallel -j {threads} \
             --no-notice \
-            "cat {{}} | \
+            "awk \'{{print \\$0}}\' {{}} | \
             awk \'{{print \\$0\\".taxid_map\\"}}\' | \
             xargs cat > {params.tmpdir}/{params.db}.taxid_map_{{#}} && \
-            cat {{}} | \
+            awk \'{{print \\$0}}\' {{}} | \
             awk \'{{print \\$0\\".fa\\"}}\' | \
             xargs cat > {params.tmpdir}/{params.db}.fa_{{#}} && \
             makeblastdb -dbtype {params.dbtype} \

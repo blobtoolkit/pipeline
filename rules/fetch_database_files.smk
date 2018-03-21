@@ -22,10 +22,10 @@ rule fetch_ncbi_fasta:
          '../envs/fetch.yaml'
     threads: 1
     resources:
-        download=1
+        download=1,
+        threads=1
     shell:
-        '{ENV} \
-        curl {params.ftp_url}{params.ftp_dir}/{wildcards.name}.gz > {output.fa}'
+        'curl {params.ftp_url}{params.ftp_dir}/{wildcards.name}.gz > {output.fa}'
 
 rule fetch_ncbi_idmap:
     """
@@ -42,10 +42,10 @@ rule fetch_ncbi_idmap:
          '../envs/fetch.yaml'
     threads: 1
     resources:
-        download=1
+        download=1,
+        threads=1
     shell:
-        '{ENV} \
-        > {output.idmap} && \
+        '> {output.idmap} && \
         for x in "{params.idmap}"; do \
             curl $x | zgrep -v taxid | cut -f2,3 | gzip >> {output.idmap}; \
         done'
@@ -69,38 +69,38 @@ rule fetch_taxdump:
          '../envs/fetch.yaml'
     threads: 1
     resources:
-        download=1
+        download=1,
+        threads=1
     shell:
-        '{ENV} \
-        curl -vs ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz \
+        'curl -vs ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz \
         | tar xzvf - \
         && mv n*s.dmp {params.outdir}'
 
-rule update_blobtools_nodesdb:
-    """
-    Update the BlobTools "nodesDB.txt" file
-    """
-    input:
-        names="%s/names.dmp" % config['settings']['taxonomy'],
-        nodes="%s/nodes.dmp" % config['settings']['taxonomy']
-    output:
-        "%s/data/nodesDB.txt" % config['settings']['blobtools']
-    conda:
-         '../envs/blobtools.yaml'
-    threads: 1
-    shell:
-        '{ENV} \
-        PATH=' + config['settings']['blobtools'] + ':$PATH && \
-        blobtools nodesdb \
-            --nodes {input.nodes} \
-            --names {input.names}'
+# rule update_blobtools_nodesdb:
+#     """
+#     Update the BlobTools "nodesDB.txt" file
+#     """
+#     input:
+#         names="%s/names.dmp" % config['settings']['taxonomy'],
+#         nodes="%s/nodes.dmp" % config['settings']['taxonomy']
+#     output:
+#         "%s/data/nodesDB.txt" % config['settings']['blobtools']
+#     conda:
+#          '../envs/blobtools.yaml'
+#     threads: 1
+#     shell:
+#         '{ENV} \
+#         PATH=' + config['settings']['blobtools'] + ':$PATH && \
+#         blobtools nodesdb \
+#             --nodes {input.nodes} \
+#             --names {input.names}'
 
 rule fetch_uniprot:
     """
     Fetch tarred Uniprot archive
     """
     output:
-        '{path}/full/{name}.tar.gz'
+        temp('{path}/full/{name}.tar.gz')
     wildcard_constraints:
         # NB: the path to the local copy of the file must contain the string 'uniprot'
         path='.+uniprot.+'
@@ -111,10 +111,10 @@ rule fetch_uniprot:
          '../envs/fetch.yaml'
     threads: 1
     resources:
-        download=1
+        download=1,
+        threads=1
     shell:
-        '{ENV} \
-        curl {params.ftp_url}/{params.ftp_dir}/$(curl \
+        'curl {params.ftp_url}/{params.ftp_dir}/$(curl \
             -vs {params.ftp_url}/{params.ftp_dir}/ 2>&1 | \
             awk \'/tar.gz/ {{print $9}}\') > {output}'
 
@@ -136,6 +136,7 @@ rule extract_uniprot:
          '../envs/py3.yaml'
     threads: 1
     resources:
-        tmpdir=24
+        tmpdir=24,
+        threads=1
     script:
         '../scripts/extract_uniprot.py'

@@ -1,3 +1,5 @@
+BWA_INDEX = ['amb','ann','bwt','pac','sa']
+
 rule bwa_index:
     """
     Index an assembly FASTA file for use with BWA
@@ -5,13 +7,14 @@ rule bwa_index:
     input:
         '{assembly}.fna'
     output:
-        '{assembly}.fna.bwt'
+        temp(expand('{{assembly}}.fna.{suffix}',suffix=BWA_INDEX))
     conda:
          '../envs/bwa.yaml'
     threads: 1
+    resources:
+        threads=1
     shell:
-        '{ENV} \
-        bwa index -a bwtsw {input}'
+        'bwa index -a bwtsw {input}'
 
 rule interleaved_bwa_mem:
     """
@@ -20,15 +23,16 @@ rule interleaved_bwa_mem:
     input:
         fastq='{sample}.interleaved.fastq',
         fna='{assembly}.fna',
-        index='{assembly}.fna.bwt'
+        index=expand('{{assembly}}.fna.{suffix}',suffix=BWA_INDEX)
     output:
-        '{assembly}.{sample}.bam'
+        temp('{assembly}.{sample}.bam')
     conda:
          '../envs/bwa.yaml'
     threads: 32
+    resources:
+        threads=32
     shell:
-        '{ENV} \
-        bwa mem -M -t {threads} -p {input.fna} {input.fastq} | \
+        'bwa mem -M -t {threads} -p {input.fna} {input.fastq} | \
         samtools sort -O BAM -o {output} -'
 
 rule blobtools_map2cov:
@@ -39,13 +43,13 @@ rule blobtools_map2cov:
         bam='{assembly}.{sample}.bam',
         fna='{assembly}.fna'
     output:
-        '{assembly}.{sample}.bam.cov'
+        temp('{assembly}.{sample}.bam.cov')
     conda:
          '../envs/blobtools.yaml'
     threads: 1
+    resources:
+        threads=1
     shell:
-        '{ENV} \
-        PATH=' + config['settings']['blobtools'] + ':$PATH && \
-        blobtools map2cov \
+        'blobtools map2cov \
             -i {input.fna} \
             -b {input.bam}'

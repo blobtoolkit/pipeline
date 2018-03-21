@@ -17,9 +17,10 @@ rule run_blastn:
     conda:
          '../envs/blast.yaml'
     threads: 32
+    resources:
+        threads=32
     shell:
-        '{ENV} \
-        cd blast && \
+        'cd blast && \
         blastn \
             -query ../{input.fna} \
             -db {params.db} \
@@ -49,9 +50,10 @@ rule run_blastx:
     conda:
          '../envs/blast.yaml'
     threads: 32
+    resources:
+        threads=32
     shell:
-        '{ENV} \
-        cd blast && \
+        'cd blast && \
         blastx \
             -query ../{input.fna} \
             -db {params.db} \
@@ -82,9 +84,10 @@ rule run_diamond_blastx:
     conda:
          '../envs/diamond.yaml'
     threads: 32
+    resources:
+        threads=32
     shell:
-        '{ENV} \
-        diamond blastx \
+        'diamond blastx \
             --query {input.fna} \
             --db {params.db} \
             --outfmt 6 \
@@ -100,7 +103,6 @@ rule run_blobtools_taxify:
     """
     input:
         dmnd='{assembly}.diamond.{name}.root.{root}{masked}.out',
-        nodes="%s/data/nodesDB.txt" % config['settings']['blobtools'],
         idmap=lambda wc: "%s/full/%s.taxid_map.gz" % (similarity[wc.name]['local'],wc.name),
     output:
         '{assembly}.diamond.{name}.root.{root}{masked}.taxified.out'
@@ -112,10 +114,10 @@ rule run_blobtools_taxify:
     conda:
         '../envs/blobtools.yaml'
     threads: 1
+    resources:
+        threads=1
     shell:
-        '{ENV} \
-        PATH=' + config['settings']['blobtools'] + ':$PATH && \
-        pigz -dc {input.idmap} > {params.idmap} && \
+        'pigz -dc {input.idmap} > {params.idmap} && \
         blobtools taxify \
             -f {input.dmnd} \
             -m {params.idmap} \

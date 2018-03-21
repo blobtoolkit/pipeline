@@ -23,8 +23,7 @@ rule blobtools_create:
     input:
         assembly='{assembly}.fna',
         dbs=list_similarity_results(config),
-        coverage=expand('{{assembly}}.{sample}.bam.cov',sample=config['reads']['paired']),
-        taxonomy="%s/data/nodesDB.txt" % config['settings']['blobtools']
+        coverage=expand('{{assembly}}.{sample}.bam.cov',sample=config['reads']['paired'])
     output:
         '{assembly}.blobDB.json'
     params:
@@ -35,13 +34,12 @@ rule blobtools_create:
     conda:
         '../envs/blobtools.yaml'
     threads: 1
+    resources:
+        threads=1
     shell:
-        '{ENV} \
-        PATH=' + config['settings']['blobtools'] + ':$PATH && \
-        blobtools create \
+        'blobtools create \
             -i {input.assembly} \
             {params.dbs} \
             -x "{params.taxrule}" \
-            --db {input.taxonomy} \
             {params.coverage} \
             -o {params.assembly}'
