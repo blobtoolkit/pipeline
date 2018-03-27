@@ -7,6 +7,7 @@ channels:
 dependencies:
   - diamond=0.9.19=1
   - parallel=20170422=pl5.22.0_0
+  - seqtk=1.2=1
   - perl=5.22.0.1=0
   - libgcc=7.2.0=h69d50b8_2
   - libgcc-ng=7.2.0=hdf63c60_3

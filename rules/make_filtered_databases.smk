@@ -1,6 +1,6 @@
-rule split_fasta_by_taxid:
+rule expand_and_split_fasta:
     """
-    Use taxid_map to split FASTA into one file per taxon.
+    Use taxid_map to split FASTA into 100 files by taxid ending.
     Duplicate sequences in non-redundant databases so each taxon listed in
     header is represented by a single sequence.
     """
@@ -11,19 +11,20 @@ rule split_fasta_by_taxid:
         touch('{path}/split/{name}.done')
     params:
         tmpdir="%s/by_taxid" % config['settings']['tmp'],
-        chunk=config['settings']['chunk']
+        chunk=config['settings']['chunk'],
+        outdir=lambda wc: "%s/split/%s" % (wc.path,wc.name),
     conda:
          '../envs/py3.yaml'
-    threads: 16
+    threads: 8
     resources:
         tmpdir=128,
-        threads=16
+        threads=8
     script:
-        '../scripts/split_fasta_by_taxid.py'
+        '../scripts/expand_and_split_fasta.py'
 
-rule list_sequence_files:
+rule make_masked_lists:
     """
-    Generate a list of per-taxon sequence files needed to create a custom
+    Generate a list of accessions needed to create a custom
     database containing all descendants of a specified root, optionally
     with one or more lineages masked.
     """
@@ -31,19 +32,21 @@ rule list_sequence_files:
         nodes="%s/nodes.dmp" % config['settings']['taxonomy'],
         split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name)
     output:
-        '{name}.root.{root}{masked}/list'
+        'blast/{name}.root.{root}{masked}.lists'
     wildcard_constraints:
         root='\d+'
     params:
         mask_ids=lambda wc: similarity[wc.name]['mask_ids'],
-        indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name)
+        db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked)),
+        indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name),
+        chunk=config['settings']['chunk']
     conda:
          '../envs/py3.yaml'
     threads: 1
     resources:
         threads=1
     script:
-        '../scripts/masked_list_by_root.py'
+        '../scripts/make_masked_lists.py'
 
 rule make_diamond_db:
     """
@@ -52,13 +55,14 @@ rule make_diamond_db:
     """
     input:
         split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
-        lists='{name}.root.{root}{masked}/list'
+        lists='blast/{name}.root.{root}{masked}.lists'
     output:
         '{name}.root.{root}{masked}.dmnd'
     params:
         outfile=lambda wc: str("%s.root.%s%s.dmnd" % (wc.name,wc.root,wc.masked)),
         db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked)),
-        tmpdir="%s" % config['settings']['tmp']
+        tmpdir="%s" % config['settings']['tmp'],
+        indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name)
     wildcard_constraints:
         root='\d+'
     conda:
@@ -68,18 +72,12 @@ rule make_diamond_db:
         tmpdir=64,
         threads=32
     shell:
-        'mkdir -p {params.tmpdir} && \
-        parallel --no-notice -m -P {threads} \
-            "awk \'{{print \\$0}}\' {{}} | \
-            awk \'{{print \\$0\\".fa\\"}}\' | \
-            xargs cat" \
-            :::: {input.lists} \
-            > {params.tmpdir}/{params.db}.fa && \
+        'parallel --no-notice -j {threads} \
+            "seqtk subseq {params.indir}/{{}}.fa.gz blast/{params.db}_{{}}.accessions" \
+            :::: {input.lists} | \
         diamond makedb \
-            --in {params.tmpdir}/{params.db}.fa \
             -p {threads} \
-            -d {params.outfile} && \
-        rm {params.tmpdir}/{params.db}.fa'
+            -d {params.outfile}'
 
 
 rule make_blast_db:
@@ -89,8 +87,7 @@ rule make_blast_db:
     """
     input:
         split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
-        idmap=lambda wc: "%s/full/%s.taxid_map.gz" % (similarity[wc.name]['local'],wc.name),
-        lists='{name}.root.{root}{masked}/list'
+        lists='blast/{name}.root.{root}{masked}.lists'
     output:
         db='blast/{name}.root.{root}{masked}.{suffix}'
     wildcard_constraints:
@@ -98,6 +95,7 @@ rule make_blast_db:
         root='\d+'
     params:
         dbtype=lambda wc: 'prot' if wc.suffix == 'pal' else 'nucl',
+        indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name),
         db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked)),
         tmpdir="%s" % config['settings']['tmp']
     conda:
@@ -113,21 +111,16 @@ rule make_blast_db:
         > {params.tmpdir}/{params.db}.dblist && \
         parallel -j {threads} \
             --no-notice \
-            "awk \'{{print \\$0}}\' {{}} | \
-            awk \'{{print \\$0\\".taxid_map\\"}}\' | \
-            xargs cat > {params.tmpdir}/{params.db}.taxid_map_{{#}} && \
-            awk \'{{print \\$0}}\' {{}} | \
-            awk \'{{print \\$0\\".fa\\"}}\' | \
-            xargs cat > {params.tmpdir}/{params.db}.fa_{{#}} && \
+            "pigz -dc {params.indir}/{{}}.taxid_map.gz \
+                > {params.tmpdir}/{params.db}_{{}}.taxid_map && \
+            seqtk subseq {params.indir}/{{}}.fa.gz blast/{params.db}_{{}}.accessions | \
             makeblastdb -dbtype {params.dbtype} \
-                        -in {params.tmpdir}/{params.db}.fa_{{#}} \
-                        -title {params.db}_{{#}} \
-                        -out blast/{params.db}_{{#}} \
+                        -title {params.db}_{{}} \
+                        -out blast/{params.db}_{{}} \
                         -parse_seqids \
-                        -taxid_map {params.tmpdir}/{params.db}.taxid_map_{{#}} && \
-            echo {params.db}_{{#}} >> {params.tmpdir}/{params.db}.dblist && \
-            rm {params.tmpdir}/{params.db}.fa_{{#}} && \
-            rm {params.tmpdir}/{params.db}.taxid_map_{{#}}" \
+                        -taxid_map {params.tmpdir}/{params.db}_{{}}.taxid_map && \
+            echo {params.db}_{{}} >> {params.tmpdir}/{params.db}.dblist && \
+            rm {params.tmpdir}/{params.db}_{{}}.taxid_map" \
             :::: {input.lists} && \
         cd blast && \
         blastdb_aliastool -dblist_file {params.tmpdir}/{params.db}.dblist \

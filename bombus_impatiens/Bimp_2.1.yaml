@@ -3,13 +3,14 @@ assembly:
   insdc: AEQM02000000
   accession: GCA_000188095.3
   bioproject: PRJNA61101
-  source: ebi
+  source: ncbi
 
 reads:
-  source: ebi
+  source: ncbi
   paired:
-    - SRR1575123
     - SRR1575221
+  extra:
+    - SRR1575123
     - SRR1575230
 
 similarity:
