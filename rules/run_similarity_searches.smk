@@ -103,10 +103,12 @@ rule run_blobtools_taxify:
     """
     input:
         dmnd='{assembly}.diamond.{name}.root.{root}{masked}.out',
-        idmap=lambda wc: "%s/full/%s.taxid_map.gz" % (similarity[wc.name]['local'],wc.name),
+        split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
+        lists='blast/{name}.root.{root}{masked}.lists'
     output:
         '{assembly}.diamond.{name}.root.{root}{masked}.taxified.out'
     params:
+        indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name),
         idmap=lambda wc: "%s/%s.taxid_map" % (config['settings']['tmp'],wc.name)
     wildcard_constraints:
         root='\d+',
@@ -117,7 +119,9 @@ rule run_blobtools_taxify:
     resources:
         threads=1
     shell:
-        'pigz -dc {input.idmap} > {params.idmap} && \
+        'parallel --no-notice -j {threads} \
+            "gunzip -c {params.indir}/{{}}.taxid_map.gz" \
+            :::: {input.lists} > {params.idmap} && \
         blobtools taxify \
             -f {input.dmnd} \
             -m {params.idmap} \

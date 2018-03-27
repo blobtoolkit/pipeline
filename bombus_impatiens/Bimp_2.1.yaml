@@ -1,15 +1,14 @@
 assembly:
-  name: Bimp_2.1
+  name: BIMP_2.1
   insdc: AEQM02000000
   accession: GCA_000188095.3
   bioproject: PRJNA61101
-  source: ncbi
+  source: ebi
 
 reads:
-  source: ncbi
+  source: ebi
   paired:
     - SRR1575221
-  extra:
     - SRR1575123
     - SRR1575230
 

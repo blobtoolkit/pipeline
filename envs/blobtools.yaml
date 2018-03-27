@@ -1,20 +1,11 @@
 name: blobtools
 channels:
+  - anaconda
   - bioconda
   - r
   - defaults
   - conda-forge
 dependencies:
-  - ca-certificates=2018.1.18=0
-  - fontconfig=2.13.0=0
-  - freetype=2.8.1=0
-  - libxcb=1.13=0
-  - libxml2=2.9.8=0
-  - pip=9.0.1=py27_0
-  - setuptools=39.0.1=py27_0
-  - tornado=5.0.1=py27_1
-  - xorg-libxau=1.0.8=3
-  - xorg-libxdmcp=1.1.2=3
   - backports=1.0=py27h63c9359_1
   - backports.functools_lru_cache=1.5=py27_1
   - backports_abc=0.5=py27h7b3c97b_0
@@ -48,6 +39,7 @@ dependencies:
   - openssl=1.0.2n=hb7f436b_0
   - pcre=8.41=hc27e229_1
   - perl=5.26.0=hae598fd_0
+  - pip=9.0.1=py27_0
   - pyparsing=2.2.0=py27hf1513f8_1
   - pyqt=5.6.0=py27h4b1e83c_5
   - python=2.7.14=h1571d57_30
@@ -61,6 +53,16 @@ dependencies:
   - sqlite=3.22.0=h1bed415_0
   - subprocess32=3.2.7=py27h373dbce_0
   - tk=8.6.7=hc745277_3
+  - ujson=1.35=py27_0
   - wheel=0.30.0=py27h2bc6bb2_1
   - xz=5.2.3=h55aa19d_2
   - zlib=1.2.11=ha838bed_2
+  - ca-certificates=2018.1.18=0
+  - fontconfig=2.13.0=0
+  - freetype=2.8.1=0
+  - libxcb=1.13=0
+  - libxml2=2.9.8=0
+  - setuptools=39.0.1=py27_0
+  - tornado=5.0.1=py27_1
+  - xorg-libxau=1.0.8=3
+  - xorg-libxdmcp=1.1.2=3
