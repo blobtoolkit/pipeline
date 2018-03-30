@@ -1,0 +1,34 @@
+__default__:
+  pe: smp64
+  threads: '{threads}'
+fetch_assembly:
+  pe: smp
+fetch_paired_fastq:
+  pe: smp
+fetch_fastq:
+  pe: smp
+fetch_ncbi_fasta:
+  pe: smp
+fetch_ncbi_idmap:
+  pe: smp
+fetch_taxdump:
+  pe: smp
+fetch_uniprot:
+  pe: smp
+make_masked_lists:
+  pe: smp
+bwa_index:
+  pe: smp
+blobtools_create:
+  pe: smp
+run_blastn:
+  pe: smp
+  threads: 30
+run_blastx:
+  pe: smp
+  threads: 30
+run_diamond_blastx:
+  pe: smp
+  threads: 30
+run_blobtools_taxify:
+  pe: smp
