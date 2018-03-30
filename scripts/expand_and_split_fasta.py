@@ -14,7 +14,7 @@ import timeit
 # set variables from snakemake params, wildcards, input and threads
 CHUNK = snakemake.params.chunk
 NAME = snakemake.wildcards.name
-TMPDIR = "%s/%s" % (snakemake.params.tmpdir,NAME)
+TMPDIR = snakemake.params.tmpdir
 THREADS = snakemake.threads
 FASTAFILE = snakemake.input.fa
 MAPFILE = snakemake.input.idmap

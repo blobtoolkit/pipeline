@@ -10,7 +10,7 @@ rule expand_and_split_fasta:
     output:
         touch('{path}/split/{name}.done')
     params:
-        tmpdir="%s/by_taxid" % config['settings']['tmp'],
+        tmpdir=lambda wc: "%s/%s" % (config['settings']['tmp'],wc.name),
         chunk=config['settings']['chunk'],
         outdir=lambda wc: "%s/split/%s" % (wc.path,wc.name),
     conda:
@@ -61,7 +61,6 @@ rule make_diamond_db:
     params:
         outfile=lambda wc: str("%s.root.%s%s.dmnd" % (wc.name,wc.root,wc.masked)),
         db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked)),
-        tmpdir="%s" % config['settings']['tmp'],
         indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name)
     wildcard_constraints:
         root='\d+'
@@ -69,7 +68,6 @@ rule make_diamond_db:
          '../envs/diamond.yaml'
     threads: 32
     resources:
-        tmpdir=64,
         threads=32
     shell:
         'parallel --no-notice -j {threads} \

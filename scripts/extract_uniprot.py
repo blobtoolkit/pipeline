@@ -8,7 +8,7 @@ import glob
 import shutil
 
 # Set variables from snakemake params/wildcards
-TMPDIR = "%s/%s/" % (snakemake.params.tmpdir,snakemake.wildcards.name)
+TMPDIR = snakemake.params.tmpdir
 PATH = snakemake.wildcards.path
 NAME = snakemake.wildcards.name
 TARFILE = "%s/full/%s.tar.gz" % (PATH,NAME)
@@ -72,4 +72,4 @@ for f in mapping_files:
 
 # remove the temporary directory and any remaining content
 if createtmp:
-    shutil.rmtree(tmpdir)shutil.rmtree(TMPDIR)
+    shutil.rmtree(tmpdir)

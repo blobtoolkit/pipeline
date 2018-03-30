@@ -128,7 +128,7 @@ rule extract_uniprot:
         '{path}/full/{name}.fa.gz',
         '{path}/full/{name}.taxid_map.gz'
     params:
-        tmpdir=config['settings']['tmp']
+        tmpdir=lambda wc: "%s/%s" % (config['settings']['tmp'],wc.name)
     wildcard_constraints:
         # NB: the path to the local copy of the file must contain the string 'uniprot'
         path='.+uniprot.+'
