@@ -10,10 +10,12 @@ from collections import defaultdict
 from copy import deepcopy
 import taxonomy
 
-NODES = '/Users/rchallis/tmp/btk_taxonomy/nodes.dmp'
-RANK = 'genus'
+# TODO: set these with command line options
+NODES = 'nodes.dmp' 
+RANK = 'genus' # used to determine database masking level
 ROOT = 2759 # Eukaryota
 ROOT = 7088 # Lepidoptera
+STEP = 50 # how many assembly records to request at a time
 DEFAULT_META = {}
 
 if os.path.isfile(sys.argv[1]):
@@ -29,11 +31,6 @@ which read data are available.
 Group generated files in directories by <RANK> to simplify reuse of filtered
 BLAST databases.
 """
-
-# TODO: decide criteria for selecting reads
-#       update rules to accommodate changes in config file
-#       integrate into snakemake pipeline
-
 
 def count_assemblies(root):
     """
@@ -61,7 +58,6 @@ def deep_find_text(data,tags):
         except:
             return None
     return data.text
-
 
 def list_assemblies(root,offset,count):
     """
@@ -103,32 +99,7 @@ def assembly_meta(asm,default_meta):
                 meta['assembly']['span'] = int(attribute.find('VALUE').text)
             elif attribute.find('TAG').text == 'scaffold-count':
                 meta['assembly']['scaffold-count'] = int(attribute.find('VALUE').text)
-
     return meta
-
-# def assembly_reads(bioproject):
-#     """
-#     Query INSDC reads for a <bioproject>.
-#     Return a dict of SRA accession, FASTQ ftp url, md5 and file size.
-#     """
-#     warehouse = 'https://www.ebi.ac.uk/ena/data/warehouse'
-#     url = ("%s/filereport?accession=%s&result=read_run&fields=run_accession,fastq_bytes,library_strategy,library_selection,library_layout,instrument_platform"
-#         % (warehouse,bioproject))
-#     response = requests.get(url)
-#     sra = None
-#     if response.ok:
-#         lines = response.content.decode('utf-8').splitlines()
-#         if len(lines) > 1:
-#             sra = defaultdict(dict)
-#             header = lines[0].split('\t')
-#             for line in lines[1:]:
-#                 fields = line.split('\t')
-#                 for i in range(1,len(header)):
-#                     value = fields[i]
-#                     if header[i] == 'fastq_bytes':
-#                         value = fields[i].split(';')
-#                     sra[fields[0]].update({header[i]:value})
-#     return sra
 
 def assembly_reads(biosample):
     """
@@ -158,7 +129,7 @@ graph = taxonomy.node_graph(NODES)
 parents = taxonomy.parents_at_rank(graph,ROOT,RANK)
 asm_count = count_assemblies(ROOT)
 
-step = 50
+step = STEP
 for offset in range(1,asm_count+1,step):
     count = step if offset + step < asm_count else asm_count - offset + 1
     print("%d: %d" % (offset,count))
