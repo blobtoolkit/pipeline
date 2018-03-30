@@ -1,53 +1,52 @@
+taxon:
+  name: Manduca sexta
+  taxid: 7130
+  genus: 7129
 assembly:
-  name: CaeLat1.0
-  insdc: NIPN01000000
-  accession: GCA_002259235.1
-  bioproject: PRJNA248912
-  source: ebi
-
+  accession: GCA_000262585.1
+  alias: Msex_1.0
+  bioproject: PRJNA81037
+  biosample: SAMN00779869
+  level: scaffold
+  prefix: AIXA01
+  scaffold-count: 20871
+  span: 419424057
 reads:
-  source: ebi
-  paired:
-    - SRR5831577
-    - SRR5831578
-    - SRR5831580
-
+  CAPILLARY:
+    WGS:
+      single: [SRR2762665]
+  LS454:
+    WGS:
+      paired: [SRR403247, SRR403248, SRR403249, SRR403250, SRR403251, SRR403252, SRR403253,
+        SRR403254, SRR403255, SRR403256, SRR403257, SRR403258, SRR403259, SRR403260,
+        SRR403261, SRR403262, SRR403263, SRR403264, SRR403265, SRR403266, SRR403267,
+        SRR403268, SRR403270, SRR403271, SRR403274, SRR403281]
+      single: [SRR403269, SRR403272, SRR403273, SRR403275, SRR403276, SRR403277, SRR403278,
+        SRR403279, SRR403280, SRR403282, SRR403283, SRR403284, SRR403285, SRR403286,
+        SRR403287, SRR403288, SRR403289, SRR403290, SRR403291, SRR403292, SRR403293,
+        SRR403294, SRR403295, SRR403296, SRR403297, SRR403298]
 similarity:
-  taxrule: bestsumorder
   defaults:
-    type: prot
-    tool: diamond
     source: ncbi
-    local: /path/to/ncbi_YYYY_MM
+    tool: blast
+    type: nucl
+    local: /path/to/ncbi_2018_02
     root: 1
-    mask_ids:
-      - 6237
+    mask_ids: [7129]
     evalue: 1e-25
     max_target_seqs: 10
   databases:
-    - type: nucl
-      name: nt
-      tool: blast
-      idmap:
-        - nucl_est
-        - nucl_gb
-        - nucl_gss
-        - nucl_wgs
-        - pdb
-    - name: nr
-      idmap:
-        - prot
-      max_target_seqs: 1
-    - name: reference_proteomes
-      source: uniprot
-      local: /path/to/uniprot_YYYY_MM
-      max_target_seqs: 1
-
+  - name: nt
+    type: nucl
+    idmap: [nucl_est, nucl_gb, nucl_gss, nucl_wgs, pdb]
+  - name: reference_proteomes
+    source: uniprot
+    tool: diamond
+    type: prot
+    local: /path/to/uniprot_2018_02
+    max_target_seqs: 1
+  taxrule: bestsumorder
 settings:
-  taxonomy: /path/to/ncbi_taxonomy
-  blobtools: /path/to/blobtools
-  out: /path/to/outdir
-  tmp: /dev/shm
   chunk: 1000000
-  environment: ''
-  gridengine_environment: 'PATH=${PATH-}:/ceph/software/conda/bin/ && PS1=${PS1-} && CONDA_PATH_BACKUP=${CONDA_PATH_BACKUP-} && source activate btk_env && '
+  taxonomy: /path/to/ncbi_taxonomy
+  tmp: /tmp
