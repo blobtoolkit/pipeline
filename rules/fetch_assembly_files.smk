@@ -43,7 +43,7 @@ rule fetch_fastq:
     params:
         sra = lambda wc: wc.sra
     wildcard_constraints:
-        sra='[ES]RR\d+'
+        sra='\w\w\w\d+'
     conda:
          '../envs/py3.yaml'
     threads: 1

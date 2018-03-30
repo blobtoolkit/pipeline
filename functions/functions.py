@@ -12,7 +12,7 @@ def apply_similarity_search_defaults():
             similarity.update({db['name']:db})
     return similarity
 
-def select_read_accessions():
+def select_read_accessions(strategy):
     """
     Select read accessions to map to an assembly (up to 2 read accessions per
     platform) unless paired/single read accessions are already specified.
@@ -21,26 +21,28 @@ def select_read_accessions():
     if 'paired' in config['reads'] or 'single' in config['reads']:
         return config['reads']
     reads = {'paired':[],'single':[]}
-    platforms = [k for k,v in config['reads'].items() if 'WGS' in v]
+    platforms = [k for k,v in config['reads'].items() if strategy in v]
+    if not platforms:
+        reads = None
     top_reads = {}
     for p in platforms:
         top_reads.update({p:{}})
         ctr = 0
-        if 'paired' in config['reads'][p]['WGS']:
+        if 'paired' in config['reads'][p][strategy]:
             top_reads[p]['paired'] = []
-            if len(config['reads'][p]['WGS']['paired']) > 1:
-                top_reads[p]['paired'] = config['reads'][p]['WGS']['paired'][:2]
+            if len(config['reads'][p][strategy]['paired']) > 1:
+                top_reads[p]['paired'] = config['reads'][p][strategy]['paired'][:2]
                 ctr = 2
             else:
-                top_reads[p]['paired'] = config['reads'][p]['WGS']['paired']
+                top_reads[p]['paired'] = config['reads'][p][strategy]['paired']
                 ctr = 1
             reads['paired'] += top_reads[p]['paired']
         if ctr < 2:
-            if 'single' in config['reads'][p]['WGS']:
-                top_reads[p]['single'] = [config['reads'][p]['WGS']['single'][0]]
+            if 'single' in config['reads'][p][strategy]:
+                top_reads[p]['single'] = [config['reads'][p][strategy]['single'][0]]
                 ctr += 1
-                if ctr < 2 and len(config['reads'][p]['WGS']['single']) > 1:
-                    top_reads[p]['single'].append(config['reads'][p]['WGS']['single'][1])
+                if ctr < 2 and len(config['reads'][p][strategy]['single']) > 1:
+                    top_reads[p]['single'].append(config['reads'][p][strategy]['single'][1])
                 reads['single'] += top_reads[p]['single']
     return reads
 

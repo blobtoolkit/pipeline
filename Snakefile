@@ -23,7 +23,9 @@ Basic usage:
 include: 'functions/functions.py'
 
 similarity = apply_similarity_search_defaults()
-reads = select_read_accessions()
+reads = select_read_accessions('WGA')
+if not reads:
+    reads = select_read_accessions('RNA-Seq')
 
 rule all:
     """
