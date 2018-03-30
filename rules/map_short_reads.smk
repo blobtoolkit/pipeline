@@ -1,5 +1,3 @@
-BWA_INDEX = ['amb','ann','bwt','pac','sa']
-
 rule bwa_index:
     """
     Index an assembly FASTA file for use with BWA

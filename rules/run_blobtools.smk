@@ -1,28 +1,3 @@
-def list_similarity_results(config):
-    """
-    Generate a list of output filenames for sequence similarity searches
-    based on list of databases in "config['similarity']".
-    """
-    path = []
-    for db in config['similarity']['databases']:
-        suffix = 'out' if db['tool'] == 'blast' else 'taxified.out'
-        program = 'blastn' if db['type'] == 'nucl' else 'blastx' if db['tool'] == 'blast' else 'diamond'
-        masked = ''
-        if 'mask_ids' in db and isinstance(db['mask_ids'],(list,)):
-            masked = "minus.%s" % '.'.join(str(mask) for mask in db['mask_ids'])
-        else:
-            masked = 'full'
-        path.append("%s.%s.%s.root.%s.%s.%s" % (config['assembly']['prefix'],program,db['name'],db['root'],masked,suffix))
-    return path
-
-def list_sra_accessions():
-    """
-    Return a list SRA accessions.
-    """
-    accessions = list(map(lambda sra: sra,reads['paired']))
-    accessions += list(map(lambda sra: sra,reads['single']))
-    return accessions
-
 rule blobtools_create:
     """
     Use BlobTools create to generate a BlobDB using the ordered similarity

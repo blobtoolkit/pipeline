@@ -1,11 +1,3 @@
-def ncbi_idmap(name):
-    """
-    Make a list of remote "accession2taxid" files to download
-    """
-    url = 'ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid'
-    db = similarity[name]
-    return ' '.join(list(map(lambda x: "%s/%s.accession2taxid.gz" % (url,x),db['idmap'])))
-
 rule fetch_ncbi_fasta:
     """
     Fetch FASTA files corresponding to NCBI BLAST databases

@@ -64,7 +64,6 @@ rule run_blastx:
             -num_threads {threads} \
             > ../{output}'
 
-
 rule run_diamond_blastx:
     """
     Run Diamond blastx to search protein database with assembly query.

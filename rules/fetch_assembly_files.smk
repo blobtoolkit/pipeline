@@ -1,9 +1,3 @@
-# def assembly_url(prefix):
-#     """
-#     Generate a URL for an assembly at EBI.
-#     """
-#     return "https://www.ebi.ac.uk/ena/data/view/%s&set=true&display=fasta" % prefix
-
 rule fetch_assembly:
     """
     Fetch a remote assembly from EBI or NCBI.
@@ -21,24 +15,6 @@ rule fetch_assembly:
     shell:
         'enaDataGet -f fasta {params.assembly} && \
         pigz -d {output}.gz'
-
-# def paired_fastq_url(acc):
-#     """
-#     Generate a URL for an SRA accession at EBI.
-#     """
-#     base = 'ftp://ftp.sra.ebi.ac.uk/vol1/fastq'
-#     subdir = "/00%s" % acc[-1:] if len(acc) == 10 else ''
-#     url = "%s/%s%s/%s/%s" % ( base, acc[:6], subdir, acc, acc )
-#     return ["%s_%d.fastq.gz" % (url,i) for i in range(1,3)]
-#
-# def fastq_url(acc):
-#     """
-#     Generate a URL for an SRA accession at EBI.
-#     """
-#     # TODO: amend rule to allow length > 10
-#     base = 'ftp://ftp.sra.ebi.ac.uk/vol1/fastq'
-#     subdir = "/00%s" % acc[-1:] if len(acc) == 10 else ''
-#     return "%s/%s%s/%s/%s.fastq.gz" % ( base, acc[:6], subdir, acc, acc )
 
 rule fetch_paired_fastq:
     """
@@ -67,7 +43,7 @@ rule fetch_fastq:
     params:
         sra = lambda wc: wc.sra
     wildcard_constraints:
-        sra='SRR\d+'
+        sra='[ES]RR\d+'
     conda:
          '../envs/py3.yaml'
     threads: 1
