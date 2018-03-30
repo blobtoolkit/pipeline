@@ -13,12 +13,17 @@ def apply_similarity_search_defaults():
     return similarity
 
 def select_read_accessions():
+    """
+    Select read accessions to map to an assembly (up to 2 read accessions per
+    platform) unless paired/single read accessions are already specified.
+    Return a dict containing lists of read accessions to use.
+    """
+    if 'paired' in config['reads'] or 'single' in config['reads']:
+        return config['reads']
     reads = {'paired':[],'single':[]}
     platforms = [k for k,v in config['reads'].items() if 'WGS' in v]
     top_reads = {}
     for p in platforms:
-        # if p == 'CAPILLARY':
-        #     continue
         top_reads.update({p:{}})
         ctr = 0
         if 'paired' in config['reads'][p]['WGS']:
