@@ -9,3 +9,7 @@ scripts/standalone_split_fasta_by_taxid.py
 scripts/old_split_fasta_by_taxid.py
 scripts/make_masked_db.py
 bombus_terrestris/
+scripts/yaml
+lepidoptera/
+lepidoptera_L/
+scripts/__pycache__/

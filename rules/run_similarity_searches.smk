@@ -3,7 +3,7 @@ rule run_blastn:
     Run NCBI blastn to search nucleotide database with assembly query.
     """
     input:
-        fna='{assembly}.fna',
+        fasta='{assembly}.fasta',
         db='blast/{name}.root.{root}{masked}.nal'
     output:
         '{assembly}.blastn.{name}.root.{root}{masked}.out'
@@ -22,7 +22,7 @@ rule run_blastn:
     shell:
         'cd blast && \
         blastn \
-            -query ../{input.fna} \
+            -query ../{input.fasta} \
             -db {params.db} \
             -outfmt "6 qseqid staxids bitscore std" \
             -max_target_seqs {params.max_target_seqs} \
@@ -36,7 +36,7 @@ rule run_blastx:
     Run NCBI blastx to search protein database with assembly query.
     """
     input:
-        fna='{assembly}.fna',
+        fasta='{assembly}.fasta',
         db='blast/{name}.root.{root}{masked}.pal'
     output:
         '{assembly}.blastx.{name}.root.{root}{masked}.out'
@@ -55,7 +55,7 @@ rule run_blastx:
     shell:
         'cd blast && \
         blastx \
-            -query ../{input.fna} \
+            -query ../{input.fasta} \
             -db {params.db} \
             -outfmt "6 qseqid staxids bitscore std" \
             -max_target_seqs {params.max_target_seqs} \
@@ -70,7 +70,7 @@ rule run_diamond_blastx:
     Run Diamond blastx to search protein database with assembly query.
     """
     input:
-        fna='{assembly}.fna',
+        fasta='{assembly}.fasta',
         db='{name}.root.{root}{masked}.dmnd'
     output:
         '{assembly}.diamond.{name}.root.{root}{masked}.out'
@@ -88,7 +88,7 @@ rule run_diamond_blastx:
         threads=32
     shell:
         'diamond blastx \
-            --query {input.fna} \
+            --query {input.fasta} \
             --db {params.db} \
             --outfmt 6 \
             --sensitive \

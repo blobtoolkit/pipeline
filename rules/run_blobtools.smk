@@ -12,8 +12,16 @@ def list_similarity_results(config):
             masked = "minus.%s" % '.'.join(str(mask) for mask in db['mask_ids'])
         else:
             masked = 'full'
-        path.append("%s.%s.%s.root.%s.%s.%s" % (config['assembly']['name'],program,db['name'],db['root'],masked,suffix))
+        path.append("%s.%s.%s.root.%s.%s.%s" % (config['assembly']['prefix'],program,db['name'],db['root'],masked,suffix))
     return path
+
+def list_sra_accessions():
+    """
+    Return a list SRA accessions.
+    """
+    accessions = list(map(lambda sra: sra,reads['paired']))
+    accessions += list(map(lambda sra: sra,reads['single']))
+    return accessions
 
 rule blobtools_create:
     """
@@ -21,14 +29,14 @@ rule blobtools_create:
     searches and coverage files.
     """
     input:
-        assembly='{assembly}.fna',
+        assembly='{assembly}.fasta',
         dbs=list_similarity_results(config),
-        coverage=expand('{{assembly}}.{sample}.bam.cov',sample=config['reads']['paired'])
+        coverage=expand('{{assembly}}.{sra}.bam.cov',sra=list_sra_accessions())
     output:
         '{assembly}.blobDB.json'
     params:
         dbs=expand('-t {db}',db=list_similarity_results(config)),
-        coverage=lambda wc: expand('-c '+wc.assembly+'.{sample}.bam.cov',sample=config['reads']['paired']),
+        coverage=lambda wc: expand('-c '+wc.assembly+'.{sra}.bam.cov',sra=list_sra_accessions()),
         taxrule=config['similarity']['taxrule'] if 'taxrule' in config['similarity'] else 'bestsumorder',
         assembly=lambda wc: wc.assembly
     conda:
