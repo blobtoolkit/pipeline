@@ -1,9 +1,29 @@
+"""
+https://github.com/blobtoolkit/insdc-pipeline
+
+Pipeline to run BlobTools on public assemblies
+----------------------------------------------
+
+Requirements:
+ - BlobTools (https://github.com/DRL/blobtools)
+ - Conda (https://conda.io/docs/commands/conda-install.html)
+ - enaBrowserTools (https://github.com/enasequence/enaBrowserTools)
+ - SnakeMake (http://snakemake.readthedocs.io/en/stable/)
+
+Basic usage:
+  snakemake -p --use-conda
+    --directory path/to/workdir/
+    --configfile path/to/config.yaml
+    -j 8
+
+© 2018 Richard Challis (University of Edinburgh), MIT License
+"""
+
+
 include: 'functions/functions.py'
 
 similarity = apply_similarity_search_defaults()
 reads = select_read_accessions()
-
-print(reads)
 
 rule all:
     """

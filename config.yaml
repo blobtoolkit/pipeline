@@ -30,7 +30,7 @@ similarity:
     source: ncbi
     tool: blast
     type: nucl
-    local: /path/to/ncbi_2018_02
+    local: /path/to/ncbi_2018_03
     root: 1
     mask_ids: [7129]
     evalue: 1e-25

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# usage:
+#     ./insdc_assemblies_to_config.py default.yaml
+
 import os
 import re
 import requests
@@ -11,7 +14,7 @@ from copy import deepcopy
 import taxonomy
 
 # TODO: set these with command line options
-NODES = 'nodes.dmp' 
+NODES = 'nodes.dmp'
 RANK = 'genus' # used to determine database masking level
 ROOT = 2759 # Eukaryota
 ROOT = 7088 # Lepidoptera

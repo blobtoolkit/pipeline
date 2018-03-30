@@ -4,7 +4,7 @@ similarity:
     type: nucl
     tool: blast
     source: ncbi
-    local: /ceph/software/databases/ncbi_2018_02
+    local: /path/to/ncbi_2018_03
     root: 1
     evalue: 1e-25
     max_target_seqs: 10
@@ -21,9 +21,9 @@ similarity:
       type: prot
       tool: diamond
       source: uniprot
-      local: /ceph/software/databases/uniprot_2018_02
+      local: /path/to/uniprot_2018_02
       max_target_seqs: 1
 settings:
-  taxonomy: /ceph/software/databases/ncbi_taxonomy
-  tmp: /dev/shm
+  taxonomy: /path/to/ncbi_taxonomy
+  tmp: /tmp
   chunk: 1000000
