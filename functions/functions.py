@@ -21,7 +21,7 @@ def select_read_accessions(strategy):
     if 'paired' in config['reads'] or 'single' in config['reads']:
         return config['reads']
     reads = {'paired':[],'single':[]}
-    platforms = [k for k,v in config['reads'].items() if strategy in v]
+    platforms = [k for k,v in config['reads'].items() if 'WGS' in config['reads'][k]]
     if not platforms:
         reads = None
     top_reads = {}
@@ -71,7 +71,7 @@ def list_similarity_results(config):
         path.append("%s.%s.%s.root.%s.%s.%s" % (config['assembly']['prefix'],program,db['name'],db['root'],masked,suffix))
     return path
 
-def list_sra_accessions():
+def list_sra_accessions(reads):
     """
     Return a list SRA accessions.
     """

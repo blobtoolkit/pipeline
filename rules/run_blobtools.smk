@@ -6,12 +6,12 @@ rule blobtools_create:
     input:
         assembly='{assembly}.fasta',
         dbs=list_similarity_results(config),
-        coverage=expand('{{assembly}}.{sra}.bam.cov',sra=list_sra_accessions())
+        coverage=expand('{{assembly}}.{sra}.bam.cov',sra=list_sra_accessions(reads))
     output:
         '{assembly}.blobDB.json'
     params:
         dbs=expand('-t {db}',db=list_similarity_results(config)),
-        coverage=lambda wc: expand('-c '+wc.assembly+'.{sra}.bam.cov',sra=list_sra_accessions()),
+        coverage=lambda wc: expand('-c '+wc.assembly+'.{sra}.bam.cov',sra=list_sra_accessions(reads)),
         taxrule=config['similarity']['taxrule'] if 'taxrule' in config['similarity'] else 'bestsumorder',
         assembly=lambda wc: wc.assembly
     conda:
