@@ -21,7 +21,7 @@ def select_read_accessions(strategy):
     if 'paired' in config['reads'] or 'single' in config['reads']:
         return config['reads']
     reads = {'paired':[],'single':[]}
-    platforms = [k for k,v in config['reads'].items() if 'WGS' in config['reads'][k]]
+    platforms = [k for k,v in config['reads'].items() if strategy in config['reads'][k]]
     if not platforms:
         reads = None
     top_reads = {}
@@ -75,6 +75,8 @@ def list_sra_accessions(reads):
     """
     Return a list SRA accessions.
     """
-    accessions = list(map(lambda sra: sra,reads['paired']))
-    accessions += list(map(lambda sra: sra,reads['single']))
+    accessions = []
+    if reads is not None:
+        accessions += list(map(lambda sra: sra,reads['paired']))
+        accessions += list(map(lambda sra: sra,reads['single']))
     return accessions

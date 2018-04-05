@@ -24,7 +24,7 @@ include: 'functions/functions.py'
 
 similarity = apply_similarity_search_defaults()
 reads = select_read_accessions('WGS')
-if not reads:
+if reads is None:
     reads = select_read_accessions('RNA-Seq')
 
 rule all:
