@@ -11,6 +11,8 @@ and databases to run the following steps:
 - run similarity searches
 - combine input files to create a [BlobTools](https://github.com/DRL/blobtools) BlobDB
 
+![DAG](https://github.com/blobtoolkit/insdc-pipeline/raw/master/DAG.png)
+
 ## Requirements
 The following programs need to be installed and available in your $PATH:
 - [BlobTools](https://github.com/DRL/blobtools)
