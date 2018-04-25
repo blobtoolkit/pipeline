@@ -18,6 +18,8 @@ NODES = 'nodes.dmp'
 RANK = 'genus' # used to determine database masking level
 ROOT = 2759 # Eukaryota
 ROOT = 7088 # Lepidoptera
+NODES = '/Users/rchallis/tmp/btk_taxonomy/nodes.dmp'
+ROOT = 6231 # Nematoda
 STEP = 50 # how many assembly records to request at a time
 DEFAULT_META = {}
 
@@ -117,15 +119,17 @@ def assembly_reads(biosample):
     if response.ok:
         lines = response.content.decode('utf-8').splitlines()
         if len(lines) > 1:
-            sra = defaultdict(dict)
+            sra = []
             header = lines[0].split('\t')
             for line in lines[1:]:
                 fields = line.split('\t')
-                for i in range(1,len(header)):
+                values = {}
+                for i in range(0,len(header)):
                     value = fields[i]
                     if header[i] == 'fastq_bytes':
                         value = fields[i].split(';')
-                    sra[fields[0]].update({header[i]:value})
+                    values.update({header[i]:value})
+                sra.append(values)
     return sra
 
 graph = taxonomy.node_graph(NODES)
@@ -145,9 +149,10 @@ for offset in range(1,asm_count+1,step):
             sra = assembly_reads(meta['assembly']['biosample'])
             meta['reads'] = {}
             if sra:
+                sra.sort(key=lambda x: int(x['fastq_bytes'][0]), reverse=True)
                 platforms = defaultdict(dict)
-                for key, value in sra.items():
-                    platforms[value['instrument_platform']].update({key:sra[key]})
+                for d in sra:
+                    platforms[d['instrument_platform']].update({d['run_accession']:d})
                 for platform,data in platforms.items():
                     meta['reads'][platform] = {}
                     strategies = defaultdict(list)
@@ -158,7 +163,7 @@ for offset in range(1,asm_count+1,step):
                         single = []
                         for acc in accessions:
                             # if sra[acc]['library_layout'] == 'PAIRED':
-                            if len(sra[acc]['fastq_bytes']) >= 2:
+                            if len(data[acc]['fastq_bytes']) >= 2:
                                 paired.append(acc)
                             else:
                                 single.append(acc)
