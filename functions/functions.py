@@ -5,10 +5,14 @@ def apply_similarity_search_defaults():
     Apply defaults to similarity search databases.
     """
     similarity = {}
-    for key,value in config['similarity']['defaults'].items():
+    if 'defaults' in config['similarity']:
+        for key,value in config['similarity']['defaults'].items():
+            for db in config['similarity']['databases']:
+                if key not in db:
+                    db[key] = value
+                similarity.update({db['name']:db})
+    else:
         for db in config['similarity']['databases']:
-            if key not in db:
-                db[key] = value
             similarity.update({db['name']:db})
     return similarity
 
@@ -77,6 +81,8 @@ def list_sra_accessions(reads):
     """
     accessions = []
     if reads is not None:
-        accessions += list(map(lambda sra: sra,reads['paired']))
-        accessions += list(map(lambda sra: sra,reads['single']))
+        if 'paired' in reads:
+            accessions += list(map(lambda sra: sra,reads['paired']))
+        if 'single' in reads:
+            accessions += list(map(lambda sra: sra,reads['single']))
     return accessions

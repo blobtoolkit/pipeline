@@ -20,8 +20,18 @@ ROOT = 2759 # Eukaryota
 ROOT = 7088 # Lepidoptera
 NODES = '/Users/rchallis/tmp/btk_taxonomy/nodes.dmp'
 ROOT = 6231 # Nematoda
+ROOT = 6157 # Platyhelminthes
+ROOT = 7214 # Drosophilidae
+ROOT = 6447 # Mollusca
+OUTDIR = "/Users/rchallis/projects/blobtoolkit/snakemake/insdc-config/%d" % ROOT
 STEP = 50 # how many assembly records to request at a time
 DEFAULT_META = {}
+
+WITH_READS = "%s/sra" % OUTDIR
+WITHOUT_READS = "%s/no_sra" % OUTDIR
+
+os.makedirs(os.path.dirname("%s/" % WITH_READS), exist_ok=True)
+os.makedirs(os.path.dirname("%s/" % WITHOUT_READS), exist_ok=True)
 
 if os.path.isfile(sys.argv[1]):
     with open(sys.argv[1], 'r') as fh:
@@ -146,10 +156,16 @@ for offset in range(1,asm_count+1,step):
         meta = {}
         meta = assembly_meta(assembly,DEFAULT_META)
         if 'prefix' in meta['assembly'] and 'biosample' in meta['assembly'] and meta['assembly']['biosample']:
-            sra = assembly_reads(meta['assembly']['biosample'])
+            print(meta['assembly']['prefix'])
+            meta['taxon'][RANK] = int(parents[str(meta['taxon']['taxid'])])
+            if 'similarity' in meta and 'defaults' in meta['similarity']:
+                meta['similarity']['defaults']['mask_ids'] = [meta['taxon'][RANK]]
             meta['reads'] = {}
+            sra = assembly_reads(meta['assembly']['biosample'])
+            if not sra:
+                sra = assembly_reads(meta['assembly']['bioproject'])
             if sra:
-                sra.sort(key=lambda x: int(x['fastq_bytes'][0]), reverse=True)
+                sra.sort(key=lambda x: int(x['fastq_bytes'][0] or 0), reverse=True)
                 platforms = defaultdict(dict)
                 for d in sra:
                     platforms[d['instrument_platform']].update({d['run_accession']:d})
@@ -173,9 +189,8 @@ for offset in range(1,asm_count+1,step):
                                 meta['reads'][platform][strategy]['paired'] = paired
                             if single:
                                 meta['reads'][platform][strategy]['single'] = single
-                print(meta['assembly']['prefix'])
-                meta['taxon'][RANK] = int(parents[str(meta['taxon']['taxid'])])
-                if 'similarity' in meta and 'defaults' in meta['similarity']:
-                    meta['similarity']['defaults']['mask_ids'] = [meta['taxon'][RANK]]
-                with open("%s.yaml" % meta['assembly']['prefix'], 'w') as fh:
+                with open("%s/%s.yaml" % (WITH_READS,meta['assembly']['prefix']), 'w') as fh:
+                    fh.write(yaml.dump(meta))
+            else:
+                with open("%s/%s.yaml" % (WITHOUT_READS,meta['assembly']['prefix']), 'w') as fh:
                     fh.write(yaml.dump(meta))

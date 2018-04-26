@@ -29,7 +29,7 @@ rule fetch_ncbi_idmap:
         # NB: the path to the local copy of the file must contain the string 'ncbi'
         path='.+ncbi.+'
     params:
-        idmap=lambda wildcards: ncbi_idmap(wildcards.name)
+        idmap=lambda wc: ncbi_idmap(wc.name)
     conda:
          '../envs/fetch.yaml'
     threads: 1

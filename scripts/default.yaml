@@ -1,16 +1,16 @@
 similarity:
   taxrule: bestsumorder
   defaults:
-    type: nucl
-    tool: blast
-    source: ncbi
-    local: /path/to/ncbi_2018_03
     root: 1
     evalue: 1e-25
     max_target_seqs: 10
   databases:
     - type: nucl
       name: nt
+      type: nucl
+      tool: blast
+      source: ncbi
+      local: /ceph/software/databases/ncbi_2018_04
       idmap:
         - nucl_est
         - nucl_gb
@@ -21,9 +21,9 @@ similarity:
       type: prot
       tool: diamond
       source: uniprot
-      local: /path/to/uniprot_2018_02
+      local: /ceph/software/databases/uniprot_2018_03
       max_target_seqs: 1
 settings:
-  taxonomy: /path/to/ncbi_taxonomy
-  tmp: /tmp
+  taxonomy: /ceph/software/databases/ncbi_taxonomy
+  tmp: /dev/shm
   chunk: 1000000
