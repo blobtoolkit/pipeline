@@ -19,7 +19,7 @@ rule bwa_mem:
     Run bwa mem with singe or paired FASTQ files
     """
     input:
-        fastq=lambda wc: ["%s/%s_1.fastq.gz" % (wc.sra,wc.sra), "%s/%s_2.fastq.gz" % (wc.sra,wc.sra)] if wc.sra in reads['paired'] else "%s/%s.fastq.gz" % (wc.sra,wc.sra),
+        fastq=lambda wc: ["%s_1.fastq.gz" % wc.sra, "%s_2.fastq.gz" % wc.sra] if wc.sra in reads['paired'] else "%s.fastq.gz" % wc.sra,
         fasta='{assembly}.fasta',
         index=expand('{{assembly}}.fasta.{suffix}',suffix=BWA_INDEX)
     output:
@@ -35,6 +35,25 @@ rule bwa_mem:
         'bwa mem -M -t {threads} {input.fasta} {input.fastq} | \
         samtools sort -O BAM -o {output} - && \
         rm -r {params.sra}'
+
+rule bamtools_stats:
+    """
+    Run bamtools stats to generate summary statistics for each BAM file
+    """
+    input:
+        bam='{assembly}.{sra}.bam'
+    output:
+        '{assembly}.{sra}.bam.stats'
+    conda:
+         '../envs/blobtools.yaml'
+    threads: 1
+    resources:
+        threads=1
+    shell:
+        'bamtools stats \
+            -in {input.bam} \
+            -insert \
+            > {output}'
 
 rule blobtools_map2cov:
     """

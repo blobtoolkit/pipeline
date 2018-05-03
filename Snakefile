@@ -24,15 +24,18 @@ include: 'functions/functions.py'
 
 similarity = apply_similarity_search_defaults()
 reads = select_read_accessions('WGS')
-if reads is None:
-    reads = select_read_accessions('RNA-Seq')
+
+asm = config['assembly']['prefix']
 
 rule all:
     """
     Dummy rule to set blobDB as target of pipeline
     """
     input:
-        "%s.blobDB.json" % config['assembly']['prefix']
+        "%s.fasta" % asm,
+        "%s.blobDB.json" % asm,
+        expand("%s.{sra}.bam.stats" % asm,sra=list_sra_accessions(reads))
+
 
 include: 'rules/fetch_database_files.smk'
 include: 'rules/make_filtered_databases.smk'

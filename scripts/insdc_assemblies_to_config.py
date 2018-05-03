@@ -1,37 +1,70 @@
 #!/usr/bin/env python3
 
-# usage:
-#     ./insdc_assemblies_to_config.py default.yaml
+"""
+Usage:
+  insdc_assemblies_to_config.py <config_file>
+    [--nodes /path/to/nodes.dmp] [--rank genus] [--root 2759]
+    [--out /path/to/output/directory]
+
+Options:
+  --nodes=<nodes>  Path to NCBI nodes dump file [default: nodes.dmp]
+  --rank=<rank>    Similarity search database masking level
+  --root=<root>    Root taxID [default: 2759] (default is all Eukaryota)
+  --out=<out>      Path to output directory [default: .]
+"""
 
 import os
 import re
 import requests
 import sys
 import yaml
+from docopt import docopt
 from defusedxml import ElementTree as ET
 from collections import defaultdict
 from copy import deepcopy
 import taxonomy
 
-# TODO: set these with command line options
-NODES = 'nodes.dmp'
-RANK = 'genus' # used to determine database masking level
-ROOT = 2759 # Eukaryota
-ROOT = 7088 # Lepidoptera
-NODES = '/Users/rchallis/tmp/btk_taxonomy/nodes.dmp'
-ROOT = 6231 # Nematoda
-ROOT = 6157 # Platyhelminthes
-ROOT = 7214 # Drosophilidae
-ROOT = 6447 # Mollusca
-OUTDIR = "/Users/rchallis/projects/blobtoolkit/snakemake/insdc-config/%d" % ROOT
 STEP = 50 # how many assembly records to request at a time
+
+opts = docopt(__doc__)
+
+NODES = opts['--nodes']
+if not os.path.isfile(NODES):
+    print("ERROR: File '%s' does not exist" % NODES, file=sys.stderr)
+    quit(__doc__)
+
+RANK = opts['--rank']
+# awk '{print $5}' nodes.dmp | grep -v no | sort | uniq
+valid_ranks = ( 'class','cohort','family','forma','genus','infraclass',
+                'infraorder','kingdom','order','parvorder','phylum','species',
+                'subclass','subfamily','subgenus','subkingdom','suborder',
+                'subphylum','subspecies','subtribe','superclass','superfamily',
+                'superkingdom','superorder','superphylum','tribe','varietas')
+if RANK and RANK not in valid_ranks:
+    print("ERROR: '%s' is not a valid value for --rank" % RANK, file=sys.stderr)
+    quit(__doc__)
+
+try:
+    ROOT = int(opts['--root'])
+except:
+    print("ERROR: '%s' is not a valid value for --root" % opts['--root'], file=sys.stderr)
+    quit(__doc__)
+
+OUTDIR = "%s/%s" % (opts['--out'],ROOT)
+
+try:
+    os.makedirs(OUTDIR, exist_ok=True)
+except:
+    print("ERROR: Unable to create output directory '%s'" % OUTDIR, file=sys.stderr)
+    quit(__doc__)
+
 DEFAULT_META = {}
 
 WITH_READS = "%s/sra" % OUTDIR
 WITHOUT_READS = "%s/no_sra" % OUTDIR
 
-os.makedirs(os.path.dirname("%s/" % WITH_READS), exist_ok=True)
-os.makedirs(os.path.dirname("%s/" % WITHOUT_READS), exist_ok=True)
+os.makedirs("%s/" % WITH_READS, exist_ok=True)
+os.makedirs("%s/" % WITHOUT_READS, exist_ok=True)
 
 if os.path.isfile(sys.argv[1]):
     with open(sys.argv[1], 'r') as fh:
@@ -134,12 +167,16 @@ def assembly_reads(biosample):
             for line in lines[1:]:
                 fields = line.split('\t')
                 values = {}
+                reads = False
                 for i in range(0,len(header)):
                     value = fields[i]
                     if header[i] == 'fastq_bytes':
                         value = fields[i].split(';')
+                        if int(value[0] or 0) > 0:
+                            reads = True
                     values.update({header[i]:value})
-                sra.append(values)
+                if reads:
+                    sra.append(values)
     return sra
 
 graph = taxonomy.node_graph(NODES)
@@ -157,9 +194,10 @@ for offset in range(1,asm_count+1,step):
         meta = assembly_meta(assembly,DEFAULT_META)
         if 'prefix' in meta['assembly'] and 'biosample' in meta['assembly'] and meta['assembly']['biosample']:
             print(meta['assembly']['prefix'])
-            meta['taxon'][RANK] = int(parents[str(meta['taxon']['taxid'])])
-            if 'similarity' in meta and 'defaults' in meta['similarity']:
-                meta['similarity']['defaults']['mask_ids'] = [meta['taxon'][RANK]]
+            if RANK:
+                meta['taxon'][RANK] = int(parents[str(meta['taxon']['taxid'])])
+                if 'similarity' in meta and 'defaults' in meta['similarity']:
+                    meta['similarity']['defaults']['mask_ids'] = [meta['taxon'][RANK]]
             meta['reads'] = {}
             sra = assembly_reads(meta['assembly']['biosample'])
             if not sra:

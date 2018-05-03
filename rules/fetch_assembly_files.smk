@@ -3,7 +3,7 @@ rule fetch_assembly:
     Fetch a remote assembly from EBI or NCBI.
     """
     output:
-        fa=temp('{assembly}.fasta')
+        fa='{assembly}.fasta'
     params:
         assembly=lambda wc: wc.assembly
     conda:
@@ -21,8 +21,8 @@ rule fetch_paired_fastq:
     Fetch paired fastq files from EBI.
     """
     output:
-        temp('{sra}/{sra}_1.fastq.gz'),
-        temp('{sra}/{sra}_2.fastq.gz')
+        temp('{sra}_1.fastq.gz'),
+        temp('{sra}_2.fastq.gz')
     params:
         sra = lambda wc: wc.sra
     conda:
@@ -32,14 +32,17 @@ rule fetch_paired_fastq:
         download=1,
         threads=1
     shell:
-        'enaDataGet -f fastq {params.sra}'
+        'enaDataGet -f fastq {params.sra} && \
+        mv {params.sra}/{params.sra}_1.fastq.gz {output[0]} && \
+        mv {params.sra}/{params.sra}_2.fastq.gz {output[1]} && \
+        rm -r {params.sra}'
 
 rule fetch_fastq:
     """
     Fetch paired fastq files from EBI.
     """
     output:
-        temp('{sra}/{sra}.fastq.gz')
+        temp('{sra}.fastq.gz')
     params:
         sra = lambda wc: wc.sra
     wildcard_constraints:
@@ -51,4 +54,7 @@ rule fetch_fastq:
         download=1,
         threads=1
     shell:
-        'enaDataGet -f fastq {params.sra}'
+        'enaDataGet -f fastq {params.sra} && \
+        rename -f "s/(_subreads|_consensus)//" {params.sra}/*.fastq.gz && \
+        mv {params.sra}/{params.sra}.fastq.gz {output[1]} && \
+        rm -r {params.sra}'
