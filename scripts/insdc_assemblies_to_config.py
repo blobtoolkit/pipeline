@@ -200,8 +200,8 @@ for offset in range(1,asm_count+1,step):
                     meta['similarity']['defaults']['mask_ids'] = [meta['taxon'][RANK]]
             meta['reads'] = {}
             sra = assembly_reads(meta['assembly']['biosample'])
-            if not sra:
-                sra = assembly_reads(meta['assembly']['bioproject'])
+            # if not sra:
+            #     sra = assembly_reads(meta['assembly']['bioproject'])
             if sra:
                 sra.sort(key=lambda x: int(x['fastq_bytes'][0] or 0), reverse=True)
                 platforms = defaultdict(dict)
@@ -227,6 +227,27 @@ for offset in range(1,asm_count+1,step):
                                 meta['reads'][platform][strategy]['paired'] = paired
                             if single:
                                 meta['reads'][platform][strategy]['single'] = single
+                short_n = 3
+                long_n = 10
+                strategy = 'WGS'
+                meta['reads']['paired'] = []
+                meta['reads']['single'] = []
+                for platform in ('ILLUMINA','LS454'):
+                    if platform in meta['reads']:
+                        if 'paired' in meta['reads'][platform][strategy]:
+                            new_reads = meta['reads'][platform][strategy]['paired'][:short_n]
+                            meta['reads']['paired'].extend([sra,platform] for sra in new_reads)
+                            short_n -= len(meta['reads']['paired'])
+                        if short_n > 0:
+                            if 'single' in meta['reads'][platform][strategy]:
+                                new_reads = meta['reads'][platform][strategy]['single'][:short_n]
+                                meta['reads']['single'].extend([sra,platform] for sra in new_reads)
+                                short_n -= len(meta['reads']['single'])
+                for platform in ('PACBIO_SMRT','OXFORD_NANOPORE'):
+                    if platform in meta['reads']:
+                        if 'single' in meta['reads'][platform][strategy]:
+                            new_reads = meta['reads'][platform][strategy]['single'][:long_n]
+                            meta['reads']['single'] = [[sra,platform] for sra in new_reads]
                 with open("%s/%s.yaml" % (WITH_READS,meta['assembly']['prefix']), 'w') as fh:
                     fh.write(yaml.dump(meta))
             else:
