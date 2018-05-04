@@ -33,8 +33,7 @@ rule bwa_mem:
         threads=32
     shell:
         'bwa mem -M -t {threads} {input.fasta} {input.fastq} | \
-        samtools sort -O BAM -o {output} - && \
-        rm -r {params.sra}'
+        samtools sort -O BAM -o {output} -'
 
 rule bamtools_stats:
     """

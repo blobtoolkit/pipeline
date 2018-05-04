@@ -17,7 +17,7 @@ rule fetch_ncbi_fasta:
         download=1,
         threads=1
     shell:
-        'curl {params.ftp_url}{params.ftp_dir}/{wildcards.name}.gz > {output.fa}'
+        'wget -q -O {output.fa} {params.ftp_url}{params.ftp_dir}/{wildcards.name}.gz'
 
 rule fetch_ncbi_idmap:
     """
@@ -39,7 +39,11 @@ rule fetch_ncbi_idmap:
     shell:
         '> {output.idmap} && \
         for x in "{params.idmap}"; do \
-            curl $x | zgrep -v taxid | cut -f2,3 | gzip >> {output.idmap}; \
+            wget -q -O idmap.gz $x \
+            && zgrep -v taxid idmap.gz \
+            | cut -f2,3 \
+            | gzip >> {output.idmap} \
+            && rm idmap.gz; \
         done'
 
 rule fetch_taxdump:
@@ -64,9 +68,10 @@ rule fetch_taxdump:
         download=1,
         threads=1
     shell:
-        'curl -vs ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz \
-        | tar xzvf - \
-        && mv n*s.dmp {params.outdir}'
+        'wget -q -O taxdump.tar.gz ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz \
+        && tar xzvf taxdump.tar.gz \
+        && mv n*s.dmp {params.outdir} \
+        && rm taxdump.tar.gz'
 
 # rule update_blobtools_nodesdb:
 #     """
@@ -106,9 +111,10 @@ rule fetch_uniprot:
         download=1,
         threads=1
     shell:
-        'curl {params.ftp_url}/{params.ftp_dir}/$(curl \
+        'wget -q -O {output} \
+            {params.ftp_url}/{params.ftp_dir}/$(curl \
             -vs {params.ftp_url}/{params.ftp_dir}/ 2>&1 | \
-            awk \'/tar.gz/ {{print $9}}\') > {output}'
+            awk \'/tar.gz/ {{print $9}}\')'
 
 rule extract_uniprot:
     """

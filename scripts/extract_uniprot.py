@@ -72,4 +72,4 @@ for f in mapping_files:
 
 # remove the temporary directory and any remaining content
 if createtmp:
-    shutil.rmtree(tmpdir)
+    shutil.rmtree(TMPDIR)

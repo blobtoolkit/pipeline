@@ -56,5 +56,5 @@ rule fetch_fastq:
     shell:
         'enaDataGet -f fastq {params.sra} && \
         rename -f "s/(_subreads|_consensus)//" {params.sra}/*.fastq.gz && \
-        mv {params.sra}/{params.sra}.fastq.gz {output[1]} && \
+        mv {params.sra}/{params.sra}.fastq.gz {output} && \
         rm -r {params.sra}'
