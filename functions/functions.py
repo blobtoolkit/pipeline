@@ -52,3 +52,24 @@ def list_sra_accessions(reads):
         if 'single' in reads:
             accessions += list(map(lambda sra: sra[0],reads['single']))
     return accessions
+
+def cov_files_by_platform(reads,assembly,platform):
+    """
+    Return a list of coverage files for a given sequencing platform.
+    """
+    accessions = []
+    if reads is not None:
+        if 'paired' in reads:
+            accessions += [sra[0] for sra in reads['paired'] if sra[1] == platform]
+        if 'single' in reads:
+            accessions += [sra[0] for sra in reads['single'] if sra[1] == platform]
+    return list(map(lambda sra: "%s.%s.bam.cov" % (assembly,sra),accessions))
+
+def platform_cov_files(reads,assembly):
+    platforms = set()
+    if reads is not None:
+        for strategy in ['paired','single']:
+            for sra in reads[strategy]:
+                if sra[1] not in platforms:
+                    platforms.add(sra[1])
+    return list(map(lambda platform: "%s.%s.sum.cov" % (assembly,platform),platforms))
