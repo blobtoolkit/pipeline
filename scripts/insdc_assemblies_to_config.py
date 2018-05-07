@@ -3,14 +3,15 @@
 """
 Usage:
   insdc_assemblies_to_config.py <config_file>
-    [--nodes /path/to/nodes.dmp] [--rank genus] [--root 2759]
+    [--nodes /path/to/nodes.dmp] [--rank genus] [--root 2759] [--strategy WGS]
     [--out /path/to/output/directory]
 
 Options:
-  --nodes=<nodes>  Path to NCBI nodes dump file [default: nodes.dmp]
-  --rank=<rank>    Similarity search database masking level
-  --root=<root>    Root taxID [default: 2759] (default is all Eukaryota)
-  --out=<out>      Path to output directory [default: .]
+  --nodes=<nodes>        Path to NCBI nodes dump file [default: nodes.dmp]
+  --rank=<rank>          Similarity search database masking level
+  --root=<root>          Root taxID [default: 2759] (default is all Eukaryota)
+  --out=<out>            Path to output directory [default: .]
+  --strategy=<strategy>  Sequencing strategy [default: WGS]
 """
 
 import os
@@ -49,6 +50,8 @@ try:
 except:
     print("ERROR: '%s' is not a valid value for --root" % opts['--root'], file=sys.stderr)
     quit(__doc__)
+
+STRATEGY = opts['--strategy']
 
 OUTDIR = "%s/%s" % (opts['--out'],ROOT)
 
@@ -168,14 +171,18 @@ def assembly_reads(biosample):
                 fields = line.split('\t')
                 values = {}
                 reads = False
+                strat = False
                 for i in range(0,len(header)):
                     value = fields[i]
                     if header[i] == 'fastq_bytes':
                         value = fields[i].split(';')
                         if int(value[0] or 0) > 0:
                             reads = True
+                    if header[i] == 'library_strategy':
+                        if value == STRATEGY:
+                            strat = True
                     values.update({header[i]:value})
-                if reads:
+                if reads and strat:
                     sra.append(values)
     return sra
 
