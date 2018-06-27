@@ -24,6 +24,7 @@ include: 'functions/functions.py'
 
 similarity = apply_similarity_search_defaults()
 reads = config['reads']
+paired = list(map(lambda x: x[0],reads['paired']))
 
 asm = config['assembly']['prefix']
 
@@ -34,7 +35,8 @@ rule all:
     input:
         "%s.fasta" % asm,
         "%s.blobDB.json" % asm,
-        expand("%s.{sra}.bam.stats" % asm,sra=list_sra_accessions(reads))
+        expand("%s.{sra}.bam.stats" % asm,sra=list_sra_accessions(reads)),
+        "%s/meta.json" % asm
 
 
 include: 'rules/fetch_database_files.smk'

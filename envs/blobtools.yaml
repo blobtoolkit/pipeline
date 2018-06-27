@@ -45,6 +45,7 @@ dependencies:
   - python=2.7.14=h1571d57_30
   - python-dateutil=2.7.0=py27_0
   - pytz=2018.3=py27_0
+  - pyyaml=3.12=py27h2d70dd7_1
   - qt=5.6.2=hd25b39d_14
   - readline=7.0=ha6073c6_4
   - singledispatch=3.4.0.3=py27h9bcb476_0
@@ -56,6 +57,7 @@ dependencies:
   - ujson=1.35=py27_0
   - wheel=0.30.0=py27h2bc6bb2_1
   - xz=5.2.3=h55aa19d_2
+  - yaml=0.1.7=had09818_2
   - zlib=1.2.11=ha838bed_2
   - ca-certificates=2018.1.18=0
   - fontconfig=2.13.0=0

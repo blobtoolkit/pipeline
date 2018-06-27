@@ -53,6 +53,26 @@ def list_sra_accessions(reads):
             accessions += list(map(lambda sra: sra[0],reads['single']))
     return accessions
 
+# def prepare_ebi_sra_url(acc):
+#     base = 'ftp://ftp.sra.ebi.ac.uk/vol1/fastq'
+#     subdir = "/00%s" % acc[-1:] if len(acc) == 10 else ''
+#     url = "%s/%s%s/%s/%s" % ( base, acc[:6], subdir, acc, acc )
+#     return url
+
+def prepare_ncbi_assembly_url(accession,name):
+    base = 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all'
+    acc = accession.replace('_','').split('.',1)[0]
+    path = '/'.join(acc[i:i+3] for i in range(0, len(acc), 3))
+    asm = "%s_%s" % ( accession, name.replace(' ', '_') )
+    url = "%s/%s/%s/%s_genomic.fna.gz" % ( base, path, asm, asm )
+    return url
+
+def prepare_ebi_sra_url(acc):
+    base = 'ftp://ftp.sra.ebi.ac.uk/vol1'
+    subdir = "/00%s" % acc[-1:] if len(acc) == 10 else ''
+    url = "%s/%s/%s%s/%s" % ( base, acc[:3].lower(), acc[:6], subdir, acc )
+    return url
+
 def cov_files_by_platform(reads,assembly,platform):
     """
     Return a list of coverage files for a given sequencing platform.

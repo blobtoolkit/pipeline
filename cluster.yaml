@@ -3,9 +3,11 @@ __default__:
   threads: '{threads}'
 fetch_assembly:
   pe: smp
-fetch_paired_fastq:
+fetch_sra:
   pe: smp
-fetch_fastq:
+extract_paired_fastq:
+  pe: smp
+extract_fastq:
   pe: smp
 fetch_ncbi_fasta:
   pe: smp
@@ -31,4 +33,12 @@ run_diamond_blastx:
   pe: smp
   threads: 30
 run_blobtools_taxify:
+  pe: smp
+bamtools_stats:
+  pe: smp
+sum_coverage:
+  pe: smp
+blobtools_map2cov:
+  pe: smp
+blobtools_view:
   pe: smp
