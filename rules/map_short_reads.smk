@@ -19,7 +19,7 @@ rule bwa_mem:
     Run bwa mem with singe or paired FASTQ files
     """
     input:
-        fastq=lambda wc: ["%s_1.fastq.gz" % wc.sra, "%s_2.fastq.gz" % wc.sra] if wc.sra in reads['paired'] else "%s.fastq.gz" % wc.sra,
+        fastq=lambda wc: ["%s_1.fastq.gz" % wc.sra, "%s_2.fastq.gz" % wc.sra] if wc.sra in paired else "%s.fastq.gz" % wc.sra,
         fasta='{assembly}.fasta',
         index=expand('{{assembly}}.fasta.{suffix}',suffix=BWA_INDEX)
     output:

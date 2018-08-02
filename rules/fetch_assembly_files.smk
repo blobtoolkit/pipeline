@@ -5,56 +5,71 @@ rule fetch_assembly:
     output:
         fa='{assembly}.fasta'
     params:
-        assembly=lambda wc: wc.assembly
+        url=lambda wc: prepare_ncbi_assembly_url(config['assembly']['accession'],config['assembly']['alias'])
     conda:
-         '../envs/py3.yaml'
+         '../envs/fetch.yaml'
     threads: 1
     resources:
         download=1,
         threads=1
     shell:
-        'enaDataGet -f fasta {params.assembly} && \
-        pigz -d {output}.gz'
+        'curl -s {params.url} | \
+        pigz -d > {output.fa}'
 
-rule fetch_paired_fastq:
+rule fetch_sra:
     """
-    Fetch paired fastq files from EBI.
+    Fetch sra archive from EBI.
     """
     output:
-        temp('{sra}_1.fastq.gz'),
-        temp('{sra}_2.fastq.gz')
+        temp('{sra}')
     params:
-        sra = lambda wc: wc.sra
-    conda:
-         '../envs/py3.yaml'
-    threads: 1
-    resources:
-        download=1,
-        threads=1
-    shell:
-        'enaDataGet -f fastq {params.sra} && \
-        mv {params.sra}/{params.sra}_1.fastq.gz {output[0]} && \
-        mv {params.sra}/{params.sra}_2.fastq.gz {output[1]} && \
-        rm -r {params.sra}'
-
-rule fetch_fastq:
-    """
-    Fetch paired fastq files from EBI.
-    """
-    output:
-        temp('{sra}.fastq.gz')
-    params:
-        sra = lambda wc: wc.sra
+        sra = lambda wc: prepare_ebi_sra_url(wc.sra)
     wildcard_constraints:
         sra='\wRR\d+'
     conda:
-         '../envs/py3.yaml'
+         '../envs/fetch.yaml'
     threads: 1
     resources:
         download=1,
         threads=1
     shell:
-        'enaDataGet -f fastq {params.sra} && \
-        rename -f "s/(_subreads|_consensus)//" {params.sra}/*.fastq.gz && \
-        mv {params.sra}/{params.sra}.fastq.gz {output} && \
-        rm -r {params.sra}'
+        'wget -q {params.sra}'
+
+rule extract_paired_fastq:
+    """
+    Extract paired fastq files from sra archive.
+    """
+    input:
+        temp('{sra}')
+    output:
+        temp('{sra}_1.fastq.gz'),
+        temp('{sra}_2.fastq.gz')
+    conda:
+         '../envs/fetch.yaml'
+    threads: 1
+    resources:
+        download=1,
+        threads=1
+    shell:
+        'fastq-dump --split-files {input} && \
+        pigz {input}_*.fastq'
+
+rule extract_fastq:
+    """
+    extract fastq files from sra archive.
+    """
+    input:
+        temp('{sra}')
+    output:
+        temp('{sra}.fastq.gz')
+    wildcard_constraints:
+        sra='\wRR\d+'
+    conda:
+         '../envs/fetch.yaml'
+    threads: 1
+    resources:
+        download=1,
+        threads=1
+    shell:
+        'fastq-dump {input} && \
+        pigz {input}.fastq'

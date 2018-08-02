@@ -1,3 +1,38 @@
+assembly: {accession: GCA_000297895.1, alias: oyster_v9, bioproject: PRJNA70283, biosample: SAMN00690713,
+  level: scaffold, prefix: AFTI01, scaffold-count: 7658, span: 557717710}
+reads:
+  ILLUMINA:
+    WGS:
+      paired: [SRR943126, SRR327446, SRR943128, SRR327456, SRR943134, SRR943133, SRR943129,
+        SRR327451, SRR943132, SRR943131, SRR327442, SRR327449, SRR327433, SRR943130,
+        SRR327429, SRR943127, SRR327421, SRR327443, SRR327424, SRR327426, SRR327431,
+        SRR327420, SRR327419, SRR327422, SRR327417, SRR327432, SRR327439, SRR327425,
+        SRR327418, SRR327435, SRR327453, SRR327440, SRR327455, SRR327452, SRR327437,
+        SRR327447, SRR327436, SRR327434]
+  paired:
+  - [SRR943126, ILLUMINA]
+  - [SRR327446, ILLUMINA]
+  - [SRR943128, ILLUMINA]
+  single: []
+settings: {chunk: 1000000, taxonomy: /ceph/software/databases/ncbi_2018_05/taxonomy,
+  tmp: /dev/shm}
+similarity:
+  databases:
+  - idmap: [nucl_est, nucl_gb, nucl_gss, nucl_wgs, pdb]
+    local: /ceph/software/databases/ncbi_2018_05
+    name: nt
+    source: ncbi
+    tool: blast
+    type: nucl
+  - {local: /ceph/software/databases/uniprot_2018_04, max_target_seqs: 1, name: reference_proteomes,
+    source: uniprot, tool: diamond, type: prot}
+  defaults:
+    evalue: 1e-25
+    mask_ids: [6564]
+    max_target_seqs: 10
+    root: 1
+  taxrule: bestsumorder
+taxon: {genus: 6564, name: Crassostrea gigas, taxid: 29159}
 taxon:
   name: Manduca sexta
   taxid: 7130

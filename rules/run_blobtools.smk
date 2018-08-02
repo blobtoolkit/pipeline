@@ -29,3 +29,27 @@ rule blobtools_create:
             {params.coverage} \
             {params.covsum} \
             -o {params.assembly}'
+
+rule blobtools_view:
+    """
+    Use BlobTools create to generate a BlobDB using the ordered similarity
+    searches and coverage files.
+    """
+    input:
+        blobDB='{assembly}.blobDB.json',
+        yaml='{assembly}.yaml'
+    output:
+        '{assembly}/meta.json'
+    params:
+        taxrule=config['similarity']['taxrule'] if 'taxrule' in config['similarity'] else 'bestsumorder',
+        assembly=lambda wc: wc.assembly,
+    conda:
+        '../envs/blobtools.yaml'
+    threads: 1
+    resources:
+        threads=1
+    shell:
+        'blobtools view \
+            -i {input.blobDB} \
+            -x "{params.taxrule}" \
+            --experimental {input.yaml}'
