@@ -10,8 +10,8 @@ from subprocess import Popen, PIPE, run
 
 FASTAFILE = snakemake.input.fasta
 BLAST_DB = snakemake.params.db
-CHUNK = int(snakemake.params.chunk)
-OVERLAP = int(snakemake.params.overlap)
+CHUNK = int(snakemake.params.blast_chunk)
+OVERLAP = int(snakemake.params.blast_overlap)
 THREADS = int(snakemake.threads)
 TARGETS = int(snakemake.params.max_target_seqs)
 EVALUE = str(snakemake.params.evalue)
