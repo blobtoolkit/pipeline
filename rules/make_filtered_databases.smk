@@ -96,7 +96,7 @@ rule make_diamond_db:
     shell:
         'mkdir -p {params.tmpdir} && \
         parallel --no-notice -j {threads} \
-            "gunzip {params.indir}/{{}}.taxid_map.gz" \
+            "gunzip -c {params.indir}/{{}}.taxid_map.gz" \
             :::: {input.lists} > \
                 {params.tmpdir}/{params.db}.taxid_map && \
         parallel --no-notice -j {threads} \
