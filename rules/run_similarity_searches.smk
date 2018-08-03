@@ -119,42 +119,42 @@ rule run_diamond_blastx:
         'diamond blastx \
             --query {input.fasta} \
             --db {params.db} \
-            --outfmt 6 \
+            --outfmt "6 qseqid staxids bitscore qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore" \
             --sensitive \
             --max-target-seqs {params.max_target_seqs} \
             --evalue {params.evalue} \
             --threads {threads} \
             > {output}'
 
-rule run_blobtools_taxify:
-    """
-    Add taxonomy information to Diamond similarity search results.
-    """
-    input:
-        dmnd='{assembly}.diamond.{name}.root.{root}{masked}.out',
-        split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
-        lists='blast/{name}.root.{root}{masked}.lists'
-    output:
-        '{assembly}.diamond.{name}.root.{root}{masked}.taxified.out'
-    params:
-        indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name),
-        idmap=lambda wc: "%s/%s.taxid_map" % (config['settings']['tmp'],wc.name),
-        path=config['settings']['blobtools_path']
-    wildcard_constraints:
-        root='\d+',
-        masked='.[fm][ulins\d\.]+'
-    conda:
-        '../envs/blobtools.yaml'
-    threads: 1
-    resources:
-        threads=1
-    shell:
-        'parallel --no-notice -j {threads} \
-            "gunzip -c {params.indir}/{{}}.taxid_map.gz" \
-            :::: {input.lists} > {params.idmap} && \
-        {params.path}/blobtools taxify \
-            -f {input.dmnd} \
-            -m {params.idmap} \
-            -s 0 \
-            -t 1 && \
-        rm {params.idmap}'
+# rule run_blobtools_taxify:
+#     """
+#     Add taxonomy information to Diamond similarity search results.
+#     """
+#     input:
+#         dmnd='{assembly}.diamond.{name}.root.{root}{masked}.out',
+#         split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
+#         lists='blast/{name}.root.{root}{masked}.lists'
+#     output:
+#         '{assembly}.diamond.{name}.root.{root}{masked}.taxified.out'
+#     params:
+#         indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name),
+#         idmap=lambda wc: "%s/%s.taxid_map" % (config['settings']['tmp'],wc.name),
+#         path=config['settings']['blobtools_path']
+#     wildcard_constraints:
+#         root='\d+',
+#         masked='.[fm][ulins\d\.]+'
+#     conda:
+#         '../envs/blobtools.yaml'
+#     threads: 1
+#     resources:
+#         threads=1
+#     shell:
+#         'parallel --no-notice -j {threads} \
+#             "gunzip -c {params.indir}/{{}}.taxid_map.gz" \
+#             :::: {input.lists} > {params.idmap} && \
+#         {params.path}/blobtools taxify \
+#             -f {input.dmnd} \
+#             -m {params.idmap} \
+#             -s 0 \
+#             -t 1 && \
+#         rm {params.idmap}'

@@ -77,13 +77,15 @@ rule make_diamond_db:
     """
     input:
         split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
-        lists='blast/{name}.root.{root}{masked}.lists'
+        lists='blast/{name}.root.{root}{masked}.lists',
+        nodes="%s/nodes.dmp" % config['settings']['taxonomy']
     output:
         '{name}.root.{root}{masked}.dmnd'
     params:
         outfile=lambda wc: str("%s.root.%s%s.dmnd" % (wc.name,wc.root,wc.masked)),
         db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked)),
-        indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name)
+        indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name),
+        tmpdir="%s" % config['settings']['tmp']
     wildcard_constraints:
         root='\d+'
     conda:
@@ -92,12 +94,20 @@ rule make_diamond_db:
     resources:
         threads=32
     shell:
-        'parallel --no-notice -j {threads} \
+        'mkdir -p {params.tmpdir} && \
+        parallel --no-notice -j {threads} \
+            "pigz -dc {params.indir}/{{}}.taxid_map.gz" \
+            :::: {input.lists} > \
+                {params.tmpdir}/{params.db}.taxid_map && \
+        parallel --no-notice -j {threads} \
             "seqtk subseq {params.indir}/{{}}.fa.gz blast/{params.db}_{{}}.accessions" \
             :::: {input.lists} | \
         diamond makedb \
             -p {threads} \
-            -d {params.outfile}'
+            -d {params.outfile} \
+            --taxonmap {params.tmpdir}/{params.db}.taxid_map \
+            --taxonnodes {input.nodes} && \
+        rm {params.tmpdir}/{params.db}.taxid_map'
 
 
 # rule make_blast_db:

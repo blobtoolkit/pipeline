@@ -71,7 +71,8 @@ def list_similarity_results(config):
     """
     path = []
     for db in config['similarity']['databases']:
-        suffix = 'out' if db['tool'] == 'blast' else 'taxified.out'
+        # suffix = 'out' if db['tool'] == 'blast' else 'taxified.out'
+        suffix = 'out'
         program = 'blastn' if db['type'] == 'nucl' else 'blastx' if db['tool'] == 'blast' else 'diamond'
         masked = ''
         if 'mask_ids' in db and isinstance(db['mask_ids'],(list,)):
