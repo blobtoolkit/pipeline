@@ -95,9 +95,11 @@ rule make_diamond_db:
         threads=32
     shell:
         'mkdir -p {params.tmpdir} && \
+        echo "accession\taccession.version\ttaxid\tgi" > {params.tmpdir}/{params.db}.taxid_map && \
         parallel --no-notice -j {threads} \
             "gunzip -c {params.indir}/{{}}.taxid_map.gz" \
-            :::: {input.lists} > \
+            :::: {input.lists} | \
+                awk \'{{print $1 "\\t" $1 "\\t" $2 "\\t" 0}}\' >> \
                 {params.tmpdir}/{params.db}.taxid_map && \
         parallel --no-notice -j {threads} \
             "seqtk subseq {params.indir}/{{}}.fa.gz blast/{params.db}_{{}}.accessions" \

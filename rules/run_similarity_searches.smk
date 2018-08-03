@@ -119,7 +119,7 @@ rule run_diamond_blastx:
         'diamond blastx \
             --query {input.fasta} \
             --db {params.db} \
-            --outfmt "6 qseqid staxids bitscore qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore" \
+            --outfmt 6 qseqid staxids bitscore qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore \
             --sensitive \
             --max-target-seqs {params.max_target_seqs} \
             --evalue {params.evalue} \
