@@ -63,13 +63,15 @@ rule blobtools_map2cov:
         fasta='{assembly}.fasta'
     output:
         temp('{assembly}.{sra}.bam.cov')
+    params:
+        path=config['settings']['blobtools_path']
     conda:
          '../envs/blobtools.yaml'
     threads: 1
     resources:
         threads=1
     shell:
-        'blobtools map2cov \
+        '{params.path}/blobtools map2cov \
             -i {input.fasta} \
             -b {input.bam}'
 
