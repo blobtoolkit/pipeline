@@ -20,11 +20,12 @@ Basic usage:
 """
 
 
-include: 'functions/functions.py'
+include: 'scripts/functions.py'
 
 similarity = apply_similarity_search_defaults()
-reads = config['reads']
-paired = list(map(lambda x: x[0],reads['paired']))
+reads = get_read_info(config)
+
+print(reads)
 
 asm = config['assembly']['prefix']
 
@@ -38,10 +39,9 @@ rule all:
         expand("%s.{sra}.bam.stats" % asm,sra=list_sra_accessions(reads)),
         "%s/meta.json" % asm
 
-
 include: 'rules/fetch_database_files.smk'
 include: 'rules/make_filtered_databases.smk'
 include: 'rules/fetch_assembly_files.smk'
 include: 'rules/run_similarity_searches.smk'
-include: 'rules/map_short_reads.smk'
+include: 'rules/map_reads.smk'
 include: 'rules/run_blobtools.smk'

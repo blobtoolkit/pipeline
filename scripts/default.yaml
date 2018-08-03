@@ -27,3 +27,26 @@ settings:
   taxonomy: /ceph/software/databases/ncbi_2018_05/taxonomy
   tmp: /dev/shm
   chunk: 1000000
+reads:
+  coverage:
+    min: 5
+    max: 100
+links:
+  record:
+    ENA: https://www.ebi.ac.uk/ena/data/view/{id}
+  taxon:
+    taxid:
+      ENA: https://www.ebi.ac.uk/ena/data/view/Taxon:{taxid}
+    genus:
+      ENA: https://www.ebi.ac.uk/ena/data/view/Taxon:{genus}
+  assembly:
+    prefix:
+      ENA: https://www.ebi.ac.uk/ena/data/view/{prefix}
+    accession:
+      ENA: https://www.ebi.ac.uk/ena/data/view/{accession}
+    biosample:
+      ENA: https://www.ebi.ac.uk/ena/data/view/{biosample}
+    bioproject:
+      ENA: https://www.ebi.ac.uk/ena/data/view/{bioproject}
+  reads:
+    ENA: https://www.ebi.ac.uk/ena/data/view/{key}

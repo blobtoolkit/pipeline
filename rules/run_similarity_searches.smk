@@ -1,35 +1,63 @@
+# rule run_blastn:
+#     """
+#     Run NCBI blastn to search nucleotide database with assembly query.
+#     """
+#     input:
+#         fasta='{assembly}.fasta',
+#         db='blast/{name}.root.{root}{masked}.nal'
+#     output:
+#         '{assembly}.blastn.{name}.root.{root}{masked}.out'
+#     wildcard_constraints:
+#         root='\d+',
+#         masked='.[fm][ulins\d\.]+'
+#     params:
+#         db=lambda wc: "%s.root.%s%s" % (wc.name,wc.root,wc.masked),
+#         evalue=lambda wc:similarity[wc.name]['evalue'],
+#         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
+#     conda:
+#          '../envs/blast.yaml'
+#     threads: 32
+#     resources:
+#         threads=32
+#     shell:
+#         'cd blast && \
+#         blastn \
+#             -query ../{input.fasta} \
+#             -db {params.db} \
+#             -outfmt "6 qseqid staxids bitscore std" \
+#             -max_target_seqs {params.max_target_seqs} \
+#             -max_hsps 1 \
+#             -evalue {params.evalue} \
+#             -num_threads {threads} \
+#             > ../{output}'
+
 rule run_blastn:
     """
     Run NCBI blastn to search nucleotide database with assembly query.
     """
     input:
         fasta='{assembly}.fasta',
-        db='blast/{name}.root.{root}{masked}.nal'
+        db=lambda wc: "%s/%s.nal" % (similarity[wc.name]['local'],wc.name),
+        taxids='{name}.root.{root}{masked}.taxids'
     output:
         '{assembly}.blastn.{name}.root.{root}{masked}.out'
     wildcard_constraints:
         root='\d+',
         masked='.[fm][ulins\d\.]+'
     params:
-        db=lambda wc: "%s.root.%s%s" % (wc.name,wc.root,wc.masked),
+        db=lambda wc: "%s/%s" % (similarity[wc.name]['local'],wc.name),
         evalue=lambda wc:similarity[wc.name]['evalue'],
-        max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
+        max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs'],
+        chunk=100000,
+        overlap=5000,
+        path=config['settings']['blast_path']
     conda:
-         '../envs/blast.yaml'
+         '../envs/pyblast.yaml'
     threads: 32
     resources:
         threads=32
-    shell:
-        'cd blast && \
-        blastn \
-            -query ../{input.fasta} \
-            -db {params.db} \
-            -outfmt "6 qseqid staxids bitscore std" \
-            -max_target_seqs {params.max_target_seqs} \
-            -max_hsps 1 \
-            -evalue {params.evalue} \
-            -num_threads {threads} \
-            > ../{output}'
+    script:
+        '../scripts/blast_wrapper.py'
 
 rule run_blastx:
     """
@@ -46,7 +74,8 @@ rule run_blastx:
     params:
         db=lambda wc: "%s.root.%s%s" % (wc.name,wc.root,wc.masked),
         evalue=lambda wc:similarity[wc.name]['evalue'],
-        max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
+        max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs'],
+        path=config['settings']['blast_path']
     conda:
          '../envs/blast.yaml'
     threads: 32
@@ -54,7 +83,7 @@ rule run_blastx:
         threads=32
     shell:
         'cd blast && \
-        blastx \
+        {params.path}/blastx \
             -query ../{input.fasta} \
             -db {params.db} \
             -outfmt "6 qseqid staxids bitscore std" \
@@ -75,7 +104,8 @@ rule run_diamond_blastx:
         '{assembly}.diamond.{name}.root.{root}{masked}.out'
     wildcard_constraints:
         root='\d+',
-        masked='.[fm][ulins\d\.]+'
+        masked='.[fm][ulins\d\.]+',
+        assembly='\w+'
     params:
         db=lambda wc: "%s.root.%s%s" % (wc.name,wc.root,wc.masked),
         evalue=lambda wc:similarity[wc.name]['evalue'],
@@ -108,7 +138,8 @@ rule run_blobtools_taxify:
         '{assembly}.diamond.{name}.root.{root}{masked}.taxified.out'
     params:
         indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name),
-        idmap=lambda wc: "%s/%s.taxid_map" % (config['settings']['tmp'],wc.name)
+        idmap=lambda wc: "%s/%s.taxid_map" % (config['settings']['tmp'],wc.name),
+        path=config['settings']['blobtools_path']
     wildcard_constraints:
         root='\d+',
         masked='.[fm][ulins\d\.]+'
@@ -121,7 +152,7 @@ rule run_blobtools_taxify:
         'parallel --no-notice -j {threads} \
             "gunzip -c {params.indir}/{{}}.taxid_map.gz" \
             :::: {input.lists} > {params.idmap} && \
-        blobtools taxify \
+        {params.path}/blobtools taxify \
             -f {input.dmnd} \
             -m {params.idmap} \
             -s 0 \

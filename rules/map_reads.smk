@@ -14,26 +14,26 @@ rule bwa_index:
     shell:
         'bwa index -a bwtsw {input}'
 
-rule bwa_mem:
+rule map_reads:
     """
-    Run bwa mem with singe or paired FASTQ files
+    Run bwa/minimap2 with settings appropriate to sequencing platform
     """
     input:
-        fastq=lambda wc: ["%s_1.fastq.gz" % wc.sra, "%s_2.fastq.gz" % wc.sra] if wc.sra in paired else "%s.fastq.gz" % wc.sra,
+        fastq=lambda wc: list_read_files(wc.sra,reads,True),
         fasta='{assembly}.fasta',
         index=expand('{{assembly}}.fasta.{suffix}',suffix=BWA_INDEX)
     output:
         temp('{assembly}.{sra}.bam')
     params:
-        sra = lambda wc: wc.sra
+        cmd = lambda wc: generate_mapping_command(wc.sra,reads)
     conda:
          '../envs/bwa.yaml'
     threads: 32
     resources:
         threads=32
     shell:
-        'bwa mem -M -t {threads} {input.fasta} {input.fastq} | \
-        samtools sort -O BAM -o {output} -'
+        '{params.cmd} -t {threads} {input.fasta} {input.fastq} | \
+        samtools sort -@{threads} -O BAM -o {output} -'
 
 rule bamtools_stats:
     """

@@ -19,6 +19,30 @@ rule fetch_ncbi_fasta:
     shell:
         'wget -q -O {output.fa} {params.ftp_url}{params.ftp_dir}/{wildcards.name}.gz'
 
+rule fetch_ncbi_db:
+    """
+    Fetch formatted NCBI BLAST databases
+    """
+    output:
+        '{path}/{name}.{suffix}'
+    wildcard_constraints:
+        # NB: the path to the local copy of the file must contain the string 'ncbi'
+        path='.+ncbi.+',
+        suffix='[np]al'
+    params:
+        ftp_url='ftp.ncbi.nlm.nih.gov',
+        ftp_dir='/blast/db/'
+    conda:
+         '../envs/fetch.yaml'
+    threads: 1
+    resources:
+        download=1,
+        threads=1
+    shell:
+        'wget -b {params.ftp_url}{params.ftp_dir}{wildcards.name}.??.tar.gz -P {wildcards.path}/ \
+        && tar xf {wildcards.path}/*.tar.gz'
+
+
 rule fetch_ncbi_idmap:
     """
     Fetch FASTA files corresponding to NCBI BLAST databases

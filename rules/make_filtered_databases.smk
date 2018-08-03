@@ -22,6 +22,28 @@ rule expand_and_split_fasta:
     script:
         '../scripts/expand_and_split_fasta.py'
 
+rule make_taxid_list:
+    """
+    Generate a list of taxids containing all descendants of a specified root,
+    optionally with one or more lineages masked.
+    """
+    input:
+        nodes="%s/nodes.dmp" % config['settings']['taxonomy']
+    output:
+        '{name}.root.{root}{masked}.taxids'
+    wildcard_constraints:
+        root='\d+'
+    params:
+        mask_ids=lambda wc: similarity[wc.name]['mask_ids'],
+        db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked))
+    conda:
+         '../envs/py3.yaml'
+    threads: 1
+    resources:
+        threads=1
+    script:
+        '../scripts/make_taxid_list.py'
+
 rule make_masked_lists:
     """
     Generate a list of accessions needed to create a custom
@@ -78,51 +100,51 @@ rule make_diamond_db:
             -d {params.outfile}'
 
 
-rule make_blast_db:
-    """
-    Generate a custom BLAST database from a list of per-taxon sequence
-    files.
-    """
-    input:
-        split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
-        lists='blast/{name}.root.{root}{masked}.lists'
-    output:
-        db='blast/{name}.root.{root}{masked}.{suffix}'
-    wildcard_constraints:
-        suffix='\wal',
-        root='\d+'
-    params:
-        dbtype=lambda wc: 'prot' if wc.suffix == 'pal' else 'nucl',
-        indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name),
-        db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked)),
-        tmpdir="%s" % config['settings']['tmp']
-    conda:
-         '../envs/blast.yaml'
-    threads: 32
-    resources:
-        tmpdir=64,
-        threads=32
-    shell:
-        'set +o pipefail && \
-        mkdir -p blast && \
-        mkdir -p {params.tmpdir} && \
-        > {params.tmpdir}/{params.db}.dblist && \
-        parallel -j {threads} \
-            --no-notice \
-            "pigz -dc {params.indir}/{{}}.taxid_map.gz \
-                > {params.tmpdir}/{params.db}_{{}}.taxid_map && \
-            seqtk subseq {params.indir}/{{}}.fa.gz blast/{params.db}_{{}}.accessions | \
-            makeblastdb -dbtype {params.dbtype} \
-                        -title {params.db}_{{}} \
-                        -out blast/{params.db}_{{}} \
-                        -parse_seqids \
-                        -taxid_map {params.tmpdir}/{params.db}_{{}}.taxid_map && \
-            echo {params.db}_{{}} >> {params.tmpdir}/{params.db}.dblist && \
-            rm {params.tmpdir}/{params.db}_{{}}.taxid_map" \
-            :::: {input.lists} && \
-        cd blast && \
-        blastdb_aliastool -dblist_file {params.tmpdir}/{params.db}.dblist \
-             -dbtype {params.dbtype} \
-             -out {params.db} \
-             -title {params.db} && \
-        rm {params.tmpdir}/{params.db}.dblist'
+# rule make_blast_db:
+#     """
+#     Generate a custom BLAST database from a list of per-taxon sequence
+#     files.
+#     """
+#     input:
+#         split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
+#         lists='blast/{name}.root.{root}{masked}.lists'
+#     output:
+#         db='blast/{name}.root.{root}{masked}.{suffix}'
+#     wildcard_constraints:
+#         suffix='\wal',
+#         root='\d+'
+#     params:
+#         dbtype=lambda wc: 'prot' if wc.suffix == 'pal' else 'nucl',
+#         indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name),
+#         db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked)),
+#         tmpdir="%s" % config['settings']['tmp']
+#     conda:
+#          '../envs/blast.yaml'
+#     threads: 32
+#     resources:
+#         tmpdir=64,
+#         threads=32
+#     shell:
+#         'set +o pipefail && \
+#         mkdir -p blast && \
+#         mkdir -p {params.tmpdir} && \
+#         > {params.tmpdir}/{params.db}.dblist && \
+#         parallel -j {threads} \
+#             --no-notice \
+#             "pigz -dc {params.indir}/{{}}.taxid_map.gz \
+#                 > {params.tmpdir}/{params.db}_{{}}.taxid_map && \
+#             seqtk subseq {params.indir}/{{}}.fa.gz blast/{params.db}_{{}}.accessions | \
+#             makeblastdb -dbtype {params.dbtype} \
+#                         -title {params.db}_{{}} \
+#                         -out blast/{params.db}_{{}} \
+#                         -parse_seqids \
+#                         -taxid_map {params.tmpdir}/{params.db}_{{}}.taxid_map && \
+#             echo {params.db}_{{}} >> {params.tmpdir}/{params.db}.dblist && \
+#             rm {params.tmpdir}/{params.db}_{{}}.taxid_map" \
+#             :::: {input.lists} && \
+#         cd blast && \
+#         blastdb_aliastool -dblist_file {params.tmpdir}/{params.db}.dblist \
+#              -dbtype {params.dbtype} \
+#              -out {params.db} \
+#              -title {params.db} && \
+#         rm {params.tmpdir}/{params.db}.dblist'
