@@ -3,8 +3,8 @@
 import re
 from collections import defaultdict
 
-INFILE = snakemake.input
-OUTFILE = snakemake.output
+INFILE = snakemake.input[0]
+OUTFILE = snakemake.output[0]
 COUNT = snakemake.params.max_target_seqs
 
 if __name__ == '__main__':
