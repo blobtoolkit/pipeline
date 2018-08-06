@@ -1,63 +1,102 @@
-# rule run_blastn:
-#     """
-#     Run NCBI blastn to search nucleotide database with assembly query.
-#     """
-#     input:
-#         fasta='{assembly}.fasta',
-#         db='blast/{name}.root.{root}{masked}.nal'
-#     output:
-#         '{assembly}.blastn.{name}.root.{root}{masked}.out'
-#     wildcard_constraints:
-#         root='\d+',
-#         masked='.[fm][ulins\d\.]+'
-#     params:
-#         db=lambda wc: "%s.root.%s%s" % (wc.name,wc.root,wc.masked),
-#         evalue=lambda wc:similarity[wc.name]['evalue'],
-#         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
-#     conda:
-#          '../envs/blast.yaml'
-#     threads: 32
-#     resources:
-#         threads=32
-#     shell:
-#         'cd blast && \
-#         blastn \
-#             -query ../{input.fasta} \
-#             -db {params.db} \
-#             -outfmt "6 qseqid staxids bitscore std" \
-#             -max_target_seqs {params.max_target_seqs} \
-#             -max_hsps 1 \
-#             -evalue {params.evalue} \
-#             -num_threads {threads} \
-#             > ../{output}'
+rule chunk_fasta:
+    """
+    split fasta file into chunks.
+    """
+    input:
+        '{assembly}.fasta'
+    output:
+        '{assembly}.fasta.chunked'
+    params:
+        chunk=config['settings']['blast_chunk'],
+        overlap=config['settings']['blast_overlap'],
+    conda:
+         '../envs/py3.yaml'
+    threads: 1
+    resources:
+        threads=1
+    script:
+        '../scripts/chunk_fasta.py'
 
 rule run_blastn:
     """
     Run NCBI blastn to search nucleotide database with assembly query.
     """
     input:
-        fasta='{assembly}.fasta',
+        fasta='{assembly}.fasta.chunked',
         db=lambda wc: "%s/%s.nal" % (similarity[wc.name]['local'],wc.name),
         taxids='{name}.root.{root}{masked}.taxids'
     output:
-        '{assembly}.blastn.{name}.root.{root}{masked}.out'
+        '{assembly}.blastn.{name}.root.{root}{masked}.out.raw'
     wildcard_constraints:
         root='\d+',
         masked='.[fm][ulins\d\.]+'
     params:
-        db=lambda wc: "%s/%s" % (similarity[wc.name]['local'],wc.name),
+        db=lambda wc: "%s.root.%s%s" % (wc.name,wc.root,wc.masked),
         evalue=lambda wc:similarity[wc.name]['evalue'],
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs'],
-        blast_chunk=config['settings']['blast_chunk'],
-        blast_overlap=config['settings']['blast_overlap'],
         path=config['settings']['blast_path']
     conda:
-         '../envs/pyblast.yaml'
+         '../envs/blast.yaml'
     threads: 32
     resources:
         threads=32
+    shell:
+        'cd blast && \
+        {params.path}/blastn \
+            -query ../{input.fasta} \
+            -db {params.db} \
+            -outfmt "6 qseqid staxids bitscore std" \
+            -max_target_seqs {params.max_target_seqs} \
+            -max_hsps 1 \
+            -evalue {params.evalue} \
+            -num_threads {threads} \
+            > ../{output}'
+
+rule unchunk_blast_results:
+    """
+    reformat blast results from chunked input.
+    """
+    input:
+        '{assembly}.blastn.{name}.root.{root}{masked}.out.raw'
+    output:
+        '{assembly}.blastn.{name}.root.{root}{masked}.out'
+    params:
+        max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
+    conda:
+         '../envs/py3.yaml'
+    threads: 1
+    resources:
+        threads=1
     script:
-        '../scripts/blast_wrapper.py'
+        '../scripts/unchunk_blast.py'
+
+# rule run_blastn:
+#     """
+#     Run NCBI blastn to search nucleotide database with assembly query.
+#     """
+#     input:
+#         fasta='{assembly}.fasta',
+#         db=lambda wc: "%s/%s.nal" % (similarity[wc.name]['local'],wc.name),
+#         taxids='{name}.root.{root}{masked}.taxids'
+#     output:
+#         '{assembly}.blastn.{name}.root.{root}{masked}.out'
+#     wildcard_constraints:
+#         root='\d+',
+#         masked='.[fm][ulins\d\.]+'
+#     params:
+#         db=lambda wc: "%s/%s" % (similarity[wc.name]['local'],wc.name),
+#         evalue=lambda wc:similarity[wc.name]['evalue'],
+#         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs'],
+#         blast_chunk=config['settings']['blast_chunk'],
+#         blast_overlap=config['settings']['blast_overlap'],
+#         path=config['settings']['blast_path']
+#     conda:
+#          '../envs/pyblast.yaml'
+#     threads: 32
+#     resources:
+#         threads=32
+#     script:
+#         '../scripts/blast_wrapper.py'
 
 rule run_blastx:
     """
