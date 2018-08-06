@@ -42,7 +42,7 @@ rule run_blastn:
         threads=32
     shell:
         '{params.path}/blastn \
-            -query ../{input.fasta} \
+            -query {input.fasta} \
             -db {params.db} \
             -outfmt "6 qseqid staxids bitscore std" \
             -max_target_seqs {params.max_target_seqs} \
@@ -50,7 +50,7 @@ rule run_blastn:
             -evalue {params.evalue} \
             -num_threads {threads} \
             -taxidlist {input.taxids} \
-            > ../{output}'
+            > {output}'
 
 rule unchunk_blast_results:
     """
