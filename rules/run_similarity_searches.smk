@@ -31,7 +31,7 @@ rule run_blastn:
         root='\d+',
         masked='.[fm][ulins\d\.]+'
     params:
-        db=lambda wc: "%s/%s.nal" % (similarity[wc.name]['local'],wc.name),
+        db=lambda wc: "%s/%s" % (similarity[wc.name]['local'],wc.name),
         evalue=lambda wc:similarity[wc.name]['evalue'],
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs'],
         path=config['settings']['blast_path']
