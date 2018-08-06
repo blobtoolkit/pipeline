@@ -41,8 +41,7 @@ rule run_blastn:
     resources:
         threads=32
     shell:
-        'cd blast && \
-        {params.path}/blastn \
+        '{params.path}/blastn \
             -query ../{input.fasta} \
             -db {params.db} \
             -outfmt "6 qseqid staxids bitscore std" \
