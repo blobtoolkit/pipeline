@@ -31,7 +31,7 @@ rule run_blastn:
         root='\d+',
         masked='.[fm][ulins\d\.]+'
     params:
-        db=lambda wc: "%s.root.%s%s" % (wc.name,wc.root,wc.masked),
+        db=lambda wc: "%s/%s.nal" % (similarity[wc.name]['local'],wc.name),
         evalue=lambda wc:similarity[wc.name]['evalue'],
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs'],
         path=config['settings']['blast_path']
@@ -50,6 +50,7 @@ rule run_blastn:
             -max_hsps 1 \
             -evalue {params.evalue} \
             -num_threads {threads} \
+            -taxidlist {input.taxids} \
             > ../{output}'
 
 rule unchunk_blast_results:

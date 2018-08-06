@@ -6,10 +6,10 @@ from multiprocessing import Pool
 from shlex import split
 from subprocess import Popen, PIPE, run
 
-FASTAFILE = snakemake.input
+FASTAFILE = snakemake.input[0]
 CHUNK = int(snakemake.params.chunk)
 OVERLAP = int(snakemake.params.overlap)
-OUTFILE = snakemake.output
+OUTFILE = snakemake.output[0]
 
 def chunk_fasta(fastafile,chunk=math.inf,overlap=0):
     """
