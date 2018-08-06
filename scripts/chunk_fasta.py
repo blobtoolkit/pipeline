@@ -36,7 +36,7 @@ def chunk_fasta(fastafile,chunk=math.inf,overlap=0):
                 yield {'title':title,'seq':seq,'chunks':1,'start':0}
 
 if __name__ == '__main__':
-    with open(OUTPUT, 'w') as ofh:
+    with open(OUTFILE, 'w') as ofh:
         for seq in chunk_fasta(FASTAFILE,CHUNK,OVERLAP):
             ofh.write(">%s_-_%d\n" % (seq['title'],seq['start']))
             ofh.write("%s\n" % seq['seq'])
