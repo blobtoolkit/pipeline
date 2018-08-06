@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+import re
+from collections import defaultdict
+
 INFILE = snakemake.input
 OUTFILE = snakemake.output
 COUNT = snakemake.params.max_target_seqs
