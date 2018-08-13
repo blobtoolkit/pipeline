@@ -63,7 +63,7 @@ rule subsample_fastq:
     Subsample large fastq files to reduce mapping time.
     """
     input:
-        fastq=lambda wc: list_read_files(wc.sra,reads,False),
+        lambda wc: "%s%s" % (wc.sra,wc.suff.replace('.subsampled',''))
     output:
         temp("{sra}{suff}.gz")
     params:
@@ -78,7 +78,7 @@ rule subsample_fastq:
         download=1,
         threads=1
     shell:
-        '{params.cmd[0]} {input.fastq[0]} {params.cmd[1]} {output}'
+        '{params.cmd[0]} {input} {params.cmd[1]} {output}'
 
 
 # rule extract_paired_fastq:
