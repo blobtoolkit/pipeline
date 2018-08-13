@@ -63,7 +63,7 @@ rule subsample_fastq:
     Subsample large fastq files to reduce mapping time.
     """
     input:
-        lambda wc: "%s%s" % (wc.sra,wc.suff.replace('.subsampled',''))
+        lambda wc: "%s%s.gz" % (wc.sra,wc.suff.replace('.subsampled',''))
     output:
         temp("{sra}{suff}.gz")
     params:
