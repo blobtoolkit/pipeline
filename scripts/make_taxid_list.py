@@ -11,7 +11,7 @@ MASKS = snakemake.params.mask_ids + [32630,111789,6] # mask synthetic constructs
 NODES = snakemake.input.nodes
 
 # mask synthetic constructs
-TAXIDS = set('32630','111789','6')
+TAXIDS = {'32630','111789','6'}
 
 def node_graph(nodes_file):
     """
