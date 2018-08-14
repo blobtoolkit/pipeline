@@ -7,9 +7,10 @@ from collections import defaultdict
 # set variables from snakemake params, wildcards, input and threads
 DBTITLE = snakemake.params.db
 ROOT = str(snakemake.wildcards.root)
-MASKS = snakemake.params.mask_ids
+MASKS = snakemake.params.mask_ids + [32630,111789,6] # mask synthetic constructs by default
 NODES = snakemake.input.nodes
 
+# mask synthetic constructs
 TAXIDS = set()
 
 def node_graph(nodes_file):
