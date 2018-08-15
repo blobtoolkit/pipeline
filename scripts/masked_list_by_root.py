@@ -8,7 +8,7 @@ from pathlib import Path
 
 # set variables from snakemake params, wildcards, input and threads
 ROOT = str(snakemake.wildcards.root)
-MASKS = snakemake.params.mask_ids
+MASKS = snakemake.params.mask_ids + [32630,111789,6] # mask synthetic constructs by default
 NODES = snakemake.input.nodes
 INDIR = snakemake.params.indir
 PREFIX = snakemake.wildcards.name

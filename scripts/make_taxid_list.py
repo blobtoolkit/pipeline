@@ -10,8 +10,7 @@ ROOT = str(snakemake.wildcards.root)
 MASKS = snakemake.params.mask_ids + [32630,111789,6] # mask synthetic constructs by default
 NODES = snakemake.input.nodes
 
-# mask synthetic constructs
-TAXIDS = {'32630','111789','6'}
+TAXIDS = set()
 
 def node_graph(nodes_file):
     """
