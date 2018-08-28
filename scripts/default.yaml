@@ -10,7 +10,7 @@ similarity:
       type: nucl
       tool: blast
       source: ncbi
-      local: /ceph/software/databases/ncbi_2018_05
+      local: /software/databases/ncbi_2018_08
       idmap:
         - nucl_est
         - nucl_gb
@@ -21,32 +21,17 @@ similarity:
       type: prot
       tool: diamond
       source: uniprot
-      local: /ceph/software/databases/uniprot_2018_04
+      local: /ceph/software/databases/uniprot_2018_07
       max_target_seqs: 1
 settings:
-  taxonomy: /ceph/software/databases/ncbi_2018_05/taxonomy
-  tmp: /dev/shm
   chunk: 1000000
+  blast_chunk: 100000
+  blast_overlap: 500
+  taxonomy: /software/databases/ncbi_2018_08/taxonomy
+  tmp: /tmp
+  blobtools_path: /software/blobtools
+  blast_path: /software/blast/ncbi-blast-2.8.0+/bin
 reads:
   coverage:
-    min: 5
+    min: 2
     max: 100
-links:
-  record:
-    ENA: https://www.ebi.ac.uk/ena/data/view/{id}
-  taxon:
-    taxid:
-      ENA: https://www.ebi.ac.uk/ena/data/view/Taxon:{taxid}
-    genus:
-      ENA: https://www.ebi.ac.uk/ena/data/view/Taxon:{genus}
-  assembly:
-    prefix:
-      ENA: https://www.ebi.ac.uk/ena/data/view/{prefix}
-    accession:
-      ENA: https://www.ebi.ac.uk/ena/data/view/{accession}
-    biosample:
-      ENA: https://www.ebi.ac.uk/ena/data/view/{biosample}
-    bioproject:
-      ENA: https://www.ebi.ac.uk/ena/data/view/{bioproject}
-  reads:
-    ENA: https://www.ebi.ac.uk/ena/data/view/{key}
