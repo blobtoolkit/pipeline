@@ -51,7 +51,6 @@ rule make_masked_lists:
     with one or more lineages masked.
     """
     input:
-        nodes="%s/nodes.dmp" % config['settings']['taxonomy'],
         split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
         taxids='{name}.root.{root}{masked}.taxids'
     output:
