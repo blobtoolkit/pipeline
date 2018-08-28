@@ -30,7 +30,7 @@ rule fetch_ncbi_db:
         path='.+ncbi.+',
         suffix='[np]al'
     params:
-        ftp_url='ftp.ncbi.nlm.nih.gov',
+        ftp_url='ftp://ftp.ncbi.nlm.nih.gov',
         ftp_dir='/blast/db/'
     conda:
          '../envs/fetch.yaml'
@@ -39,7 +39,7 @@ rule fetch_ncbi_db:
         download=1,
         threads=1
     shell:
-        'wget -b {params.ftp_url}{params.ftp_dir}{wildcards.name}.??.tar.gz -P {wildcards.path}/ \
+        'wget -b "{params.ftp_url}{params.ftp_dir}{wildcards.name}.??.tar.gz" -P {wildcards.path}/ \
         && tar xf {wildcards.path}/*.tar.gz'
 
 
