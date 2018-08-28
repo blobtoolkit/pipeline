@@ -52,13 +52,13 @@ rule make_masked_lists:
     """
     input:
         nodes="%s/nodes.dmp" % config['settings']['taxonomy'],
-        split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name)
+        split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
+        taxids='{name}.root.{root}{masked}.taxids'
     output:
         'blast/{name}.root.{root}{masked}.lists'
     wildcard_constraints:
         root='\d+'
     params:
-        mask_ids=lambda wc: similarity[wc.name]['mask_ids'],
         db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked)),
         indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name),
         chunk=config['settings']['chunk']
