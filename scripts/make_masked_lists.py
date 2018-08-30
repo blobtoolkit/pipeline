@@ -11,7 +11,6 @@ CHUNK = snakemake.params.chunk
 INDIR = snakemake.params.indir
 DBTITLE = snakemake.params.db
 TAXID_FILE = snakemake.input.taxids
-NODES = snakemake.input.nodes
 THREADS = snakemake.threads
 OUTDIR = 'blast'
 
