@@ -63,7 +63,7 @@ dependencies:
   - fontconfig=2.13.0=0
   - freetype=2.8.1=0
   - libxcb=1.13=0
-  - libxml2=2.9.8=0
+  - libxml2=2.9.8
   - setuptools=39.0.1=py27_0
   - tornado=5.0.1=py27_1
   - xorg-libxau=1.0.8=3

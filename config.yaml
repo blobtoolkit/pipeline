@@ -1,87 +1,43 @@
-assembly: {accession: GCA_000297895.1, alias: oyster_v9, bioproject: PRJNA70283, biosample: SAMN00690713,
-  level: scaffold, prefix: AFTI01, scaffold-count: 7658, span: 557717710}
+assembly:
+  accession: GCA_002217835.1
+  alias: Dobs_1.0
+  bioproject: PRJDB4578
+  biosample: SAMD00047210
+  level: scaffold
+  prefix: BDQP01
+  scaffold-count: 1935
+  span: 181868570
 reads:
-  ILLUMINA:
-    WGS:
-      paired: [SRR943126, SRR327446, SRR943128, SRR327456, SRR943134, SRR943133, SRR943129,
-        SRR327451, SRR943132, SRR943131, SRR327442, SRR327449, SRR327433, SRR943130,
-        SRR327429, SRR943127, SRR327421, SRR327443, SRR327424, SRR327426, SRR327431,
-        SRR327420, SRR327419, SRR327422, SRR327417, SRR327432, SRR327439, SRR327425,
-        SRR327418, SRR327435, SRR327453, SRR327440, SRR327455, SRR327452, SRR327437,
-        SRR327447, SRR327436, SRR327434]
   paired:
-  - [SRR943126, ILLUMINA]
-  - [SRR327446, ILLUMINA]
-  - [SRR943128, ILLUMINA]
-  single: []
-settings: {chunk: 1000000, taxonomy: /ceph/software/databases/ncbi_2018_05/taxonomy,
-  tmp: /dev/shm}
+  - [DRR055278, ILLUMINA]
+  - [DRR055279, ILLUMINA]
+  - [DRR055280, ILLUMINA]
+settings:
+  chunk: 1000000
+  taxonomy: /software/databases/ncbi_2018_05/taxonomy
+  tmp: /tmp
 similarity:
   databases:
   - idmap: [nucl_est, nucl_gb, nucl_gss, nucl_wgs, pdb]
-    local: /ceph/software/databases/ncbi_2018_05
+    local: /software/databases/ncbi_2018_05
     name: nt
     source: ncbi
     tool: blast
     type: nucl
-  - {local: /ceph/software/databases/uniprot_2018_04, max_target_seqs: 1, name: reference_proteomes,
-    source: uniprot, tool: diamond, type: prot}
-  defaults:
-    evalue: 1e-25
-    mask_ids: [6564]
-    max_target_seqs: 10
-    root: 1
-  taxrule: bestsumorder
-taxon: {genus: 6564, name: Crassostrea gigas, taxid: 29159}
-taxon:
-  name: Manduca sexta
-  taxid: 7130
-  genus: 7129
-assembly:
-  accession: GCA_000262585.1
-  alias: Msex_1.0
-  bioproject: PRJNA81037
-  biosample: SAMN00779869
-  level: scaffold
-  prefix: AIXA01
-  scaffold-count: 20871
-  span: 419424057
-reads:
-  CAPILLARY:
-    WGS:
-      single: [SRR2762665]
-  LS454:
-    WGS:
-      paired: [SRR403247, SRR403248, SRR403249, SRR403250, SRR403251, SRR403252, SRR403253,
-        SRR403254, SRR403255, SRR403256, SRR403257, SRR403258, SRR403259, SRR403260,
-        SRR403261, SRR403262, SRR403263, SRR403264, SRR403265, SRR403266, SRR403267,
-        SRR403268, SRR403270, SRR403271, SRR403274, SRR403281]
-      single: [SRR403269, SRR403272, SRR403273, SRR403275, SRR403276, SRR403277, SRR403278,
-        SRR403279, SRR403280, SRR403282, SRR403283, SRR403284, SRR403285, SRR403286,
-        SRR403287, SRR403288, SRR403289, SRR403290, SRR403291, SRR403292, SRR403293,
-        SRR403294, SRR403295, SRR403296, SRR403297, SRR403298]
-similarity:
-  defaults:
-    source: ncbi
-    tool: blast
-    type: nucl
-    local: /path/to/ncbi_2018_03
-    root: 1
-    mask_ids: [7129]
-    evalue: 1e-25
-    max_target_seqs: 10
-  databases:
-  - name: nt
-    type: nucl
-    idmap: [nucl_est, nucl_gb, nucl_gss, nucl_wgs, pdb]
-  - name: reference_proteomes
+  - local: /software/databases/uniprot_2018_04
+    max_target_seqs: 1
+    name: reference_proteomes
     source: uniprot
     tool: diamond
     type: prot
-    local: /path/to/uniprot_2018_02
-    max_target_seqs: 1
+  defaults:
+    evalue: 1e-25
+    mask_ids: [7215]
+    max_target_seqs: 10
+    root: 1
   taxrule: bestsumorder
-settings:
-  chunk: 1000000
-  taxonomy: /path/to/ncbi_taxonomy
-  tmp: /tmp
+taxon:
+  name: Drosophila obscura
+  taxid: 7282
+  family: Drosophilidae
+  phylum: Arthropoda
