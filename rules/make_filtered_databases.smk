@@ -30,7 +30,8 @@ rule make_taxid_list:
     input:
         nodes="%s/nodes.dmp" % config['settings']['taxonomy']
     output:
-        '{name}.root.{root}{masked}.taxids'
+        '{name}.root.{root}{masked}.taxids',
+        '{name}.root.{root}{masked}.negative.taxids'
     wildcard_constraints:
         root='\d+'
     params:
@@ -52,7 +53,7 @@ rule make_masked_lists:
     """
     input:
         split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
-        taxids='{name}.root.{root}{masked}.taxids'
+        taxids='{name}.root.{root}{masked}.negative.taxids'
     output:
         'blast/{name}.root.{root}{masked}.lists'
     wildcard_constraints:
@@ -63,9 +64,9 @@ rule make_masked_lists:
         chunk=config['settings']['chunk']
     conda:
          '../envs/py3.yaml'
-    threads: 64
+    threads: 8
     resources:
-        threads=64
+        threads=8
     script:
         '../scripts/make_masked_lists.py'
 
