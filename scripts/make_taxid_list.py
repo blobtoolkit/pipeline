@@ -6,7 +6,7 @@ from collections import defaultdict
 
 # set variables from snakemake params, wildcards, input and threads
 DBTITLE = snakemake.params.db
-ROOT = snakemake.wildcards.root
+ROOT = int(snakemake.wildcards.root)
 MASKS = set(snakemake.params.mask_ids + [32630, 111789, 6])  # mask synthetic constructs by default
 NODES = snakemake.input.nodes
 
