@@ -31,7 +31,6 @@ def mask_accessions(subset, taxids):
     """
     accessions = []
     mapfile = "%s/%s.taxid_map.gz" % (INDIR, subset)
-    print(mapfile)
     if os.path.isfile(mapfile):
         with Popen(['pigz', '-dc', mapfile], stdout=PIPE, encoding='utf-8', bufsize=4096) as proc:
             for line in proc.stdout:

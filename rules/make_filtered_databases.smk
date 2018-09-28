@@ -64,9 +64,9 @@ rule make_masked_lists:
         chunk=config['settings']['chunk']
     conda:
          '../envs/py3.yaml'
-    threads: 8
+    threads: 32
     resources:
-        threads=8
+        threads=32
     script:
         '../scripts/make_masked_lists.py'
 
