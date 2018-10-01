@@ -59,6 +59,7 @@ dependencies:
   - xz=5.2.3=h55aa19d_2
   - yaml=0.1.7=had09818_2
   - zlib=1.2.11=ha838bed_2
+  - bamtools=2.5.1=he941832_3
   - ca-certificates=2018.1.18=0
   - fontconfig=2.13.0=0
   - freetype=2.8.1=0
