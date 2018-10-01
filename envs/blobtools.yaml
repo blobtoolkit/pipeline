@@ -60,6 +60,7 @@ dependencies:
   - yaml=0.1.7=had09818_2
   - zlib=1.2.11=ha838bed_2
   - bamtools=2.5.1=he941832_3
+  - samtools=1.7=1
   - ca-certificates=2018.1.18=0
   - fontconfig=2.13.0=0
   - freetype=2.8.1=0
@@ -69,3 +70,8 @@ dependencies:
   - tornado=5.0.1=py27_1
   - xorg-libxau=1.0.8=3
   - xorg-libxdmcp=1.1.2=3
+  - bzip2=1.0.6=h14c3975_5
+  - curl=7.58.0=h84994c4_0
+  - libcurl=7.58.0=h1ad7b7a_0
+  - libgcc=7.2.0=h69d50b8_2
+  - libssh2=1.8.0=h9cfc8f7_4
