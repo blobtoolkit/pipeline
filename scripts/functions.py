@@ -26,7 +26,7 @@ def get_read_info(config):
     reads = {}
     min = 0
     max = math.inf
-    platforms = ('ILLUMINA','PACBIO_SMRT','LS454')
+    platforms = ('ILLUMINA','OXFORD_NANOPORE','PACBIO_SMRT','LS454')
     strategies = ('paired','single')
     if 'reads' not in config:
         return reads
@@ -111,7 +111,7 @@ def generate_mapping_command(accession,reads):
         cmd = 'minimap2 -ax sr'
     elif reads[accession]['platform'] == 'PACBIO_SMRT':
         cmd = 'minimap2 -ax map-pb'
-    elif reads[accession]['platform'] == 'ONT_MINION':
+    elif reads[accession]['platform'] == 'OXFORD_NANOPORE':
         cmd = 'minimap2 -ax map-ont'
     return cmd
 
