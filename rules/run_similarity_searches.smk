@@ -112,7 +112,7 @@ rule extract_nohit_sequences:
         fasta='{assembly}.fasta',
         nohit='{assembly}.blastn.{name}.root.{root}{masked}.nohit'
     output:
-        temp('{assembly}.fasta.nohit')
+        temp('{assembly}.blastn.{name}.root.{root}{masked}.fasta.nohit')
     conda:
          '../envs/blast.yaml'
     threads: 1
@@ -126,7 +126,7 @@ rule run_blastx:
     Run NCBI blastx to search protein database with assembly query.
     """
     input:
-        fasta='{assembly}.fasta.nohit',
+        fasta='{assembly}.blastn.{name}.root.{root}{masked}.fasta.nohit',
         db='blast/{name}.root.{root}{masked}.pal'
     output:
         '{assembly}.blastx.{name}.root.{root}{masked}.out.raw'
@@ -160,7 +160,7 @@ rule run_diamond_blastx:
     Run Diamond blastx to search protein database with assembly query.
     """
     input:
-        fasta='{assembly}.fasta.nohit',
+        fasta='{assembly}.blastn.{name}.root.{root}{masked}.fasta.nohit',
         db='{name}.root.{root}{masked}.dmnd'
     output:
         '{assembly}.diamond.{name}.root.{root}{masked}.out.raw'
