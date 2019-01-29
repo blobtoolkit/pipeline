@@ -26,7 +26,7 @@ rule run_blastn:
         db=lambda wc: "%s/%s.nal" % (similarity[wc.name]['local'],wc.name),
         taxids='{name}.root.{root}{masked}.taxids'
     output:
-        raw='{assembly}.blastn.{name}.root.{root}{masked}.out.raw'
+        raw='{assembly}.blastn.{name}.root.{root}{masked}.out.raw',
         nohit='{assembly}.nohit'
     wildcard_constraints:
         root='\d+',
@@ -35,9 +35,9 @@ rule run_blastn:
         db=lambda wc: "%s/%s" % (similarity[wc.name]['local'],wc.name),
         evalue=lambda wc:similarity[wc.name]['evalue'],
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs'],
-        path=config['settings']['blast_path']
-        chunk=config['settings']['blast_chunk']
-        overlap=config['settings']['blast_overlap']
+        path=config['settings']['blast_path'],
+        chunk=config['settings']['blast_chunk'],
+        overlap=config['settings']['blast_overlap'],
         max_chunks=config['settings']['blast_max_chunks']
     conda:
          '../envs/pyblast.yaml'
