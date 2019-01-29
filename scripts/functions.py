@@ -47,8 +47,14 @@ def get_read_info(config):
                     coverage = bases / config['assembly']['span']
                 except:
                     coverage = 10
+                try:
+                    url = row[3].split(',')
+                    if len(reads) > 2:
+                        reads = reads[-2:]
+                except:
+                    url = False
                 if coverage >= min:
-                    reads[accession] = {'platform':platform,'coverage':coverage,'strategy':strategy}
+                    reads[accession] = {'platform':platform,'coverage':coverage,'strategy':strategy,'url':url}
                     if coverage > max:
                         reads[accession]['subsample'] = max / coverage
                         print("WARNING: read file %s will be subsampled due to high coverage (%.2f > %.2f)" % (accession,coverage,max),file=sys.stderr)
@@ -119,16 +125,12 @@ def list_read_files(accession,reads,subsample):
     """
     List read files.
     """
-    files = ''
-    ext = 'fastq.gz'
-    if subsample:
-        ext = 'subsampled.fastq.gz'
-    if reads[accession]['strategy'] == 'paired':
-        files = ["%s_1.%s" % (accession,ext), "%s_2.%s" % (accession,ext)]
-    elif reads[accession]['platform'] == 'PACBIO_SMRT':
-        files = ["%s_subreads.%s" % (accession,ext)]
-    else:
-        files = ["%s.%s" % (accession,ext)]
+    files = []
+    for fq_url in reads[accession]['fastq_ftp']:
+        file = fq_url.replace(r'.+\/', '')
+        if subsample:
+            file = file.replace('fastq', 'subsampled.fastq.gz')
+        files.append(file)
     return files
 
 def generate_subsample_command(accession,reads):
@@ -146,11 +148,13 @@ def generate_subsample_command(accession,reads):
         arrow = "%.2f | pigz -c > " % reads[accession]['subsample']
     return [cmd,arrow]
 
-def prepare_ebi_sra_url(acc,suffix):
-    base = 'ftp://ftp.sra.ebi.ac.uk/vol1/fastq'
-    subdir = "/00%s" % acc[-1:] if len(acc) == 10 else ''
-    url = "%s/%s%s/%s/%s%s" % ( base, acc[:6], subdir, acc, acc, suffix )
-    return url
+def prepare_ebi_sra_url(acc,file):
+    if len(reads[acc]) == 1:
+        return reads[acc][0]
+    for url in reads[acc]:
+        if url.match(file):
+            return url
+    return ''
 
 def prepare_ncbi_assembly_url(accession,name):
     base = 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all'

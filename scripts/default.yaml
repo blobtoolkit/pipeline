@@ -27,6 +27,7 @@ settings:
   chunk: 1000000
   blast_chunk: 100000
   blast_overlap: 500
+  blast_max_chunks: 10
   taxonomy: /software/databases/ncbi_2018_08/taxonomy
   tmp: /tmp
   blobtools_path: /software/blobtools

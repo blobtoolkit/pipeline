@@ -160,7 +160,7 @@ def assembly_reads(biosample):
     Return a dict of SRA accession, FASTQ ftp url, md5 and file size.
     """
     warehouse = 'https://www.ebi.ac.uk/ena/data/warehouse'
-    url = ("%s/filereport?accession=%s&result=read_run&fields=run_accession,fastq_bytes,base_count,library_strategy,library_selection,library_layout,instrument_platform"
+    url = ("%s/filereport?accession=%s&result=read_run&fields=run_accession,fastq_bytes,base_count,library_strategy,library_selection,library_layout,instrument_platform,fastq_ftp"
         % (warehouse,biosample))
     response = requests.get(url)
     sra = None
@@ -189,6 +189,8 @@ def assembly_reads(biosample):
                             strat = True
                     values.update({header[i]:value})
                 if reads and strat:
+                    if 'base_count' not in values:
+                        values['base_count'] = [0]
                     sra.append(values)
     return sra
 
@@ -229,8 +231,14 @@ graph = taxonomy.node_graph(NODES)
 parents = taxonomy.parents_at_rank(graph,ROOT,RANK)
 asm_count = count_assemblies(ROOT)
 
+def base_count(x):
+    if isinstance(x['base_count'], list):
+        return int(x['base_count'][0] or 0)
+    else:
+        return 0
+
 step = STEP
-for offset in range(1,asm_count+1,step):
+for offset in range(0,asm_count+1,step):
     count = step if offset + step < asm_count else asm_count - offset + 1
     print("%d: %d" % (offset,count))
     xml = list_assemblies(ROOT,offset,count)
@@ -240,18 +248,19 @@ for offset in range(1,asm_count+1,step):
         meta = assembly_meta(assembly,DEFAULT_META)
         if 'prefix' in meta['assembly'] and 'biosample' in meta['assembly'] and meta['assembly']['biosample']:
             if RANK:
-                meta['taxon'][RANK] = int(parents[str(meta['taxon']['taxid'])])
-                if 'similarity' in meta and 'defaults' in meta['similarity']:
+                if str(meta['taxon']['taxid']) in parents:
+                    meta['taxon'][RANK] = int(parents[str(meta['taxon']['taxid'])])
                     meta['similarity']['defaults']['mask_ids'] = [meta['taxon'][RANK]]
             if 'reads' not in meta:
                 meta['reads'] = {}
             sra = assembly_reads(meta['assembly']['biosample'])
             base_counts = {}
+            fastq_ftp = {}
             if not sra:
                 sra = ncbi_assembly_reads(meta['assembly']['biosample'])
             if sra:
                 print(meta['assembly']['prefix'])
-                sra.sort(key=lambda x: int(x['base_count'][0] or 0), reverse=True)
+                sra.sort(key=lambda x: base_count(x), reverse=True)
                 platforms = defaultdict(dict)
                 for d in sra:
                     platforms[d['instrument_platform']].update({d['run_accession']:d})
@@ -268,7 +277,8 @@ for offset in range(1,asm_count+1,step):
                                 paired.append(acc)
                             else:
                                 single.append(acc)
-                            base_counts[acc] = int(data[acc]['base_count'])
+                            base_counts[acc] = int(data[acc]['base_count'] or 0)
+                            fastq_ftp[acc] = data[acc]['fastq_ftp']
                         if paired or single:
                             meta['reads'][platform][strategy] = {}
                             if paired:
@@ -284,18 +294,18 @@ for offset in range(1,asm_count+1,step):
                     if platform in meta['reads']:
                         if 'paired' in meta['reads'][platform][strategy]:
                             new_reads = meta['reads'][platform][strategy]['paired'][:short_n]
-                            meta['reads']['paired'].extend([acc,platform,base_counts[acc]] for acc in new_reads)
+                            meta['reads']['paired'].extend([acc,platform,base_counts[acc],fastq_ftp[acc]] for acc in new_reads)
                             short_n -= len(meta['reads']['paired'])
                         if short_n > 0:
                             if 'single' in meta['reads'][platform][strategy]:
                                 new_reads = meta['reads'][platform][strategy]['single'][:short_n]
-                                meta['reads']['single'].extend([acc,platform,base_counts[acc]] for acc in new_reads)
+                                meta['reads']['single'].extend([acc,platform,base_counts[acc],fastq_ftp[acc]] for acc in new_reads)
                                 short_n -= len(meta['reads']['single'])
                 for platform in ('PACBIO_SMRT','OXFORD_NANOPORE'):
                     if platform in meta['reads']:
                         if 'single' in meta['reads'][platform][strategy]:
                             new_reads = meta['reads'][platform][strategy]['single'][:long_n]
-                            meta['reads']['single'] = [[acc,platform,base_counts[acc]] for acc in new_reads]
+                            meta['reads']['single'] = [[acc,platform,base_counts[acc],fastq_ftp[acc]] for acc in new_reads]
                 with open("%s/%s.yaml" % (WITH_READS,meta['assembly']['prefix']), 'w') as fh:
                     fh.write(yaml.dump(meta))
             else:

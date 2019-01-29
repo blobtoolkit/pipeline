@@ -26,7 +26,8 @@ rule run_blastn:
         db=lambda wc: "%s/%s.nal" % (similarity[wc.name]['local'],wc.name),
         taxids='{name}.root.{root}{masked}.taxids'
     output:
-        '{assembly}.blastn.{name}.root.{root}{masked}.out.raw'
+        raw='{assembly}.blastn.{name}.root.{root}{masked}.out.raw'
+        nohit='{assembly}.nohit'
     wildcard_constraints:
         root='\d+',
         masked='.[fm][ulins\d\.]+'
@@ -35,31 +36,36 @@ rule run_blastn:
         evalue=lambda wc:similarity[wc.name]['evalue'],
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs'],
         path=config['settings']['blast_path']
+        chunk=config['settings']['blast_chunk']
+        overlap=config['settings']['blast_overlap']
+        max_chunks=config['settings']['blast_max_chunks']
     conda:
-         '../envs/blast.yaml'
+         '../envs/pyblast.yaml'
     threads: 32
     resources:
         threads=32
-    shell:
-        '{params.path}/blastn \
-            -query {input.fasta} \
-            -db {params.db} \
-            -outfmt "6 qseqid staxids bitscore std" \
-            -max_target_seqs {params.max_target_seqs} \
-            -max_hsps 1 \
-            -evalue {params.evalue} \
-            -num_threads {threads} \
-            -taxidlist {input.taxids} \
-            > {output}'
+    script:
+        '../scripts/blast_wrapper.py'
+    # shell:
+    #     '{params.path}/blastn \
+    #         -query {input.fasta} \
+    #         -db {params.db} \
+    #         -outfmt "6 qseqid staxids bitscore std" \
+    #         -max_target_seqs {params.max_target_seqs} \
+    #         -max_hsps 1 \
+    #         -evalue {params.evalue} \
+    #         -num_threads {threads} \
+    #         -taxidlist {input.taxids} \
+    #         > {output}'
 
 rule unchunk_blast_results:
     """
     reformat blast results from chunked input.
     """
     input:
-        '{assembly}.blastn.{name}.root.{root}{masked}.out.raw'
+        '{assembly}.{algorithm}.{name}.root.{root}{masked}.out.raw'
     output:
-        '{assembly}.blastn.{name}.root.{root}{masked}.out'
+        '{assembly}.{algorithm}.{name}.root.{root}{masked}.out'
     params:
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
     conda:
@@ -98,15 +104,32 @@ rule unchunk_blast_results:
 #     script:
 #         '../scripts/blast_wrapper.py'
 
+rule extract_nohit_sequences:
+    """
+    Run seqtk to extract nohit sequences from assembly.
+    """
+    input:
+        fasta='{assembly}.fasta',
+        nohit='{assembly}.nohit'
+    output:
+        temp('{assembly}.fasta.nohit')
+    conda:
+         '../envs/blast.yaml'
+    threads: 1
+    resources:
+        threads=1
+    shell:
+        'seqtk subseq {input.fasta} {input.nohit} > {output}'
+
 rule run_blastx:
     """
     Run NCBI blastx to search protein database with assembly query.
     """
     input:
-        fasta='{assembly}.fasta',
+        fasta='{assembly}.fasta.nohit',
         db='blast/{name}.root.{root}{masked}.pal'
     output:
-        '{assembly}.blastx.{name}.root.{root}{masked}.out'
+        '{assembly}.blastx.{name}.root.{root}{masked}.out.raw'
     wildcard_constraints:
         root='\d+',
         masked='.[fm][ulins\d\.]+'
@@ -137,10 +160,10 @@ rule run_diamond_blastx:
     Run Diamond blastx to search protein database with assembly query.
     """
     input:
-        fasta='{assembly}.fasta',
+        fasta='{assembly}.fasta.nohit',
         db='{name}.root.{root}{masked}.dmnd'
     output:
-        '{assembly}.diamond.{name}.root.{root}{masked}.out'
+        '{assembly}.diamond.{name}.root.{root}{masked}.out.raw'
     wildcard_constraints:
         root='\d+',
         masked='.[fm][ulins\d\.]+',
