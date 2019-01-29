@@ -1,3 +1,4 @@
+import re
 import sys
 import math
 
@@ -127,9 +128,9 @@ def list_read_files(accession,reads,subsample):
     """
     files = []
     for fq_url in reads[accession]['url']:
-        file = fq_url.replace(r'.+\/', '')
+        file = re.sub('.+\/', '', fq_url)
         if subsample:
-            file = file.replace('fastq', 'subsampled.fastq.gz')
+            file = file.replace('fastq', 'subsampled.fastq')
         files.append(file)
     return files
 
@@ -149,6 +150,7 @@ def generate_subsample_command(accession,reads):
     return [cmd,arrow]
 
 def prepare_ebi_sra_url(acc,file):
+    print(file)
     if len(reads[acc]) == 1:
         return reads[acc][0]
     for url in reads[acc]:
