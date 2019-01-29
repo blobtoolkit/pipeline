@@ -126,7 +126,7 @@ def list_read_files(accession,reads,subsample):
     List read files.
     """
     files = []
-    for fq_url in reads[accession]['fastq_ftp']:
+    for fq_url in reads[accession]['url']:
         file = fq_url.replace(r'.+\/', '')
         if subsample:
             file = file.replace('fastq', 'subsampled.fastq.gz')
