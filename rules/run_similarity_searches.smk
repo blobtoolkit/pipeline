@@ -126,7 +126,7 @@ rule run_blastx:
     Run NCBI blastx to search protein database with assembly query.
     """
     input:
-        fasta='{assembly}.blastn.{name}.root.{root}{masked}.fasta.nohit',
+        fasta='{assembly}.blastn.nt.root.{root}{masked}.fasta.nohit',
         db='blast/{name}.root.{root}{masked}.pal'
     output:
         '{assembly}.blastx.{name}.root.{root}{masked}.out.raw'
