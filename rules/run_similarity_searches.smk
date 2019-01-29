@@ -27,7 +27,7 @@ rule run_blastn:
         taxids='{name}.root.{root}{masked}.taxids'
     output:
         raw='{assembly}.blastn.{name}.root.{root}{masked}.out.raw',
-        nohit='{assembly}.nohit'
+        nohit=temp('{assembly}.blastn.{name}.root.{root}{masked}.nohit')
     wildcard_constraints:
         root='\d+',
         masked='.[fm][ulins\d\.]+'
@@ -110,7 +110,7 @@ rule extract_nohit_sequences:
     """
     input:
         fasta='{assembly}.fasta',
-        nohit='{assembly}.nohit'
+        nohit='{assembly}.blastn.{name}.root.{root}{masked}.nohit'
     output:
         temp('{assembly}.fasta.nohit')
     conda:
