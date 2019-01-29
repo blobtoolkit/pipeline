@@ -160,7 +160,7 @@ rule run_diamond_blastx:
     Run Diamond blastx to search protein database with assembly query.
     """
     input:
-        fasta='{assembly}.blastn.{name}.root.{root}{masked}.fasta.nohit',
+        fasta='{assembly}.blastn.nt.root.{root}{masked}.fasta.nohit',
         db='{name}.root.{root}{masked}.dmnd'
     output:
         '{assembly}.diamond.{name}.root.{root}{masked}.out.raw'
