@@ -22,7 +22,7 @@ rule run_blastn:
     Run NCBI blastn to search nucleotide database with assembly query.
     """
     input:
-        fasta='{assembly}.fasta.chunked',
+        fasta='{assembly}.fasta',
         db=lambda wc: "%s/%s.nal" % (similarity[wc.name]['local'],wc.name),
         taxids='{name}.root.{root}{masked}.taxids'
     output:
@@ -129,7 +129,7 @@ rule run_blastx:
         fasta='{assembly}.blastn.nt.root.{root}{masked}.fasta.nohit',
         db='blast/{name}.root.{root}{masked}.pal'
     output:
-        '{assembly}.blastx.{name}.root.{root}{masked}.out.raw'
+        '{assembly}.blastx.{name}.root.{root}{masked}.out'
     wildcard_constraints:
         root='\d+',
         masked='.[fm][ulins\d\.]+'
@@ -163,7 +163,7 @@ rule run_diamond_blastx:
         fasta='{assembly}.blastn.nt.root.{root}{masked}.fasta.nohit',
         db='{name}.root.{root}{masked}.dmnd'
     output:
-        '{assembly}.diamond.{name}.root.{root}{masked}.out.raw'
+        '{assembly}.diamond.{name}.root.{root}{masked}.out'
     wildcard_constraints:
         root='\d+',
         masked='.[fm][ulins\d\.]+',

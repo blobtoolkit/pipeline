@@ -15,7 +15,7 @@ TAXIDS = snakemake.input.taxids
 CHUNK = int(snakemake.params.chunk)
 OVERLAP = int(snakemake.params.overlap)
 MAXCHUNKS = int(snakemake.params.max_chunks)
-THREADS = int(snakemake.params.threads)
+THREADS = int(snakemake.threads)
 EVALUE = str(snakemake.params.evalue)
 TARGETS = int(snakemake.params.max_target_seqs)
 PATH = snakemake.params.path
@@ -67,7 +67,7 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
 
 def run_blast(seqs,db='/ceph/software/databases/ncbi_2018_06/nt',evalue='1e-25',targets=10):
     """Run blast on seqs."""
-    cmd = "blastn -db %s \
+    cmd = PATH+"/blastn -db %s \
               -outfmt \"6 qseqid staxids bitscore std\" \
               -max_target_seqs %d \
               -max_hsps 1 \
@@ -117,7 +117,7 @@ if __name__ == '__main__':
     with open(OUTFILE, 'w') as ofh:
         ofh.writelines('\n'.join(output))
     for line in output:
-        (name, rest) = line.split('_-_')
+        name = line.split('_-_')[0]
         if name in names:
             names.remove(name)
     with open(NOHIT, 'w') as ofh:
