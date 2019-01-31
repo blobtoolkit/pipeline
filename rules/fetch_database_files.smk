@@ -77,12 +77,7 @@ rule fetch_taxdump:
     output:
         "%s/names.dmp" % config['settings']['taxonomy'],
         "%s/nodes.dmp" % config['settings']['taxonomy'],
-        temp('citations.dmp'),
-        temp('delnodes.dmp'),
-        temp('division.dmp'),
-        temp('gencode.dmp'),
-        temp('merged.dmp'),
-        temp('gc.prt')
+        "%s/taxidlineage.dmp" % config['settings']['taxonomy']
     params:
         outdir=config['settings']['taxonomy']
     conda:
@@ -92,9 +87,9 @@ rule fetch_taxdump:
         download=1,
         threads=1
     shell:
-        'wget -q -O taxdump.tar.gz ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz \
+        'wget -q -O taxdump.tar.gz ftp.ncbi.nlm.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz \
         && tar xzvf taxdump.tar.gz \
-        && mv n*s.dmp {params.outdir} \
+        && mv *.dmp {params.outdir} \
         && rm taxdump.tar.gz'
 
 # rule update_blobtools_nodesdb:

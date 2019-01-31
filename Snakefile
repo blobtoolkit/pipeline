@@ -33,7 +33,6 @@ rule all:
     """
     input:
         "%s.fasta" % asm,
-        "%s.blobDB.json" % asm,
         expand("%s.{sra}.bam.stats" % asm,sra=list_sra_accessions(reads)),
         "%s/meta.json" % asm
 
