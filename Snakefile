@@ -34,7 +34,10 @@ rule all:
     input:
         "%s.fasta" % asm,
         expand("%s.{sra}.bam.stats" % asm,sra=list_sra_accessions(reads)),
+        expand("%s/{sra}_cov.json" % asm,sra=list_sra_accessions(reads)),
+        expand("%s/%s_phylum_positions.json" % (asm,config['similarity']['taxrule'])),
         "%s/meta.json" % asm
+
 
 include: 'rules/fetch_database_files.smk'
 include: 'rules/make_filtered_databases.smk'

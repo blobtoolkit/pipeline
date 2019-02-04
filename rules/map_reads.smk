@@ -54,39 +54,39 @@ rule bamtools_stats:
             -insert \
             > {output}'
 
-rule blobtools_map2cov:
-    """
-    Use BlobTools to convert a mapping file to a coverage file
-    """
-    input:
-        bam='{assembly}.{sra}.bam',
-        fasta='{assembly}.fasta'
-    output:
-        temp('{assembly}.{sra}.bam.cov')
-    params:
-        path=config['settings']['blobtools_path']
-    conda:
-         '../envs/blobtools.yaml'
-    threads: 1
-    resources:
-        threads=1
-    shell:
-        '{params.path}/blobtools map2cov \
-            -i {input.fasta} \
-            -b {input.bam}'
+#rule blobtools_map2cov:
+#    """
+#    Use BlobTools to convert a mapping file to a coverage file
+#    """
+#    input:
+#        bam='{assembly}.{sra}.bam',
+#        fasta='{assembly}.fasta'
+#    output:
+#        temp('{assembly}.{sra}.bam.cov')
+#    params:
+#        path=config['settings']['blobtools_path']
+#    conda:
+#         '../envs/blobtools.yaml'
+#    threads: 1
+#    resources:
+#        threads=1
+#    shell:
+#        '{params.path}/blobtools map2cov \
+#            -i {input.fasta} \
+#            -b {input.bam}'
 
-rule sum_coverage:
-    """
-    Sum coverage across a set of blobtools cov files
-    """
-    input:
-        lambda wc: cov_files_by_platform(reads,wc.assembly,wc.platform)
-    output:
-        temp('{assembly}.{platform}.sum.cov')
-    conda:
-         '../envs/py3.yaml'
-    threads: 1
-    resources:
-        threads=1
-    script:
-        '../scripts/sum_columns.py'
+#rule sum_coverage:
+#    """
+#    Sum coverage across a set of blobtools cov files
+#    """
+#    input:
+#        lambda wc: cov_files_by_platform(reads,wc.assembly,wc.platform)
+#    output:
+#        temp('{assembly}.{platform}.sum.cov')
+#    conda:
+#         '../envs/py3.yaml'
+#    threads: 1
+#    resources:
+#        threads=1
+#    script:
+#        '../scripts/sum_columns.py'

@@ -150,11 +150,9 @@ def generate_subsample_command(accession,reads):
     return [cmd,arrow]
 
 def prepare_ebi_sra_url(acc,file):
-    print(file)
     if len(reads[acc]) == 1:
         return reads[acc][0]
     for url in reads[acc]['url']:
-        print(url)
         if file in url:
             if 'ftp://' not in url:
                 url = 'ftp://'+url
