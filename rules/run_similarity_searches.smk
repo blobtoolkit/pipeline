@@ -41,9 +41,9 @@ rule run_blastn:
         max_chunks=config['settings']['blast_max_chunks']
     conda:
          '../envs/pyblast.yaml'
-    threads: 32
+    threads: 64
     resources:
-        threads=32
+        threads=64
     script:
         '../scripts/blast_wrapper.py'
     # shell:
@@ -140,9 +140,9 @@ rule run_blastx:
         path=config['settings']['blast_path']
     conda:
          '../envs/blast.yaml'
-    threads: 32
+    threads: 64
     resources:
-        threads=32
+        threads=64
     shell:
         'cd blast && \
         {params.path}/blastx \
@@ -174,9 +174,9 @@ rule run_diamond_blastx:
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
     conda:
          '../envs/diamond.yaml'
-    threads: 32
+    threads: 64
     resources:
-        threads=32
+        threads=64
     shell:
         'diamond blastx \
             --query {input.fasta} \

@@ -152,11 +152,14 @@ def generate_subsample_command(accession,reads):
 def prepare_ebi_sra_url(acc,file):
     if len(reads[acc]) == 1:
         return reads[acc][0]
+    urls = []
     for url in reads[acc]['url']:
+        urls += url.split(';')
+    for url in urls:
         if file in url:
             if 'ftp://' not in url:
                 url = 'ftp://'+url
-        return url
+            return url
     return ''
 
 def prepare_ncbi_assembly_url(accession,name):

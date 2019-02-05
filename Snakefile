@@ -35,8 +35,9 @@ rule all:
         "%s.fasta" % asm,
         expand("%s.{sra}.bam.stats" % asm,sra=list_sra_accessions(reads)),
         expand("%s/{sra}_cov.json" % asm,sra=list_sra_accessions(reads)),
-        expand("%s/%s_phylum_positions.json" % (asm,config['similarity']['taxrule'])),
-        "%s/meta.json" % asm
+        "%s/%s_phylum_positions.json" % (asm,config['similarity']['taxrule']),
+        expand("%s/{lineage}_busco.json" % asm,lineage=config['busco']['lineages']),
+        "%s/identifiers.json" % asm
 
 
 include: 'rules/fetch_database_files.smk'
@@ -45,3 +46,4 @@ include: 'rules/fetch_assembly_files.smk'
 include: 'rules/run_similarity_searches.smk'
 include: 'rules/map_reads.smk'
 include: 'rules/run_blobtools.smk'
+include: 'rules/run_busco.smk'
