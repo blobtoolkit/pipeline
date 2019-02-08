@@ -71,8 +71,8 @@ def run_blast(seqs,db='/ceph/software/databases/ncbi_2018_06/nt',evalue='1e-25',
               -outfmt \"6 qseqid staxids bitscore std\" \
               -max_target_seqs %d \
               -max_hsps 1 \
-              -evalue %s" % (db,targets,evalue)#\
-              #-taxidlist %s" % (db,targets,evalue,TAXIDS)
+              -evalue %s \
+              -taxidlist %s" % (db,targets,evalue,TAXIDS)
     input = ''
     for seq in seqs:
         input += ">%s_-_%d\n" % (seq['title'],seq['start'])
