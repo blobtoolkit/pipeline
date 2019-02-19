@@ -53,7 +53,7 @@ def get_read_info(config):
                     if len(reads) > 2:
                         reads = reads[-2:]
                 except:
-                    url = False
+                    url = [row[3]]
                 if coverage >= min:
                     reads[accession] = {'platform':platform,'coverage':coverage,'strategy':strategy,'url':url}
                     if coverage > max:
