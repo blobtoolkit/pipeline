@@ -1,23 +1,23 @@
-rule fetch_ncbi_fasta:
-    """
-    Fetch FASTA files corresponding to NCBI BLAST databases
-    """
-    output:
-        fa='{path}/full/{name}.fa.gz'
-    wildcard_constraints:
-        # NB: the path to the local copy of the file must contain the string 'ncbi'
-        path='.+ncbi.+'
-    params:
-        ftp_url='ftp.ncbi.nlm.nih.gov',
-        ftp_dir='/blast/db/FASTA'
-    conda:
-         '../envs/fetch.yaml'
-    threads: 1
-    resources:
-        download=1,
-        threads=1
-    shell:
-        'wget -q -O {output.fa} {params.ftp_url}{params.ftp_dir}/{wildcards.name}.gz'
+#rule fetch_ncbi_fasta:
+#    """
+#    Fetch FASTA files corresponding to NCBI BLAST databases
+#    """
+#    output:
+#        fa='{path}/full/{name}.fa.gz'
+#    wildcard_constraints:
+#        # NB: the path to the local copy of the file must contain the string 'ncbi'
+#        path='.+ncbi.+'
+#    params:
+#        ftp_url='ftp.ncbi.nlm.nih.gov',
+#        ftp_dir='/blast/db/FASTA'
+#    conda:
+#         '../envs/fetch.yaml'
+#    threads: 1
+#    resources:
+#        download=1,
+#        threads=1
+#    shell:
+#        'wget -q -O {output.fa} {params.ftp_url}{params.ftp_dir}/{wildcards.name}.gz'
 
 rule fetch_ncbi_db:
     """
@@ -39,9 +39,10 @@ rule fetch_ncbi_db:
         download=1,
         threads=1
     shell:
-        'wget -b "{params.ftp_url}{params.ftp_dir}{wildcards.name}.??.tar.gz" -P {wildcards.path}/ \
-        && tar xf {wildcards.path}/*.tar.gz'
-
+        'wget "{params.ftp_url}{params.ftp_dir}{wildcards.name}.??.tar.gz" -P {wildcards.path}/ && \
+        for file in {wildcards.path}/*.tar.gz; \
+            do tar xf $file -C {wildcards.path} && rm $file; \
+        done'
 
 rule fetch_ncbi_idmap:
     """
@@ -157,3 +158,24 @@ rule extract_uniprot:
         threads=1
     script:
         '../scripts/extract_uniprot.py'
+
+rule fetch_busco_lineage:
+    """
+    Fetch BUSCO lineages
+    """
+    output:
+        gz=config['busco']['lineage_dir']+'/{lineage}.tar.gz',
+        cfg=config['busco']['lineage_dir']+'/{lineage}/dataset.cfg'
+    params:
+        lineage=lambda wc: wc.lineage,
+        dir=lambda wc: config['busco']['lineage_dir']
+    conda:
+         '../envs/fetch.yaml'
+    threads: 1
+    resources:
+        download=1,
+        threads=1
+    shell:
+        'wget -q -O {output.gz} "https://busco.ezlab.org/datasets/{params.lineage}.tar.gz" \
+        && tar xf {output.gz} -C {params.dir}'
+

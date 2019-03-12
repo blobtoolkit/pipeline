@@ -27,7 +27,7 @@ dependencies:
   - libffi=3.2.1=hd88cf55_4
   - libgcc-ng=7.2.0=hdf63c60_3
   - libgfortran-ng=7.2.0=hdf63c60_3
-  - libiconv=1.15=h63c8f33_5
+  - libiconv
   - libpng=1.6.34=hb9fc6fc_0
   - libstdcxx-ng=7.2.0=hdf63c60_3
   - libuuid=1.0.3=h1bed415_2

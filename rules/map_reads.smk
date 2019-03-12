@@ -23,7 +23,7 @@ rule map_reads:
         fasta='{assembly}.fasta',
         index=expand('{{assembly}}.fasta.{suffix}',suffix=BWA_INDEX)
     output:
-        temp('{assembly}.{sra}.bam')
+        '{assembly}.{sra}.bam' if keep else temp('{assembly}.{sra}.bam')
     params:
         cmd = lambda wc: generate_mapping_command(wc.sra,reads)
     conda:

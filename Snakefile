@@ -24,7 +24,9 @@ include: 'scripts/functions.py'
 
 similarity = apply_similarity_search_defaults()
 reads = get_read_info(config)
-
+keep = False
+if 'keep_intermediates' in config:
+    keep = bool(config['keep_intermediates'])
 asm = config['assembly']['prefix']
 
 rule all:

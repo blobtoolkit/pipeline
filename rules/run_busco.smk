@@ -6,7 +6,8 @@ rule run_busco:
         fasta='{assembly}.fasta',
         busco=config['busco']['lineage_dir']+'/{lineage}.tar.gz',
     output:
-        temp('{assembly}_{lineage}.tsv')
+        full='{assembly}_{lineage}.tsv' if keep else temp('{assembly}_{lineage}.tsv'),
+        short='short_summary_{assembly}_{lineage}.txt' if keep else temp('short_summary_{assembly}_{lineage}.txt')
     params:
         lineage=lambda wc: wc.lineage,
         lineage_dir=config['busco']['lineage_dir'],
@@ -26,7 +27,8 @@ rule run_busco:
             -l {params.lineage_dir}/{params.lineage} \
             -m geno \
             -c {threads} && \
-        mv {params.outdir}/full_table_{params.assembly}_{params.lineage}.tsv {output} && \
+        mv {params.outdir}/full_table_{params.assembly}_{params.lineage}.tsv {output.full} && \
+        mv {params.outdir}/short_summary_{params.assembly}_{params.lineage}.txt {output.short} && \
         rm -r {params.outdir} && exit 0 || \
         rm -r {params.outdir} && exit 1'
     

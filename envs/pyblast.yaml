@@ -30,7 +30,7 @@ dependencies:
   - boost=1.64.0=py36_4
   - boost-cpp=1.64.0=1
   - gnutls=3.5.17=0
-  - libiconv=1.15=0
+  - libiconv
   - libidn11=1.33=0
   - nettle=3.3=0
   - perl=5.22.0.1=0

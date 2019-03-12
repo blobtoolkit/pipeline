@@ -23,7 +23,7 @@ rule fetch_fastq:
     Fetch fastq file from EBI using aria2.
     """
     output:
-        temp('{sra}{suff}.gz')
+        '{sra}{suff}.gz' if keep else temp('{sra}{suff}.gz')
     params:
         url = lambda wc: prepare_ebi_sra_url(wc.sra,"%s%s.gz" % (wc.sra,wc.suff))
     wildcard_constraints:
