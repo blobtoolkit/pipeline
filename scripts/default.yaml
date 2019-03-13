@@ -36,5 +36,7 @@ settings:
   blast_path: /ceph/software/blast/ncbi-blast-2.8.0+/bin
 reads:
   coverage:
-    min: 2
+    min: 0.5
     max: 100
+busco:
+  lineage_dir: /ceph/software/blobtoolkit/busco

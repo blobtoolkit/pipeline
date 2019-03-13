@@ -40,7 +40,7 @@ for file in INFILES:
             line = line.rstrip('\n')
             for section in sections:
                 if line.startswith(section):
-                    meta['reads'][accession][section] = re.search(r'([\d\.]+)',line).group(1)
+                    meta['reads'][accession][section] = int(float(re.search(r'([\d\.]+)',line).group(1)))
 
 with open(OUTFILE,'w') as fh:
     fh.write(yaml.dump(meta,indent=1))
