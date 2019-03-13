@@ -120,6 +120,8 @@ Some key-value pairs in the `assembly` section are used by the pipeline and/or t
 * `assembly.scaffold-count` is the number of top-level sequences in the assembly.
 * `assembly.span` is the total length of the assembly.
 
+To use a local assembly file, make a copy of the assembly `FASTA` with a filename matching `{assembly.prefix}.fasta` in your working directory.
+
 ```yaml
 busco:
   lineage_dir: /data/test/databases/busco
