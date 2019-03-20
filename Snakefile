@@ -5,9 +5,9 @@ Pipeline to run BlobTools on public assemblies
 ----------------------------------------------
 
 Requirements:
- - BlobTools (https://github.com/DRL/blobtools)
+ - BLAST+ (ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/)
+ - BlobTools2 (https://github.com/blobtoolkit/blobtools2)
  - Conda (https://conda.io/docs/commands/conda-install.html)
- - enaBrowserTools (https://github.com/enasequence/enaBrowserTools)
  - SnakeMake (http://snakemake.readthedocs.io/en/stable/)
 
 Basic usage:
@@ -16,7 +16,7 @@ Basic usage:
     --configfile path/to/config.yaml
     -j 8
 
-© 2018 Richard Challis (University of Edinburgh), MIT License
+© 2018-19 Richard Challis (University of Edinburgh), MIT License
 """
 
 

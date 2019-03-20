@@ -90,9 +90,9 @@ rule blobtoolkit_add_cov:
         covs=lambda wc: ' --cov '.join(["%s.%s.bam" % (config['assembly']['prefix'], sra) for sra in list_sra_accessions(reads)])
     conda:
         '../envs/blobtools2.yaml'
-    threads: 60
+    threads: 1
     resources:
-        threads=60,
+        threads=1,
         btk=1
     shell:
         '{params.path}/blobtools add \
@@ -124,4 +124,3 @@ rule blobtoolkit_add_busco:
         '{params.path}/blobtools add \
             --busco {params.busco} \
             {params.assembly}'
-
