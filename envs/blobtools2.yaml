@@ -12,8 +12,8 @@ dependencies:
   - samtools=1.9=h8ee4bcc_1
   - urllib3=1.12=py36_0
   - bzip2=1.0.6=h14c3975_5
-  - ca-certificates=2018.03.07=0
-  - certifi=2018.11.29=py36_0
+  - ca-certificates=2019.1.23=0
+  - certifi=2019.3.9=py36_0
   - curl=7.62.0=hbc83047_0
   - docopt=0.6.2=py36_0
   - libcurl=7.62.0=h20c2e04_0
@@ -24,7 +24,7 @@ dependencies:
   - libstdcxx-ng=8.2.0=hdf63c60_1
   - ncurses=6.1=he6710b0_1
   - nodejs=10.13.0=he6710b0_0
-  - openssl=1.1.1a=h7b6447c_0
+  - openssl=1.1.1b=h7b6447c_1
   - pip=18.1=py36_0
   - python=3.6.7=h0371630_0
   - pyyaml=3.12=py36h14c3975_1
