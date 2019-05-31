@@ -1,6 +1,3 @@
-#    input:
-#        "{asm}.done"
-
 rule validate_dataset:
     """
     Run BlobToolKit validator on a dataset to check all expected fields are present.
@@ -11,7 +8,7 @@ rule validate_dataset:
         busco=expand("%s/{lineage}_busco.json" % asm,lineage=config['busco']['lineages']),
         ids="%s/identifiers.json" % asm
     output:
-        '{assembly}.valid'
+        temp('{assembly}.valid')
     params:
         assembly = lambda wc: wc.assembly
     conda:
@@ -21,7 +18,7 @@ rule validate_dataset:
         threads=1
     shell:
         'pip install fastjsonschema \
-        && /ceph/software/blobtoolkit/specification/validate.py {params.assembly}/meta.json \
+        && validate.py {params.assembly}/meta.json \
         && touch {params.assembly}.valid'
 
 
@@ -68,3 +65,43 @@ rule generate_images:
         threads=1
     script:
         '../scripts/generate_static_images.py'
+
+
+rule checksum_files:
+    """
+    Calculate SHA1 checksum for all files in dataset.
+    """
+    input:
+        '{assembly}/summary.json'
+    output:
+        '{assembly}/CHECKSUM'
+    params:
+        assembly=lambda wc: wc.assembly
+    threads: 1
+    resources:
+        threads=1
+    shell:
+        'find {params.assembly}/ -type f -exec sha1sum {{}} \';\' \
+        | sort -k 2 \
+        | sed \'s/{params.assembly}\///\' > {params.assembly}/CHECKSUM'
+
+
+rule transfer_dataset:
+    """
+    Transfer dataset out of working directory.
+    """
+    input:
+        '{assembly}/CHECKSUM'
+    output:
+        temp('{assembly}.complete'),
+    params:
+        assembly=lambda wc: wc.assembly,
+        destdir=config['destdir'],
+    threads: 1
+    resources:
+        threads=1
+    shell:
+        'rsync -av --remove-source-files {params.assembly}* {params.destdir}/ \
+        && rmdir {params.assembly} \
+        && touch {params.assembly}.complete'
+

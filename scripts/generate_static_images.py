@@ -11,8 +11,8 @@ COVERAGE = snakemake.input.cov
 ASSEMBLY = snakemake.wildcards.assembly
 OUTFILE = str(snakemake.output)
 PORT = str(snakemake.params.port)
-CLI = '/ceph/software/blobtoolkit/viewer/utils/cli'
-BLOBTOOLS = '/ceph/software/blobtoolkit/blobtools2/blobtools'
+CLI = 'cli'
+BLOBTOOLS = 'blobtools'
 
 views = [
          "--view blob --param plotShape=circle --format png --format svg",

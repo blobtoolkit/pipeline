@@ -27,6 +27,7 @@ keep = False
 if 'keep_intermediates' in config:
     keep = bool(config['keep_intermediates'])
 asm = config['assembly']['prefix']
+destdir = config['destdir']
 
 
 rule all:
@@ -34,9 +35,7 @@ rule all:
     Dummy rule to set blobDB as target of pipeline
     """
     input:
-        "%s.valid" % asm,
-        "%s/summary.json" % asm
-#        "{asm}.done"
+        "%s.complete" % asm
 
 
 include: 'rules/transfer_blobdir.smk'
