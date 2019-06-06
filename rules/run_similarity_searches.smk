@@ -46,17 +46,6 @@ rule run_blastn:
         threads=60
     script:
         '../scripts/blast_wrapper.py'
-    # shell:
-    #     '{params.path}/blastn \
-    #         -query {input.fasta} \
-    #         -db {params.db} \
-    #         -outfmt "6 qseqid staxids bitscore std" \
-    #         -max_target_seqs {params.max_target_seqs} \
-    #         -max_hsps 1 \
-    #         -evalue {params.evalue} \
-    #         -num_threads {threads} \
-    #         -taxidlist {input.taxids} \
-    #         > {output}'
 
 rule unchunk_blast_results:
     """

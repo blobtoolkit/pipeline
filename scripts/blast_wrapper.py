@@ -65,7 +65,7 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
                 yield {'title':title,'seq':seq,'chunks':1,'start':0}
 
 
-def run_blast(seqs,db='/ceph/software/databases/ncbi_2018_06/nt',evalue='1e-25',targets=10):
+def run_blast(seqs,db,evalue='1e-25',targets=10):
     """Run blast on seqs."""
     cmd = PATH+"/blastn -db %s \
               -outfmt \"6 qseqid staxids bitscore std\" \
@@ -108,7 +108,7 @@ if __name__ == '__main__':
                 output.append('\t'.join(fields))
 
     for subset in split_list(seqs, subset_length):
-        proc = pool.apply_async(run_blast, (subset,), callback=blast_callback)
+        proc = pool.apply_async(run_blast, (subset,BLAST_DB), callback=blast_callback)
         jobs.append(proc)
     pool.close()
     pool.join()
