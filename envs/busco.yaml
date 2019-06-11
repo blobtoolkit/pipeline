@@ -7,7 +7,7 @@ channels:
 dependencies:
   - augustus=3.2.3=boost1.60_0
   - bamtools=2.5.1=he941832_3
-  - blast=2.6.0=boost1.60_0
+  - blast=2.2.31=boost1.60_2
   - busco=3.0.2=py36_8
   - hmmer=3.2.1=hfc679d8_0
   - jq=1.5=0
@@ -19,9 +19,9 @@ dependencies:
   - binutils_impl_linux-64=2.28.1=had2808c_3
   - binutils_linux-64=7.2.0=had2808c_27
   - boost=1.60.0=py36_0
-  - ca-certificates=2018.03.07=0
+  - ca-certificates=2019.5.15=0
   - cairo=1.14.12=h8948797_3
-  - certifi=2018.11.29=py36_0
+  - certifi=2019.3.9=py36_0
   - curl=7.62.0=hbc83047_0
   - docopt=0.6.2=py36_0
   - fontconfig=2.13.0=h9420a91_0
@@ -51,7 +51,7 @@ dependencies:
   - libxml2=2.9.8=h26e45fe_1
   - make=4.2.1=h1bed415_1
   - ncurses=6.1=he6710b0_1
-  - openssl=1.1.1a=h7b6447c_0
+  - openssl=1.1.1c=h7b6447c_1
   - pango=1.42.4=h049681c_0
   - pcre=8.42=h439df22_0
   - perl=5.26.2=h14c3975_0
@@ -98,5 +98,3 @@ dependencies:
   - r-tibble=1.4.2=mro350hbc2858b_0
   - r-utf8=1.1.4=mro350hbc2858b_0
   - r-viridislite=0.3.0=mro350h576908c_0
-prefix: /ceph/users/rchallis/.conda/envs/busco
-
