@@ -1,24 +1,3 @@
-#rule fetch_ncbi_fasta:
-#    """
-#    Fetch FASTA files corresponding to NCBI BLAST databases
-#    """
-#    output:
-#        fa='{path}/full/{name}.fa.gz'
-#    wildcard_constraints:
-#        # NB: the path to the local copy of the file must contain the string 'ncbi'
-#        path='.+ncbi.+'
-#    params:
-#        ftp_url='ftp.ncbi.nlm.nih.gov',
-#        ftp_dir='/blast/db/FASTA'
-#    conda:
-#         '../envs/fetch.yaml'
-#    threads: 1
-#    resources:
-#        download=1,
-#        threads=1
-#    shell:
-#        'wget -q -O {output.fa} {params.ftp_url}{params.ftp_dir}/{wildcards.name}.gz'
-
 rule fetch_ncbi_db:
     """
     Fetch formatted NCBI BLAST databases
@@ -35,14 +14,16 @@ rule fetch_ncbi_db:
     conda:
          '../envs/fetch.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/fetch_ncbi_db/%s.%s.log" % (wc.name, wc.suffix)
     resources:
         download=1,
         threads=1
     shell:
-        'wget "{params.ftp_url}{params.ftp_dir}{wildcards.name}.??.tar.gz" -P {wildcards.path}/ && \
+        '(wget "{params.ftp_url}{params.ftp_dir}{wildcards.name}.??.tar.gz" -P {wildcards.path}/ && \
         for file in {wildcards.path}/*.tar.gz; \
             do tar xf $file -C {wildcards.path} && rm $file; \
-        done'
+        done) 2> {log}'
 
 rule fetch_ncbi_idmap:
     """
@@ -58,18 +39,20 @@ rule fetch_ncbi_idmap:
     conda:
          '../envs/fetch.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/fetch_ncbi_idmap/%s.log" % (wc.name)
     resources:
         download=1,
         threads=1
     shell:
-        '> {output.idmap} && \
+        '(> {output.idmap} && \
         for x in "{params.idmap}"; do \
             wget -q -O idmap.gz $x \
             && zgrep -v taxid idmap.gz \
             | cut -f2,3 \
             | gzip >> {output.idmap} \
             && rm idmap.gz; \
-        done'
+        done) 2> {log}'
 
 rule fetch_taxdump:
     """
@@ -84,33 +67,16 @@ rule fetch_taxdump:
     conda:
          '../envs/fetch.yaml'
     threads: 1
+    log:
+      "logs/fetch_taxdump.log"
     resources:
         download=1,
         threads=1
     shell:
-        'wget -q -O taxdump.tar.gz ftp.ncbi.nlm.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz \
+        '(wget -q -O taxdump.tar.gz ftp.ncbi.nlm.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz \
         && tar xzvf taxdump.tar.gz \
         && mv *.dmp {params.outdir} \
-        && rm taxdump.tar.gz'
-
-# rule update_blobtools_nodesdb:
-#     """
-#     Update the BlobTools "nodesDB.txt" file
-#     """
-#     input:
-#         names="%s/names.dmp" % config['settings']['taxonomy'],
-#         nodes="%s/nodes.dmp" % config['settings']['taxonomy']
-#     output:
-#         "%s/data/nodesDB.txt" % config['settings']['blobtools']
-#     conda:
-#          '../envs/blobtools.yaml'
-#     threads: 1
-#     shell:
-#         '{ENV} \
-#         PATH=' + config['settings']['blobtools'] + ':$PATH && \
-#         blobtools nodesdb \
-#             --nodes {input.nodes} \
-#             --names {input.names}'
+        && rm taxdump.tar.gz) 2> {log}'
 
 rule fetch_uniprot:
     """
@@ -127,14 +93,16 @@ rule fetch_uniprot:
     conda:
          '../envs/fetch.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/fetch_uniprot/%s.log" % (wc.name)
     resources:
         download=1,
         threads=1
     shell:
-        'wget -q -O {output} \
+        '(wget -q -O {output} \
             {params.ftp_url}/{params.ftp_dir}/$(curl \
             -vs {params.ftp_url}/{params.ftp_dir}/ 2>&1 | \
-            awk \'/tar.gz/ {{print $9}}\')'
+            awk \'/tar.gz/ {{print $9}}\')) 2> {log}'
 
 rule extract_uniprot:
     """
@@ -153,6 +121,8 @@ rule extract_uniprot:
     conda:
          '../envs/py3.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/extract_uniprot/%s.log" % (wc.name)
     resources:
         tmpdir=24,
         threads=1
@@ -172,10 +142,11 @@ rule fetch_busco_lineage:
     conda:
          '../envs/fetch.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/fetch_busco_lineage/%s.log" % (wc.lineage)
     resources:
         download=1,
         threads=1
     shell:
-        'wget -q -O {output.gz} "https://busco.ezlab.org/datasets/{params.lineage}.tar.gz" \
-        && tar xf {output.gz} -C {params.dir}'
-
+        '(wget -q -O {output.gz} "https://busco.ezlab.org/datasets/{params.lineage}.tar.gz" \
+        && tar xf {output.gz} -C {params.dir}) 2> {log}'

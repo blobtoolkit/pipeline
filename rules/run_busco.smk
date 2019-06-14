@@ -18,6 +18,8 @@ rule run_busco:
     conda:
         '../envs/busco.yaml'
     threads: 16
+    log:
+      lambda wc: "logs/%s/run_busco/%s.log" % (wc.assembly, wc.lineage)
     resources:
         threads=16
     shell:
@@ -27,7 +29,7 @@ rule run_busco:
             -o {params.assembly}_{params.lineage} \
             -l {params.lineage_dir}/{params.lineage} \
             -m geno \
-            -c {threads} && \
+            -c {threads} > {log} 2>&1 && \
         mv {params.outdir}/full_table_{params.assembly}_{params.lineage}.tsv {output.full} && \
         mv {params.outdir}/short_summary_{params.assembly}_{params.lineage}.txt {output.short} && \
         rm -rf {params.outdir} && rm -rf {params.assembly}_{params.lineage} && exit 0 || \

@@ -9,10 +9,12 @@ rule bwa_index:
     conda:
          '../envs/bwa.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/bwa_index.log" % (wc.assembly)
     resources:
         threads=1
     shell:
-        'bwa index -a bwtsw {input}'
+        'bwa index -a bwtsw {input} > {log} 2>&1'
 
 rule map_reads:
     """
@@ -29,11 +31,13 @@ rule map_reads:
     conda:
          '../envs/bwa.yaml'
     threads: 32
+    log:
+      lambda wc: "logs/%s/map_reads/%s.log" % (wc.assembly, wc.sra)
     resources:
         threads=32
     shell:
-        '{params.cmd} -t {threads} {input.fasta} {input.fastq} | \
-        samtools sort -@{threads} -O BAM -o {output} -'
+        '({params.cmd} -t {threads} {input.fasta} {input.fastq} | \
+        samtools sort -@{threads} -O BAM -o {output} -) 2> {log}'
 
 rule bamtools_stats:
     """
@@ -46,47 +50,12 @@ rule bamtools_stats:
     conda:
          '../envs/blobtools.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/bamtools_stats/%s.log" % (wc.assembly, wc.sra)
     resources:
         threads=1
     shell:
         'bamtools stats \
             -in {input.bam} \
             -insert \
-            > {output}'
-
-#rule blobtools_map2cov:
-#    """
-#    Use BlobTools to convert a mapping file to a coverage file
-#    """
-#    input:
-#        bam='{assembly}.{sra}.bam',
-#        fasta='{assembly}.fasta'
-#    output:
-#        temp('{assembly}.{sra}.bam.cov')
-#    params:
-#        path=config['settings']['blobtools_path']
-#    conda:
-#         '../envs/blobtools.yaml'
-#    threads: 1
-#    resources:
-#        threads=1
-#    shell:
-#        '{params.path}/blobtools map2cov \
-#            -i {input.fasta} \
-#            -b {input.bam}'
-
-#rule sum_coverage:
-#    """
-#    Sum coverage across a set of blobtools cov files
-#    """
-#    input:
-#        lambda wc: cov_files_by_platform(reads,wc.assembly,wc.platform)
-#    output:
-#        temp('{assembly}.{platform}.sum.cov')
-#    conda:
-#         '../envs/py3.yaml'
-#    threads: 1
-#    resources:
-#        threads=1
-#    script:
-#        '../scripts/sum_columns.py'
+            > {output} 2> {log}'

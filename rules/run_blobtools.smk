@@ -11,6 +11,8 @@ rule generate_metadata:
     params:
         gitdir=os.path.dirname(os.path.abspath(workflow.snakefile))+'/.git'
     threads: 1
+    log:
+      lambda wc: "logs/%s/generate_metadata.log" % (wc.assembly)
     resources:
         threads=1
     script:
@@ -35,6 +37,8 @@ rule blobtoolkit_create:
     conda:
         '../envs/blobtools2.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/blobtoolkit_create.log" % (wc.assembly)
     resources:
         threads=1,
         btk=1
@@ -44,7 +48,7 @@ rule blobtoolkit_create:
             --meta {input.yaml} \
             --taxdump "{params.taxdump}" \
             --taxid {params.taxid} \
-            {params.assembly}'
+            {params.assembly} > {log} 2>&1'
 
 rule blobtoolkit_add_hits:
     """
@@ -65,6 +69,8 @@ rule blobtoolkit_add_hits:
     conda:
         '../envs/blobtools2.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/blobtoolkit_add_hits.log" % (wc.assembly)
     resources:
         threads=1,
         btk=1
@@ -73,7 +79,7 @@ rule blobtoolkit_add_hits:
             --hits {params.dbs} \
             --taxrule "{params.taxrule}" \
             --taxdump "{params.taxdump}" \
-            {params.assembly}'
+            {params.assembly} > {log} 2>&1'
 
 rule blobtoolkit_add_cov:
     """
@@ -91,6 +97,8 @@ rule blobtoolkit_add_cov:
     conda:
         '../envs/blobtools2.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/blobtoolkit_add_cov.log" % (config['assembly']['prefix'])
     resources:
         threads=1,
         btk=1
@@ -98,7 +106,7 @@ rule blobtoolkit_add_cov:
         '{params.path}/blobtools add \
             --cov {params.covs} \
             --threads {threads} \
-            {params.assembly}'
+            {params.assembly} > {log} 2>&1'
 
 
 rule blobtoolkit_add_busco:
@@ -117,10 +125,12 @@ rule blobtoolkit_add_busco:
     conda:
         '../envs/blobtools2.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/blobtoolkit_add_busco.log" % (config['assembly']['prefix'])
     resources:
         threads=1,
         btk=1
     shell:
         '{params.path}/blobtools add \
             --busco {params.busco} \
-            {params.assembly}'
+            {params.assembly} > {log} 2>&1'

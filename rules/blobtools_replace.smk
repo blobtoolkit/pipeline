@@ -19,6 +19,8 @@ rule blobtoolkit_replace_hits:
     conda:
         '../envs/blobtools2.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/blobtoolkit_replace_hits.log" % (wc.assembly)
     resources:
         threads=1,
         btk=1
@@ -27,7 +29,7 @@ rule blobtoolkit_replace_hits:
             --hits {params.dbs} \
             --taxrule "{params.taxrule}" \
             --taxdump "{params.taxdump}" \
-            {params.assembly}'
+            {params.assembly} > {log} 2>&1'
 
 rule blobtoolkit_replace_cov:
     """
@@ -45,6 +47,8 @@ rule blobtoolkit_replace_cov:
     conda:
         '../envs/blobtools2.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/blobtoolkit_replace_cov.log" % (config['assembly']['prefix'])
     resources:
         threads=1,
         btk=1
@@ -52,7 +56,7 @@ rule blobtoolkit_replace_cov:
         '{params.path}/blobtools replace \
             --cov {params.covs} \
             --threads {threads} \
-            {params.assembly}'
+            {params.assembly} > {log} 2>&1'
 
 
 rule blobtoolkit_replace_busco:
@@ -71,10 +75,12 @@ rule blobtoolkit_replace_busco:
     conda:
         '../envs/blobtools2.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/blobtoolkit_replace_busco.log" % (config['assembly']['prefix'])
     resources:
         threads=1,
         btk=1
     shell:
         '{params.path}/blobtools replace \
             --busco {params.busco} \
-            {params.assembly}'
+            {params.assembly} > {log} 2>&1'

@@ -11,12 +11,14 @@ rule fetch_assembly:
     conda:
          '../envs/fetch.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/fetch_assembly.log" % (wc.assembly)
     resources:
         download=1,
         threads=1
     shell:
-        'curl -s {params.url} | \
-        pigz -d > {output.fa}'
+        '(curl -s {params.url} | \
+        pigz -d > {output.fa}) 2> {log}'
 
 rule fetch_fastq:
     """
@@ -25,18 +27,28 @@ rule fetch_fastq:
     output:
         '{sra}{suff}.gz' if keep else temp('{sra}{suff}.gz')
     params:
-        url = lambda wc: prepare_ebi_sra_url(wc.sra,"%s%s.gz" % (wc.sra,wc.suff))
+        url = lambda wc: prepare_ebi_sra_url(wc.sra,"%s%s.gz" % (wc.sra, wc.suff))
     wildcard_constraints:
         sra='\wRR\d+',
         suff='[_\d\w]*\.fastq'
     conda:
          '../envs/fetch.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/fetch_fastq/%s%s.log" % (config['assembly']['prefix'], wc.sra, wc.suff)
     resources:
         download=1,
         threads=1
     shell:
-        'aria2c -c --max-connection-per-server=8 --min-split-size=1M -s 8 {params.url}'
+        'aria2c -c \
+        --max-connection-per-server=8 \
+        --min-split-size=1M \
+        -s 8 \
+        -l {log} \
+        --log-level=notice \
+        --show-console-readout=false \
+        --console-log-level=error \
+        {params.url}'
 
 rule subsample_fastq:
     """
@@ -54,8 +66,10 @@ rule subsample_fastq:
     conda:
          '../envs/blast.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/subsample_fastq/%s%s.log" % (config['assembly']['prefix'], wc.sra, wc.suff)
     resources:
         download=1,
         threads=1
     shell:
-        '{params.cmd[0]} {input} {params.cmd[1]} {output}'
+        '({params.cmd[0]} {input} {params.cmd[1]} {output}) 2> {log}'

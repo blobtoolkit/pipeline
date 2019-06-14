@@ -16,6 +16,8 @@ rule expand_and_split_fasta:
     conda:
          '../envs/py3.yaml'
     threads: 8
+    log:
+      lambda wc: "logs/expand_and_split_fasta/%s.log" % (wc.name)
     resources:
         tmpdir=128,
         threads=8
@@ -40,6 +42,8 @@ rule make_taxid_list:
     conda:
          '../envs/py3.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/make_taxid_list/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
     resources:
         threads=1
     script:
@@ -65,6 +69,8 @@ rule make_masked_lists:
     conda:
          '../envs/py3.yaml'
     threads: 32
+    log:
+      lambda wc: "logs/make_masked_lists/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
     resources:
         threads=32
     script:
@@ -91,10 +97,12 @@ rule make_diamond_db:
     conda:
          '../envs/diamond.yaml'
     threads: 32
+    log:
+      lambda wc: "logs/make_diamond_db/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
     resources:
         threads=32
     shell:
-        'mkdir -p {params.tmpdir} && \
+        '(mkdir -p {params.tmpdir} && \
         echo "accession\taccession.version\ttaxid\tgi" > {params.tmpdir}/{params.db}.taxid_map && \
         parallel --no-notice -j {threads} \
             "gunzip -c {params.indir}/{{}}.taxid_map.gz" \
@@ -109,54 +117,4 @@ rule make_diamond_db:
             -d {params.outfile} \
             --taxonmap {params.tmpdir}/{params.db}.taxid_map \
             --taxonnodes {input.nodes} && \
-        rm {params.tmpdir}/{params.db}.taxid_map'
-
-
-# rule make_blast_db:
-#     """
-#     Generate a custom BLAST database from a list of per-taxon sequence
-#     files.
-#     """
-#     input:
-#         split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
-#         lists='blast/{name}.root.{root}{masked}.lists'
-#     output:
-#         db='blast/{name}.root.{root}{masked}.{suffix}'
-#     wildcard_constraints:
-#         suffix='\wal',
-#         root='\d+'
-#     params:
-#         dbtype=lambda wc: 'prot' if wc.suffix == 'pal' else 'nucl',
-#         indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name),
-#         db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked)),
-#         tmpdir="%s" % config['settings']['tmp']
-#     conda:
-#          '../envs/blast.yaml'
-#     threads: 32
-#     resources:
-#         tmpdir=64,
-#         threads=32
-#     shell:
-#         'set +o pipefail && \
-#         mkdir -p blast && \
-#         mkdir -p {params.tmpdir} && \
-#         > {params.tmpdir}/{params.db}.dblist && \
-#         parallel -j {threads} \
-#             --no-notice \
-#             "pigz -dc {params.indir}/{{}}.taxid_map.gz \
-#                 > {params.tmpdir}/{params.db}_{{}}.taxid_map && \
-#             seqtk subseq {params.indir}/{{}}.fa.gz blast/{params.db}_{{}}.accessions | \
-#             makeblastdb -dbtype {params.dbtype} \
-#                         -title {params.db}_{{}} \
-#                         -out blast/{params.db}_{{}} \
-#                         -parse_seqids \
-#                         -taxid_map {params.tmpdir}/{params.db}_{{}}.taxid_map && \
-#             echo {params.db}_{{}} >> {params.tmpdir}/{params.db}.dblist && \
-#             rm {params.tmpdir}/{params.db}_{{}}.taxid_map" \
-#             :::: {input.lists} && \
-#         cd blast && \
-#         blastdb_aliastool -dblist_file {params.tmpdir}/{params.db}.dblist \
-#              -dbtype {params.dbtype} \
-#              -out {params.db} \
-#              -title {params.db} && \
-#         rm {params.tmpdir}/{params.db}.dblist'
+        rm {params.tmpdir}/{params.db}.taxid_map) 2> {log}'

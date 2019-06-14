@@ -12,6 +12,8 @@ rule chunk_fasta:
     conda:
          '../envs/py3.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/chunk_fasta.log" % (wc.assembly)
     resources:
         threads=1
     script:
@@ -42,6 +44,8 @@ rule run_blastn:
     conda:
          '../envs/pyblast.yaml'
     threads: 60
+    log:
+      lambda wc: "logs/%s/run_blastn/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
     resources:
         threads=60
     script:
@@ -60,38 +64,13 @@ rule unchunk_blast_results:
     conda:
          '../envs/py3.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/unchunk_blast_results/%s.%s.root.%s%s.log" % (wc.assembly, wc.algorithm, wc.name, wc.root, wc.masked)
     resources:
         threads=1
     script:
         '../scripts/unchunk_blast.py'
 
-# rule run_blastn:
-#     """
-#     Run NCBI blastn to search nucleotide database with assembly query.
-#     """
-#     input:
-#         fasta='{assembly}.fasta',
-#         db=lambda wc: "%s/%s.nal" % (similarity[wc.name]['local'],wc.name),
-#         taxids='{name}.root.{root}{masked}.taxids'
-#     output:
-#         '{assembly}.blastn.{name}.root.{root}{masked}.out'
-#     wildcard_constraints:
-#         root='\d+',
-#         masked='.[fm][ulins\d\.]+'
-#     params:
-#         db=lambda wc: "%s/%s" % (similarity[wc.name]['local'],wc.name),
-#         evalue=lambda wc:similarity[wc.name]['evalue'],
-#         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs'],
-#         blast_chunk=config['settings']['blast_chunk'],
-#         blast_overlap=config['settings']['blast_overlap'],
-#         path=config['settings']['blast_path']
-#     conda:
-#          '../envs/pyblast.yaml'
-#     threads: 32
-#     resources:
-#         threads=32
-#     script:
-#         '../scripts/blast_wrapper.py'
 
 rule extract_nohit_sequences:
     """
@@ -105,10 +84,12 @@ rule extract_nohit_sequences:
     conda:
          '../envs/blast.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/extract_nohit_sequences/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
     resources:
         threads=1
     shell:
-        'seqtk subseq {input.fasta} {input.nohit} > {output}'
+        'seqtk subseq {input.fasta} {input.nohit} > {output} 2> {log}'
 
 rule run_blastx:
     """
@@ -130,6 +111,8 @@ rule run_blastx:
     conda:
          '../envs/blast.yaml'
     threads: 60
+    log:
+      lambda wc: "logs/%s/run_blastx/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
     resources:
         threads=60
     shell:
@@ -164,6 +147,8 @@ rule run_diamond_blastx:
     conda:
          '../envs/diamond.yaml'
     threads: 60
+    log:
+      lambda wc: "logs/%s/run_diamond_blastx/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
     resources:
         threads=60
     shell:
@@ -175,37 +160,4 @@ rule run_diamond_blastx:
             --max-target-seqs {params.max_target_seqs} \
             --evalue {params.evalue} \
             --threads {threads} \
-            > {output}'
-
-# rule run_blobtools_taxify:
-#     """
-#     Add taxonomy information to Diamond similarity search results.
-#     """
-#     input:
-#         dmnd='{assembly}.diamond.{name}.root.{root}{masked}.out',
-#         split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
-#         lists='blast/{name}.root.{root}{masked}.lists'
-#     output:
-#         '{assembly}.diamond.{name}.root.{root}{masked}.taxified.out'
-#     params:
-#         indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name),
-#         idmap=lambda wc: "%s/%s.taxid_map" % (config['settings']['tmp'],wc.name),
-#         path=config['settings']['blobtools_path']
-#     wildcard_constraints:
-#         root='\d+',
-#         masked='.[fm][ulins\d\.]+'
-#     conda:
-#         '../envs/blobtools.yaml'
-#     threads: 1
-#     resources:
-#         threads=1
-#     shell:
-#         'parallel --no-notice -j {threads} \
-#             "gunzip -c {params.indir}/{{}}.taxid_map.gz" \
-#             :::: {input.lists} > {params.idmap} && \
-#         {params.path}/blobtools taxify \
-#             -f {input.dmnd} \
-#             -m {params.idmap} \
-#             -s 0 \
-#             -t 1 && \
-#         rm {params.idmap}'
+            > {output} 2> {log}'

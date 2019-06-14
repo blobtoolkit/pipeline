@@ -14,11 +14,13 @@ rule validate_dataset:
     conda:
          '../envs/blobtools2.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/validate_dataset.log" % (wc.assembly)
     resources:
         threads=1
     shell:
         'pip install fastjsonschema \
-        && validate.py {params.assembly}/meta.json \
+        && validate.py {params.assembly}/meta.json > {log} 2>&1 \
         && touch {params.assembly}.valid'
 
 
@@ -61,6 +63,8 @@ rule generate_images:
     conda:
          '../envs/blobtools2.yaml'
     threads: 1
+    log:
+      lambda wc: "logs/%s/generate_images.log" % (wc.assembly)
     resources:
         threads=1
     script:
@@ -78,12 +82,14 @@ rule checksum_files:
     params:
         assembly=lambda wc: wc.assembly
     threads: 1
+    log:
+      lambda wc: "logs/%s/checksum_files.log" % (wc.assembly)
     resources:
         threads=1
     shell:
-        'find {params.assembly}/ -type f -exec sha1sum {{}} \';\' \
+        '(find {params.assembly}/ -type f -exec sha1sum {{}} \';\' \
         | sort -k 2 \
-        | sed \'s/{params.assembly}\///\' > {params.assembly}/CHECKSUM'
+        | sed \'s/{params.assembly}\///\' > {params.assembly}/CHECKSUM) 2> {log}'
 
 
 rule transfer_dataset:
@@ -98,10 +104,11 @@ rule transfer_dataset:
         assembly=lambda wc: wc.assembly,
         destdir=config['destdir'],
     threads: 1
+    log:
+      lambda wc: "logs/%s/transfer_dataset.log" % (wc.assembly)
     resources:
         threads=1
     shell:
-        'rsync -av --remove-source-files {params.assembly}* {params.destdir}/ \
+        '(rsync -av --remove-source-files {params.assembly}* {params.destdir}/ \
         && rmdir {params.assembly} \
-        && touch {params.assembly}.complete'
-
+        && touch {params.assembly}.complete) 2> {log}'
