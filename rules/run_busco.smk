@@ -30,5 +30,5 @@ rule run_busco:
             -c {threads} && \
         mv {params.outdir}/full_table_{params.assembly}_{params.lineage}.tsv {output.full} && \
         mv {params.outdir}/short_summary_{params.assembly}_{params.lineage}.txt {output.short} && \
-        rm -r {params.outdir} && exit 0 || \
-        rm -r {params.outdir} && rm -r {params.assembly}_{params.lineage} exit 1'
+        rm -rf {params.outdir} && rm -rf {params.assembly}_{params.lineage} && exit 0 || \
+        rm -rf {params.outdir} && rm -rf {params.assembly}_{params.lineage} exit 1'
