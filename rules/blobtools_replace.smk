@@ -67,6 +67,7 @@ rule blobtoolkit_replace_busco:
         meta="%s/identifiers.json" % config['assembly']['prefix'],
         tsv=expand("%s_{lineage}.tsv" % config['assembly']['prefix'],lineage=config['busco']['lineages'])
     output:
+        temp('busco.replaced'),
         expand("%s/{lineage}_busco.json" % config['assembly']['prefix'],lineage=config['busco']['lineages'])
     params:
         assembly=config['assembly']['prefix'],
