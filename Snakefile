@@ -38,6 +38,7 @@ rule all:
         expand("%s.{sra}.bam.stats" % asm,sra=list_sra_accessions(reads)),
         expand("%s/{sra}_cov.json" % asm,sra=list_sra_accessions(reads)),
         "%s/%s_phylum_positions.json" % (asm,config['similarity']['taxrule']),
+        expand("%s_{lineage}.tsv" % asm,lineage=config['busco']['lineages']),
         expand("%s/{lineage}_busco.json" % asm,lineage=config['busco']['lineages']),
         "%s/identifiers.json" % asm
 
