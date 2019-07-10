@@ -131,6 +131,6 @@ rule blobtoolkit_add_busco:
         threads=1,
         btk=1
     shell:
-        '{params.path}/blobtools add \
+        '{params.path}/blobtools replace \
             --busco {params.busco} \
             {params.assembly} > {log} 2>&1'
