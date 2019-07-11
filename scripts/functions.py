@@ -95,7 +95,7 @@ def blast_db_name(config):
     """
     for db in config['similarity']['databases']:
         if db[name].startswith('nt'):
-        return db[name]
+            return db[name]
     return 'nt'
 
 
