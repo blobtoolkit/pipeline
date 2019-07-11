@@ -89,6 +89,16 @@ def list_similarity_results(config):
         path.append("%s.%s.%s.root.%s.%s.%s" % (config['assembly']['prefix'],program,db['name'],db['root'],masked,suffix))
     return path
 
+def blast_db_name(config):
+    """
+    Test whether _v5 should be appended to nt database name.
+    """
+    for db in config['similarity']['databases']:
+        if db[name].startswith('nt')
+        return db[name]
+    return 'nt'
+
+
 def blast_query_file(name,assembly):
     """
     Generate filename for filtered query file for similarity searches.

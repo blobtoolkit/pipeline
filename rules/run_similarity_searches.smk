@@ -96,7 +96,7 @@ rule run_blastx:
     Run NCBI blastx to search protein database with assembly query.
     """
     input:
-        fasta='{assembly}.blastn.nt.root.{root}{masked}.fasta.nohit',
+        fasta="{assembly}.blastn.%s.root.{root}{masked}.fasta.nohit" % blast_db_name(config),
         db='blast/{name}.root.{root}{masked}.pal'
     output:
         '{assembly}.blastx.{name}.root.{root}{masked}.out'
@@ -132,7 +132,7 @@ rule run_diamond_blastx:
     Run Diamond blastx to search protein database with assembly query.
     """
     input:
-        fasta='{assembly}.blastn.nt.root.{root}{masked}.fasta.nohit',
+        fasta="{assembly}.blastn.%s.root.{root}{masked}.fasta.nohit" % blast_db_name(config),
         db='{name}.root.{root}{masked}.dmnd'
     output:
         '{assembly}.diamond.{name}.root.{root}{masked}.out'
