@@ -94,7 +94,7 @@ def blast_db_name(config):
     Test whether _v5 should be appended to nt database name.
     """
     for db in config['similarity']['databases']:
-        if db[name].startswith('nt')
+        if db[name].startswith('nt'):
         return db[name]
     return 'nt'
 
