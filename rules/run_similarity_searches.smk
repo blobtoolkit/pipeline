@@ -152,7 +152,10 @@ rule run_diamond_blastx:
     resources:
         threads=60
     shell:
-        'diamond blastx \
+        'if ! [ -s {input.fasta} ]; then \
+            touch {output} && exit 0; \
+        fi; \
+        diamond blastx \
             --query {input.fasta} \
             --db {params.db} \
             --outfmt 6 qseqid staxids bitscore qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore \
