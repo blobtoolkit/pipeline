@@ -93,7 +93,7 @@ rule blobtoolkit_add_cov:
     params:
         assembly=config['assembly']['prefix'],
         path=config['settings']['blobtools2_path'],
-        covs=lambda wc: ' --cov '.join(["%s.%s.bam" % (config['assembly']['prefix'], sra) for sra in list_sra_accessions(reads)])
+        covs=lambda wc: ' --cov '.join(["%s.%s.bam=%s" % (config['assembly']['prefix'], sra, sra) for sra in list_sra_accessions(reads)])
     conda:
         '../envs/blobtools2.yaml'
     threads: 1
