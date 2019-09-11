@@ -49,7 +49,7 @@ def get_read_info(config):
                 except:
                     coverage = 10
                 try:
-                    url = row[3].split(',')
+                    url = row[3].split(';')
                     if len(reads) > 2:
                         reads = reads[-2:]
                 except:
