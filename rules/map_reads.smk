@@ -30,11 +30,11 @@ rule map_reads:
         cmd = lambda wc: generate_mapping_command(wc.sra,reads)
     conda:
          '../envs/bwa.yaml'
-    threads: 32
+    threads: lambda x: maxcore
     log:
       lambda wc: "logs/%s/map_reads/%s.log" % (wc.assembly, wc.sra)
     resources:
-        threads=32
+        threads=lambda x: maxcore
     shell:
         '({params.cmd} -t {threads} {input.fasta} {input.fastq} | \
         samtools sort -@{threads} -O BAM -o {output} -) 2> {log}'
