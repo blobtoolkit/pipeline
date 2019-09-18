@@ -64,7 +64,7 @@ rule subsample_fastq:
         sra='\wRR\d+',
         suff='[_\dsubread]*\.subsampled.fastq'
     conda:
-         '../envs/blast.yaml'
+         '../envs/pyblast.yaml'
     threads: 1
     log:
       lambda wc: "logs/%s/subsample_fastq/%s%s.log" % (config['assembly']['prefix'], wc.sra, wc.suff)

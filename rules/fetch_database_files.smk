@@ -129,6 +129,39 @@ rule extract_uniprot:
     script:
         '../scripts/extract_uniprot.py'
 
+rule make_uniprot_db:
+    """
+    Generate a uniprot diamond database.
+    """
+    input:
+        fasta='{path}/full/{name}.fa.gz',
+        idmap='{path}/full/{name}.taxid_map.gz',
+        nodes="%s/nodes.dmp" % config['settings']['taxonomy']
+    output:
+        '{path}/full/{name}.dmnd'
+    params:
+        db=lambda wc: wc.name,
+        tmpdir="%s" % config['settings']['tmp']
+    conda:
+         '../envs/diamond.yaml'
+    threads: lambda x: maxcore
+    log: "logs/make_uniprot_db.log"
+    resources:
+        threads=lambda x: maxcore
+    shell:
+        '(mkdir -p {params.tmpdir} && \
+        echo "accession\taccession.version\ttaxid\tgi" > {params.tmpdir}/{params.db}.taxid_map && \
+        gunzip -c {input.idmap} | \
+                awk \'{{print $1 "\\t" $1 "\\t" $2 "\\t" 0}}\' > \
+                {params.tmpdir}/{params.db}.taxid_map && \
+        gunzip -c {input.fasta} | \
+        diamond makedb \
+            -p {threads} \
+            -d {output} \
+            --taxonmap {params.tmpdir}/{params.db}.taxid_map \
+            --taxonnodes {input.nodes} && \
+        rm {params.tmpdir}/{params.db}.taxid_map) 2> {log}'
+
 rule fetch_busco_lineage:
     """
     Fetch BUSCO lineages

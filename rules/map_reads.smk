@@ -48,7 +48,7 @@ rule bamtools_stats:
     output:
         '{assembly}.{sra}.bam.stats'
     conda:
-         '../envs/blobtools.yaml'
+         '../envs/bwa.yaml'
     threads: 1
     log:
       lambda wc: "logs/%s/bamtools_stats/%s.log" % (wc.assembly, wc.sra)

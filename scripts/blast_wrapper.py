@@ -22,7 +22,6 @@ try:
     THREADS = int(snakemake.threads)
     EVALUE = str(snakemake.params.evalue)
     TARGETS = int(snakemake.params.max_target_seqs)
-    PATH = snakemake.params.path
     OUTFILE = snakemake.output.raw
     NOHIT = snakemake.output.nohit
 except Exception as err:
@@ -73,12 +72,12 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
 
 def run_blast(seqs,db,evalue='1e-25',targets=10):
     """Run blast on seqs."""
-    cmd = PATH+"/blastn -db %s \
-              -outfmt \"6 qseqid staxids bitscore std\" \
-              -max_target_seqs %d \
-              -max_hsps 1 \
-              -evalue %s \
-              -taxidlist %s" % (db,targets,evalue,TAXIDS)
+    cmd = "blastn -db %s \
+           -outfmt \"6 qseqid staxids bitscore std\" \
+           -max_target_seqs %d \
+           -max_hsps 1 \
+           -evalue %s \
+           -taxidlist %s" % (db,targets,evalue,TAXIDS)
     input = ''
     for seq in seqs:
         input += ">%s_-_%d\n" % (seq['title'],seq['start'])
