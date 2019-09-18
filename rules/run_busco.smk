@@ -17,11 +17,11 @@ rule run_busco:
         lineage='\w+_odb9'
     conda:
         '../envs/busco.yaml'
-    threads: 16
+    threads: lambda x: multicore
     log:
       lambda wc: "logs/%s/run_busco/%s.log" % (wc.assembly, wc.lineage)
     resources:
-        threads=16
+        threads=lambda x: multicore
     shell:
         'run_busco \
             -f \

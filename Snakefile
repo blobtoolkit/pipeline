@@ -1,3 +1,5 @@
+import os
+
 """
 https://github.com/blobtoolkit/insdc-pipeline
 
@@ -21,6 +23,9 @@ Basic usage:
 
 
 include: 'scripts/functions.py'
+
+multicore = int(os.getenv('MULTICORE', 16))
+maxcore = int(os.getenv('MAXCORE', 32))
 
 similarity = apply_similarity_search_defaults()
 reads = get_read_info(config)
