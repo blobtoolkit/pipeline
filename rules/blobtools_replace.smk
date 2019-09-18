@@ -68,7 +68,7 @@ rule blobtoolkit_replace_busco:
         tsv=expand("%s_{lineage}.tsv" % config['assembly']['prefix'],lineage=config['busco']['lineages'])
     output:
         temp('busco.replaced'),
-        expand("%s/{lineage}_busco.json" % config['assembly']['prefix'],lineage=config['busco']['lineages'])
+        expand("%s%s/{lineage}_busco.json" % (config['assembly']['prefix'],vers),lineage=config['busco']['lineages'])
     params:
         id="%s%s" % (config['assembly']['prefix'],vers),
         path=config['settings']['blobtools2_path'],
