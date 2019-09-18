@@ -33,7 +33,7 @@ keep = False
 if 'keep_intermediates' in config:
     keep = bool(config['keep_intermediates'])
 asm = config['assembly']['prefix']
-vers = '.'+config['version'] if config['version'] else ''
+vers = '.'+str(config['version']) if config['version'] else ''
 
 rule all:
     """

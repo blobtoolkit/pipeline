@@ -7,9 +7,9 @@ rule blobtoolkit_replace_hits:
     input:
         meta="%s%s/identifiers.json" % (config['assembly']['prefix'],vers),
         dbs=list_similarity_results(config),
-        lineages="%s%s/taxidlineage.dmp" % (config['settings']['taxonomy'],vers)
+        lineages="%s/taxidlineage.dmp" % (config['settings']['taxonomy'])
     output:
-        "{assembly}%s/%s_phylum_positions.json" % (config['similarity']['taxrule'],vers)
+        "{assembly}%s/%s_phylum_positions.json" % (vers,config['similarity']['taxrule'])
     params:
         taxrule=config['similarity']['taxrule'] if 'taxrule' in config['similarity'] else 'bestsumorder',
         taxdump=config['settings']['taxonomy'],
