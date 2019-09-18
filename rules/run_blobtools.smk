@@ -28,10 +28,10 @@ rule blobtoolkit_create:
         yaml='{assembly}.meta.yaml',
         lineages="%s/taxidlineage.dmp" % config['settings']['taxonomy']
     output:
-        '{assembly}/identifiers.json'
+        "{assembly}%s/identifiers.json" % vers
     params:
         taxdump=config['settings']['taxonomy'],
-        assembly=lambda wc: wc.assembly,
+        id=lambda wc: "%s%s" % (wc.assembly,vers),
         path=config['settings']['blobtools2_path'],
         taxid=config['taxon']['taxid'],
     conda:
@@ -48,22 +48,22 @@ rule blobtoolkit_create:
             --meta {input.yaml} \
             --taxdump "{params.taxdump}" \
             --taxid {params.taxid} \
-            {params.assembly} > {log} 2>&1'
+            {params.id} > {log} 2>&1'
 
 rule blobtoolkit_add_hits:
     """
     Add ordered similarity search results to a BlobDir.
     """
     input:
-        meta="%s/identifiers.json" % config['assembly']['prefix'],
+        meta="%s%s/identifiers.json" % (config['assembly']['prefix'],vers),
         dbs=list_similarity_results(config),
-        lineages="%s/taxidlineage.dmp" % config['settings']['taxonomy']
+        lineages="%s%s/taxidlineage.dmp" % (config['settings']['taxonomy'],vers)
     output:
-        "{assembly}/%s_phylum_positions.json" % config['similarity']['taxrule']
+        "{assembly}%s/%s_phylum_positions.json" % (config['similarity']['taxrule'],vers)
     params:
         taxrule=config['similarity']['taxrule'] if 'taxrule' in config['similarity'] else 'bestsumorder',
         taxdump=config['settings']['taxonomy'],
-        assembly=lambda wc: wc.assembly,
+        id=lambda wc: "%s%s" % (wc.assembly,vers),
         path=config['settings']['blobtools2_path'],
         dbs='.raw --hits '.join(list_similarity_results(config))
     conda:
@@ -79,19 +79,19 @@ rule blobtoolkit_add_hits:
             --hits {params.dbs} \
             --taxrule "{params.taxrule}" \
             --taxdump "{params.taxdump}" \
-            {params.assembly} > {log} 2>&1'
+            {params.id} > {log} 2>&1'
 
 rule blobtoolkit_add_cov:
     """
     Use BlobTools2 add to add coverage to a BlobDir from BAM files.
     """
     input:
-        meta="%s/identifiers.json" % config['assembly']['prefix'],
+        meta="%s%s/identifiers.json" % (config['assembly']['prefix'],vers),
         bam=expand("%s.{sra}.bam" % asm, sra=list_sra_accessions(reads))
     output:
-        expand("%s/{sra}_cov.json" % config['assembly']['prefix'],sra=list_sra_accessions(reads))
+        expand("%s%s/{sra}_cov.json" % (config['assembly']['prefix'],vers),sra=list_sra_accessions(reads))
     params:
-        assembly=config['assembly']['prefix'],
+        id="%s%s" % (config['assembly']['prefix'],vers),
         path=config['settings']['blobtools2_path'],
         covs=lambda wc: ' --cov '.join(["%s.%s.bam=%s" % (config['assembly']['prefix'], sra, sra) for sra in list_sra_accessions(reads)])
     conda:
@@ -106,7 +106,7 @@ rule blobtoolkit_add_cov:
         '{params.path}/blobtools add \
             --cov {params.covs} \
             --threads {threads} \
-            {params.assembly} > {log} 2>&1'
+            {params.id} > {log} 2>&1'
 
 
 rule blobtoolkit_add_busco:
@@ -114,12 +114,12 @@ rule blobtoolkit_add_busco:
     import BUSCO results into BlobDir.
     """
     input:
-        meta="%s/identifiers.json" % config['assembly']['prefix'],
+        meta="%s%s/identifiers.json" % (config['assembly']['prefix'],vers),
         tsv=expand("%s_{lineage}.tsv" % config['assembly']['prefix'],lineage=config['busco']['lineages'])
     output:
-        expand("%s/{lineage}_busco.json" % config['assembly']['prefix'],lineage=config['busco']['lineages'])
+        expand("%s%s/{lineage}_busco.json" % (config['assembly']['prefix'],vers),lineage=config['busco']['lineages'])
     params:
-        assembly=config['assembly']['prefix'],
+        id="%s%s" % (config['assembly']['prefix'],vers),
         path=config['settings']['blobtools2_path'],
         busco=' --busco '.join(["%s_%s.tsv" % (config['assembly']['prefix'],lineage) for lineage in config['busco']['lineages']])
     conda:
@@ -133,4 +133,4 @@ rule blobtoolkit_add_busco:
     shell:
         '{params.path}/blobtools replace \
             --busco {params.busco} \
-            {params.assembly} > {log} 2>&1'
+            {params.id} > {log} 2>&1'

@@ -28,6 +28,7 @@ keep = False
 if 'keep_intermediates' in config:
     keep = bool(config['keep_intermediates'])
 asm = config['assembly']['prefix']
+vers = '.'+config['version'] if config['version'] else ''
 
 rule all:
     """
@@ -36,11 +37,11 @@ rule all:
     input:
         "%s.fasta" % asm,
         expand("%s.{sra}.bam.stats" % asm,sra=list_sra_accessions(reads)),
-        expand("%s/{sra}_cov.json" % asm,sra=list_sra_accessions(reads)),
-        "%s/%s_phylum_positions.json" % (asm,config['similarity']['taxrule']),
+        expand("%s%s/{sra}_cov.json" % (asm,vers),sra=list_sra_accessions(reads)),
+        "%s%s/%s_phylum_positions.json" % (asm,vers,config['similarity']['taxrule']),
         expand("%s_{lineage}.tsv" % asm,lineage=config['busco']['lineages']),
-        expand("%s/{lineage}_busco.json" % asm,lineage=config['busco']['lineages']),
-        "%s/identifiers.json" % asm
+        expand("%s%s/{lineage}_busco.json" % (asm,vers),lineage=config['busco']['lineages']),
+        "%s%s/identifiers.json" % (asm,vers)
 
 
 include: 'rules/fetch_database_files.smk'
