@@ -5,8 +5,8 @@ Generate config files for BlobToolKit insdc-pipeline.
 
 Usage:
   insdc_assemblies_to_config.py <config_file>
-    [--taxdump /path/to/ncbi_new_taxdump] [--rank genus]
-    [--root 2759] [--strategy WGS] [--out /path/to/output/directory]
+    [--taxdump /path/to/ncbi_new_taxdump] [--rank genus] [--root 2759]
+    [--search Eukaryota] [--strategy WGS] [--out /path/to/output/directory]
 
 Options:
   --taxdump=<taxdump>    Path to NCBI taxdump directory [default: ../taxdump]
@@ -37,6 +37,11 @@ if not os.path.isfile(NODES):
     print("ERROR: File '%s' does not exist" % NODES, file=sys.stderr)
     quit(__doc__)
 
+NAMES = Path(opts['--taxdump']) / 'names.dmp'
+if not os.path.isfile(NAMES):
+    print("ERROR: File '%s' does not exist" % NAMES, file=sys.stderr)
+    quit(__doc__)
+
 LINEAGES = Path(opts['--taxdump']) / 'taxidlineage.dmp'
 if not os.path.isfile(LINEAGES):
     print("ERROR: File '%s' does not exist" % LINEAGES, file=sys.stderr)
@@ -61,21 +66,15 @@ except ValueError:
 
 STRATEGY = opts['--strategy']
 
-OUTDIR = "%s/%s" % (opts['--out'], ROOT)
-
-try:
-    os.makedirs(OUTDIR, exist_ok=True)
-except OSError:
-    print("ERROR: Unable to create output directory '%s'" % OUTDIR, file=sys.stderr)
-    quit(__doc__)
+OUTDIR = opts['--out']
+#
+# try:
+#     os.makedirs(OUTDIR, exist_ok=True)
+# except OSError:
+#     print("ERROR: Unable to create output directory '%s'" % OUTDIR, file=sys.stderr)
+#     quit(__doc__)
 
 DEFAULT_META = {}
-
-WITH_READS = "%s/sra" % OUTDIR
-WITHOUT_READS = "%s/no_sra" % OUTDIR
-
-os.makedirs("%s/" % WITH_READS, exist_ok=True)
-os.makedirs("%s/" % WITHOUT_READS, exist_ok=True)
 
 if os.path.isfile(sys.argv[1]):
     with open(sys.argv[1], 'r') as fh:
@@ -215,6 +214,10 @@ def assembly_meta(asm, default_meta):
         wgs_version = deep_find_text(asm, ('WGS_SET', 'VERSION'))
         if wgs_prefix and wgs_version:
             meta['assembly']['prefix'] = "%s%s" % (wgs_prefix, wgs_version.zfill(2))
+        elif ' ' not in meta['assembly']['alias']:
+            meta['assembly']['prefix'] = meta['assembly']['alias'].replace('.','_')
+        else:
+            meta['assembly']['prefix'] = meta['assembly']['accession'].replace('.','_')
         attributes = asm.find('ASSEMBLY_ATTRIBUTES')
         for attribute in attributes.findall('ASSEMBLY_ATTRIBUTE'):
             if attribute.find('TAG').text == 'total-length':
@@ -233,37 +236,40 @@ def assembly_reads(biosample):
     warehouse = 'https://www.ebi.ac.uk/ena/data/warehouse'
     url = ("%s/filereport?accession=%s&result=read_run&fields=run_accession,fastq_bytes,base_count,library_strategy,library_selection,library_layout,instrument_platform,fastq_ftp"
            % (warehouse, biosample))
-    response = requests.get(url)
-    sra = None
-    if response.ok:
-        lines = response.content.decode('utf-8').splitlines()
-        if len(lines) > 1:
-            sra = []
-            header = lines[0].split('\t')
-            for line in lines[1:]:
-                fields = line.split('\t')
-                values = {}
-                reads = False
-                strat = False
-                for i in range(0, len(header)):
-                    value = fields[i]
-                    if header[i] == 'fastq_bytes':
-                        value = fields[i].split(';')
-                        if int(value[0] or 0) > 0:
-                            reads = True
-                            if len(value) >= 2:
-                                values.update({'library_layout': 'PAIRED'})
-                            else:
-                                values.update({'library_layout': 'SINGLE'})
-                    if header[i] == 'library_strategy':
-                        if value == STRATEGY:
-                            strat = True
-                    values.update({header[i]: value})
-                if reads and strat:
-                    if 'base_count' not in values:
-                        values['base_count'] = [0]
-                    sra.append(values)
-    return sra
+    try:
+        response = requests.get(url)
+        sra = None
+        if response.ok:
+            lines = response.content.decode('utf-8').splitlines()
+            if len(lines) > 1:
+                sra = []
+                header = lines[0].split('\t')
+                for line in lines[1:]:
+                    fields = line.split('\t')
+                    values = {}
+                    reads = False
+                    strat = False
+                    for i in range(0, len(header)):
+                        value = fields[i]
+                        if header[i] == 'fastq_bytes':
+                            value = fields[i].split(';')
+                            if int(value[0] or 0) > 0:
+                                reads = True
+                                if len(value) >= 2:
+                                    values.update({'library_layout': 'PAIRED'})
+                                else:
+                                    values.update({'library_layout': 'SINGLE'})
+                        if header[i] == 'library_strategy':
+                            if value == STRATEGY:
+                                strat = True
+                        values.update({header[i]: value})
+                    if reads and strat:
+                        if 'base_count' not in values:
+                            values['base_count'] = [0]
+                        sra.append(values)
+        return sra
+    except requests.exceptions.SSLError:
+        return None
 
 
 def ncbi_assembly_reads(biosample):
@@ -311,8 +317,37 @@ def base_count(x):
         return 0
 
 
+def current_versions(string='all'):
+    """Get curent versions of hosted datasets from BTK API."""
+    btk = "https://blobtoolkit.genomehubs.org/api/v1/search/%s" % string
+    response = requests.get(btk)
+    current = {}
+    if response.ok:
+        data = yaml.load(response.text)
+        for asm in data:
+            current.update({asm['prefix']: asm['version']})
+    return current
+
+
+def create_outdir(reads, version=1, lineage='all'):
+    """Create output directory."""
+    name = "%s/v%s/%s/%ssra" % (OUTDIR, str(version), lineage.replace('_odb9', ''), '' if reads else 'no_')
+    os.makedirs("%s/" % name, exist_ok=True)
+    return name
+
+
+search_term = 'all'
+with open(NAMES, 'r') as fh:
+    lines = fh.readlines()
+    for l in lines:
+        l = l[:-3]
+        parts = re.split(r'\t\|\t', l)
+        if parts[0] == str(ROOT) and parts[3] == 'scientific name':
+            search_term = parts[1]
+versions = current_versions(search_term)
+
 step = STEP
-for offset in range(3650, asm_count + 1, step):
+for offset in range(0, asm_count + 1, step):
     count = step if offset + step < asm_count else asm_count - offset + 1
     print("%d: %d" % (offset, count))
     xml = list_assemblies(ROOT, offset, count)
@@ -335,8 +370,15 @@ for offset in range(3650, asm_count + 1, step):
             fastq_ftp = {}
             # if not sra:
             #     sra = ncbi_assembly_reads(meta['assembly']['biosample'])
+            version = 1
+            if meta['assembly']['prefix'] in versions:
+                version = versions[meta['assembly']['prefix']] + 1
+            meta['version'] = version
+            lineage = 'all'
+            if meta['busco']['lineages']:
+                lineage = meta['busco']['lineages'][0]
+            print(meta['assembly']['prefix'])
             if sra:
-                print(meta['assembly']['prefix'])
                 sra.sort(key=lambda x: base_count(x), reverse=True)
                 platforms = defaultdict(dict)
                 for d in sra:
@@ -386,8 +428,10 @@ for offset in range(3650, asm_count + 1, step):
                             new_reads = meta['reads'][platform][strategy]['single'][:long_n]
                             meta['reads']['single'] = [[acc, platform, base_counts[acc], fastq_ftp[acc]]
                                                        for acc in new_reads]
-                with open("%s/%s.yaml" % (WITH_READS, meta['assembly']['prefix']), 'w') as fh:
+                outdir = create_outdir(True, version, lineage)
+                with open("%s/%s.yaml" % (outdir, meta['assembly']['prefix']), 'w') as fh:
                     fh.write(yaml.dump(meta))
             else:
-                with open("%s/%s.yaml" % (WITHOUT_READS, meta['assembly']['prefix']), 'w') as fh:
+                outdir = create_outdir(False, version, lineage)
+                with open("%s/%s.yaml" % (outdir, meta['assembly']['prefix']), 'w') as fh:
                     fh.write(yaml.dump(meta))
