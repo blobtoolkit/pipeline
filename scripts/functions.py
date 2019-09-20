@@ -177,6 +177,7 @@ def prepare_ncbi_assembly_url(accession,name):
     acc = accession.replace('_','').split('.',1)[0]
     path = '/'.join(acc[i:i+3] for i in range(0, len(acc), 3))
     asm = "%s_%s" % ( accession, name.replace(' ', '_') )
+    asm = asm.replace('__', '_').replace(',', '')
     url = "%s/%s/%s/%s_genomic.fna.gz" % ( base, path, asm, asm )
     return url
 

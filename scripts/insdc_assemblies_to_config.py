@@ -6,13 +6,14 @@ Generate config files for BlobToolKit insdc-pipeline.
 Usage:
   insdc_assemblies_to_config.py <config_file>
     [--taxdump /path/to/ncbi_new_taxdump] [--rank genus] [--root 2759]
-    [--search Eukaryota] [--strategy WGS] [--out /path/to/output/directory]
+    [--offset 0] [--strategy WGS] [--out /path/to/output/directory]
 
 Options:
   --taxdump=<taxdump>    Path to NCBI taxdump directory [default: ../taxdump]
   --rank=<rank>          Similarity search database masking level
   --root=<root>          Root taxID [default: 2759] (default is all Eukaryota)
   --out=<out>            Path to output directory [default: .]
+  --offset=<offset>     Number of records to skip [default: 0]
   --strategy=<strategy>  Sequencing strategy [default: WGS]
 """
 
@@ -47,6 +48,7 @@ if not os.path.isfile(LINEAGES):
     print("ERROR: File '%s' does not exist" % LINEAGES, file=sys.stderr)
     quit(__doc__)
 
+OFFSET = int(opts['--offset'])
 RANK = opts['--rank']
 # awk '{print $5}' nodes.dmp | grep -v no | sort | uniq
 valid_ranks = ('class', 'cohort', 'family', 'forma', 'genus', 'infraclass',
@@ -268,7 +270,7 @@ def assembly_reads(biosample):
                             values['base_count'] = [0]
                         sra.append(values)
         return sra
-    except requests.exceptions.SSLError:
+    except:
         return None
 
 
@@ -347,7 +349,7 @@ with open(NAMES, 'r') as fh:
 versions = current_versions(search_term)
 
 step = STEP
-for offset in range(0, asm_count + 1, step):
+for offset in range(OFFSET, asm_count + 1, step):
     count = step if offset + step < asm_count else asm_count - offset + 1
     print("%d: %d" % (offset, count))
     xml = list_assemblies(ROOT, offset, count)
