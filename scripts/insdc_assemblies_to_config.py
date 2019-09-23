@@ -189,11 +189,15 @@ def list_assemblies(root, offset, count):
     warehouse = 'https://www.ebi.ac.uk/ena/data/warehouse'
     url = ("%s/search?query=\"tax_tree(%d)\"&result=assembly&display=xml&offset=%d&length=%d"
            % (warehouse, root, offset, count))
-    response = requests.get(url)
-    if response.ok:
-        return response.content
-    else:
-        return None
+    try:
+        response = requests.get(url)
+        if response.ok:
+            return response.content
+        else:
+            return None
+    except:
+        result = list_assemblies(root, offset, count)
+        return result
 
 
 def assembly_meta(asm, default_meta):
