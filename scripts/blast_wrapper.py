@@ -9,6 +9,7 @@ import logging
 import re
 import glob
 import os.path
+from collections import defaultdict
 from random import shuffle
 from itertools import groupby
 from multiprocessing import Pool
@@ -38,10 +39,10 @@ Options:
 
 logger_config = {
     'level': logging.INFO,
-    'format': '%(asctime)s [%(levelname)s] %(message)s'
+    'format': '%(asctime)s [%(levelname)s] line %(lineno)d %(message)s'
 }
 try:
-    logger_config.update({'filename': snakemake.logg[0]})
+    logger_config.update({'filename': snakemake.log[0]})
 except NameError as err:
     pass
 logging.basicConfig(**logger_config)
@@ -66,7 +67,7 @@ def parse_args():
         '-db': None,
         '-evalue': '1e-25',
         '-max_target_seqs': '10',
-        '-outfmt': '\"6 qseqid staxids bitscore std\"',
+        '-outfmt': '6 qseqid staxids bitscore std',
         '-max_hsps': '1'
     }
     try:
@@ -79,9 +80,11 @@ def parse_args():
         script_params['-num_threads'] = int(snakemake.threads)
         blast_params['-evalue'] = str(snakemake.params.evalue)
         blast_params['-max_target_seqs'] = str(snakemake.params.max_target_seqs)
-        script_params['-raw'] = None
+        script_params['-raw'] = snakemake.output.raw
         script_params['-nohit'] = snakemake.output.nohit
         script_params['-out'] = snakemake.output.out
+        script_params['-max_target_seqs'] = blast_params['-max_target_seqs']
+        blast_list = [item for k in blast_params for item in (k, blast_params[k])]
         return (script_params, blast_list)
     except NameError as err:
         logger.info(err)
@@ -101,7 +104,8 @@ def parse_args():
             if script_params[arg] and re.match('.', script_params[arg]):
                 script_params[arg] = script_params['-query']+script_params[arg]
         blast_list = [item for k in blast_params for item in (k, blast_params[k])]
-        for arg in ['-chunk', '-overlap', '-max_chunks', '-num_threads']:
+        script_params['-max_target_seqs'] = blast_params['-max_target_seqs']
+        for arg in ['-chunk', '-overlap', '-max_chunks', '-num_threads', '-max_target_seqs']:
             script_params[arg] = int(script_params[arg])
     except Exception as err:
         logger.error(err)
@@ -150,7 +154,7 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
             if seq_length > segment:
                 n = (seq_length + chunk) // chunk
                 if n > max_chunks:
-                    chunk = chunk_size(seq_length, max_chunks)
+                    chunk = chunk_size(seq_length / max_chunks)
                     n = max_chunks
                 for i in range(0, seq_length, chunk):
                     subseq = seq[i:i+segment]
@@ -159,8 +163,9 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
                 yield {'title': title, 'seq': seq, 'chunks': 1, 'start': 0}
 
 
-def run_blast(seqs, cmd, blast_list):
+def run_blast(seqs, cmd, blast_list, index, batches):
     """Run blast on seqs."""
+    logger.info("running BLAST on %d sequences in batch %d of %d" % (len(seqs), index, batches))
     input = ''
     for seq in seqs:
         input += ">%s_-_%d\n" % (seq['title'], seq['start'])
@@ -211,9 +216,9 @@ if __name__ == '__main__':
         seqs = []
         names = set()
         for seq in chunk_fasta(script_params['-query'],
-                               script_params['-chunk'],
-                               script_params['-overlap'],
-                               script_params['-max_chunks']):
+                               chunk=script_params['-chunk'],
+                               overlap=script_params['-overlap'],
+                               max_chunks=script_params['-max_chunks']):
             names.add(seq['title'])
             seqs.append((seq))
         n_chunks = len(seqs)
@@ -228,13 +233,14 @@ if __name__ == '__main__':
         pool = Pool(script_params['-num_threads'])
         jobs = []
         output = []
+        pids = {}
         pool_error = None
 
         def close_pool(error):
             """Close pool on error."""
             if error:
+                logger.error(error)
                 pool.terminate()
-                exit(1)
 
         def blast_callback(p):
             """Process BLAST chunk."""
@@ -242,28 +248,37 @@ if __name__ == '__main__':
             try:
                 p.check_returncode()
             except CalledProcessError as err:
-                logger.error(err)
-                logger.error("Unable to run %s" % script_params['-program'])
                 close_pool(err)
+                logger.error(p.stderr)
+                logger.error("Unable to run %s" % script_params['-program'])
+                exit(1)
             result = ''
-            for line in p.stdout.strip('\n').split('\n'):
+            logger.info(p.stderr)
+            lines = p.stdout.strip('\n').split('\n')
+            logger.info("Identified %d BLAST hits in batch" % len(lines))
+            for line in lines:
                 fields = line.split('\t')
                 if fields[0]:
                     output.append('\t'.join(fields))
 
         index = 1
-        for subset in split_list(seqs, subset_length):
-            logger.info("Processing chunk %d of %s" % (index, n_chunks))
-            index += index
-            proc = pool.apply_async(run_blast, (subset, script_params['-program'], blast_list), callback=blast_callback)
-            jobs.append(proc)
-        pool.close()
-        pool.join()
-        for job in jobs:
-            job.wait()
-        logger.info("Finished BLASTing %s chunks" % n_chunks)
+        batches = math.ceil(len(seqs) / subset_length)
+        try:
+            for subset in split_list(seqs, subset_length):
+                proc = pool.apply_async(run_blast, (subset, script_params['-program'], blast_list, index, batches), callback=blast_callback)
+                jobs.append(proc)
+                index += 1
+            pool.close()
+            pool.join()
+            for job in jobs:
+                job.wait()
+        except Exception as err:
+            logger.error(err)
+            logger.error("Unable to process chunks")
+            exit(1)
+        logger.info("Finished BLASTing %d chunks" % (index - 1))
         if script_params['-raw']:
-            logger.info("Writing raw output to file" % script_params['-raw'])
+            logger.info("Writing raw output to file '%s'" % script_params['-raw'])
             try:
                 with open(script_params['-raw'], 'w') as ofh:
                     ofh.writelines('\n'.join(output))
@@ -276,9 +291,9 @@ if __name__ == '__main__':
                 logger.error("Unable to write raw output to %s" % script_params['-raw'])
                 exit(1)
         if script_params['-out']:
-            logger.info("Writing output to file" % script_params['-out'])
+            logger.info("Writing output to file '%s'" % script_params['-out'])
             parse_raw_output(output, script_params['-out'], script_params['-max_target_seqs'])
-        logger.info("Writing nohit IDs to file" % script_params['-nohit'])
+        logger.info("Writing nohit IDs to file '%s'" % script_params['-nohit'])
         try:
             with open(script_params['-nohit'], 'w') as ofh:
                 ofh.writelines('\n'.join(names))
