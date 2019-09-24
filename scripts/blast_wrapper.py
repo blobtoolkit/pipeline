@@ -24,7 +24,7 @@ Options:
     -program blastn         BLAST program to use.
     -db BLASTDB             BLAST database.
     -query FASTAFILE        query sequence FASTA file.
-    -taxidfile TAXIDFILE    list of taxids to include (requires v5 BLAST DB).
+    -taxidlist TAXIDFILE    list of taxids to include (requires v5 BLAST DB).
     -chunk 100000           sequences greater than CHUNK bp will be split.
     -overlap 500            length of overlap when splitting sequences.
     -max_chunks 10          maximum number of chunks to split a sequence into.
@@ -72,8 +72,8 @@ def parse_args():
     }
     try:
         script_params['-query'] = snakemake.input.fasta
-        script_params['-db'] = snakemake.params.db
-        blast_params['-taxidfile'] = snakemake.input.taxids
+        blast_params['-db'] = snakemake.params.db
+        blast_params['-taxidlist'] = snakemake.input.taxids
         script_params['-chunk'] = int(snakemake.params.chunk)
         script_params['-overlap'] = int(snakemake.params.overlap)
         script_params['-max_chunks'] = int(snakemake.params.max_chunks)
@@ -166,12 +166,18 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
 def run_blast(seqs, cmd, blast_list, index, batches):
     """Run blast on seqs."""
     logger.info("running BLAST on %d sequences in batch %d of %d" % (len(seqs), index, batches))
-    input = ''
-    for seq in seqs:
-        input += ">%s_-_%d\n" % (seq['title'], seq['start'])
-        input += "%s\n" % seq['seq']
-    p = run(shlex.split(cmd)+blast_list, stdout=PIPE, stderr=PIPE, input=input, encoding='ascii')
-    return p
+    try:
+        input = ''
+        for seq in seqs:
+            input += ">%s_-_%d\n" % (seq['title'], seq['start'])
+            input += "%s\n" % seq['seq']
+        p = run(shlex.split(cmd)+blast_list, stdout=PIPE, stderr=PIPE, input=input, encoding='ascii')
+        return p
+    except Exception as err:
+        logger.error("Unable to run %s" % cmd)
+        logger.info(blast_list)
+        logger.error(err)
+        exit(1)
 
 
 def parse_raw_output(output, outfile, count):
@@ -271,6 +277,7 @@ if __name__ == '__main__':
             pool.close()
             pool.join()
             for job in jobs:
+                job.get()
                 job.wait()
         except Exception as err:
             logger.error(err)
