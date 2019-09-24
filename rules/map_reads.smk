@@ -37,6 +37,7 @@ rule map_reads:
         threads=lambda x: maxcore
     shell:
         '({params.cmd} -t {threads} {input.fasta} {input.fastq} | \
+        samtools view -h -T {input.fasta} - | \
         samtools sort -@{threads} -O BAM -o {output} -) 2> {log}'
 
 rule bamtools_stats:

@@ -48,12 +48,18 @@ def get_read_info(config):
                     coverage = bases / config['assembly']['span']
                 except:
                     coverage = 10
-                try:
-                    url = re.split(',|;',row[3])
-                    if len(reads) > 2:
-                        reads = reads[-2:]
-                except:
-                    url = [row[3]]
+                if strategy == 'paired':
+                    try:
+                        url = re.split(',|;',row[3])
+                        if len(reads) > 2:
+                            reads = reads[-2:]
+                    except:
+                        url = ["%s_1.fastq.gz" % accession, "%s_2.fastq.gz" % accession]
+                else:
+                    try:
+                        url = [row[3]]
+                    except:
+                        url = ["%s.fastq.gz" % accession]
                 if coverage >= min:
                     reads[accession] = {'platform':platform,'coverage':coverage,'strategy':strategy,'url':url}
                     if coverage > max:
