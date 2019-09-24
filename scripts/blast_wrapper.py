@@ -39,7 +39,8 @@ Options:
 
 logger_config = {
     'level': logging.INFO,
-    'format': '%(asctime)s [%(levelname)s] line %(lineno)d %(message)s'
+    'format': '%(asctime)s [%(levelname)s] line %(lineno)d %(message)s',
+    'filemode': 'w'
 }
 try:
     logger_config.update({'filename': snakemake.log[0]})
@@ -218,6 +219,7 @@ def parse_raw_output(output, outfile, count):
 
 if __name__ == '__main__':
     (script_params, blast_list) = parse_args()
+    logger.info("Running blast_wrapper")
     try:
         seqs = []
         names = set()
@@ -239,7 +241,6 @@ if __name__ == '__main__':
         pool = Pool(script_params['-num_threads'])
         jobs = []
         output = []
-        pids = {}
         pool_error = None
 
         def close_pool(error):
@@ -259,9 +260,10 @@ if __name__ == '__main__':
                 logger.error("Unable to run %s" % script_params['-program'])
                 exit(1)
             result = ''
-            logger.info(p.stderr)
+            if p.stderr:
+                logger.info(p.stderr)
             lines = p.stdout.strip('\n').split('\n')
-            logger.info("Identified %d BLAST hits in batch" % len(lines))
+            logger.info("Finished processing batch with %d BLAST hits" % len(lines))
             for line in lines:
                 fields = line.split('\t')
                 if fields[0]:
