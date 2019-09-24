@@ -33,9 +33,10 @@ keep = False
 if 'keep_intermediates' in config:
     keep = bool(config['keep_intermediates'])
 asm = config['assembly']['prefix']
-vers = ''
-if 'version' in config:
-    vers = '.'+str(config['version'])
+rev = ''
+if 'revision' in config:
+    if config['revision'] > 0:
+        rev = '.'+str(config['revision'])
 
 rule all:
     """
@@ -44,11 +45,11 @@ rule all:
     input:
         "%s.fasta" % asm,
         expand("%s.{sra}.bam.stats" % asm,sra=list_sra_accessions(reads)),
-        expand("%s%s/{sra}_cov.json" % (asm,vers),sra=list_sra_accessions(reads)),
-        "%s%s/%s_phylum_positions.json" % (asm,vers,config['similarity']['taxrule']),
+        expand("%s%s/{sra}_cov.json" % (asm,rev),sra=list_sra_accessions(reads)),
+        "%s%s/%s_phylum_positions.json" % (asm,rev,config['similarity']['taxrule']),
         expand("%s_{lineage}.tsv" % asm,lineage=config['busco']['lineages']),
-        expand("%s%s/{lineage}_busco.json" % (asm,vers),lineage=config['busco']['lineages']),
-        "%s%s/identifiers.json" % (asm,vers)
+        expand("%s%s/{lineage}_busco.json" % (asm,rev),lineage=config['busco']['lineages']),
+        "%s%s/identifiers.json" % (asm,rev)
 
 
 include: 'rules/fetch_database_files.smk'
