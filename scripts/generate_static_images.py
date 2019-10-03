@@ -24,7 +24,7 @@ try:
     COVERAGE = snakemake.input.cov
     ASSEMBLY = snakemake.wildcards.assembly
     OUTFILE = str(snakemake.output)
-    HOST = str(snakemake.params.hots)
+    HOST = str(snakemake.params.host)
     CLI = 'blobtools view'
     BLOBTOOLS = 'blobtools'
 
