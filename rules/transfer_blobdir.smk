@@ -3,10 +3,10 @@ rule validate_dataset:
     Run BlobToolKit validator on a dataset to check all expected fields are present.
     """
     input:
-        cov=expand("%s/{sra}_cov.json" % asm,sra=list_sra_accessions(reads)),
-        tax="%s/%s_phylum_positions.json" % (asm,config['similarity']['taxrule']),
-        busco=expand("%s/{lineage}_busco.json" % asm,lineage=config['busco']['lineages']),
-        ids="%s/identifiers.json" % asm
+        cov=expand("%s%s/{sra}_cov.json" % (asm,rev),sra=list_sra_accessions(reads)),
+        tax="%s%s/%s_phylum_positions.json" % (asm,rev,config['similarity']['taxrule']),
+        busco=expand("%s%s/{lineage}_busco.json" % (asm,rev),lineage=config['busco']['lineages']),
+        ids="%s%s/identifiers.json" % (asm,rev)
     output:
         temp('{assembly}.valid')
     params:
@@ -53,7 +53,7 @@ rule generate_images:
     input:
         valid='{assembly}.valid',
         hosted='{assembly}.hosted',
-        cov=expand("%s/{sra}_cov.json" % asm,sra=list_sra_accessions(reads))
+        cov=expand("%s%s/{sra}_cov.json" % (asm,rev),sra=list_sra_accessions(reads))
     output:
         '{assembly}/summary.json'
     params:

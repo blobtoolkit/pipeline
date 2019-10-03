@@ -28,14 +28,17 @@ if 'keep_intermediates' in config:
     keep = bool(config['keep_intermediates'])
 asm = config['assembly']['prefix']
 destdir = config['destdir']
-
+rev = ''
+if 'revision' in config:
+    if config['revision'] > 0:
+        rev = '.'+str(config['revision'])
 
 rule all:
     """
     Dummy rule to set blobDB as target of pipeline
     """
     input:
-        "%s.complete" % asm
+        "%s%s.complete" % (asm, rev)
 
 
 include: 'rules/transfer_blobdir.smk'
