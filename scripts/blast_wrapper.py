@@ -68,7 +68,7 @@ def parse_args():
         '-db': None,
         '-evalue': '1e-25',
         '-max_target_seqs': '10',
-        '-outfmt': '6 qseqid staxids bitscore std',
+        # '-outfmt': '6 qseqid staxids bitscore std',
         '-max_hsps': '1'
     }
     try:
@@ -172,6 +172,7 @@ def run_blast(seqs, cmd, blast_list, index, batches):
         for seq in seqs:
             input += ">%s_-_%d\n" % (seq['title'], seq['start'])
             input += "%s\n" % seq['seq']
+        cmd += ' -outfmt "6 qseqid staxids bitscore std"'
         p = run(shlex.split(cmd)+blast_list, stdout=PIPE, stderr=PIPE, input=input, encoding='ascii')
         return p
     except Exception as err:
@@ -206,11 +207,11 @@ def parse_raw_output(output, outfile, count):
         with open(outfile, 'w') as ofh:
             for name in chunk_counts.keys():
                 length = len(lines[name])
-                n = (count+length-1) // length
+                n = (int(count)+length-1) // length
                 for start in lines[name].keys():
                     for i in range(n):
                         if i < len(lines[name][start]):
-                            ofh.write("%s" % (lines[name][start][i]))
+                            ofh.write("%s" % str(lines[name][start][i]))
     except Exception as err:
         logger.error(err)
         logger.error("Unable to write output to %s" % outfile)
@@ -227,8 +228,9 @@ if __name__ == '__main__':
                                chunk=script_params['-chunk'],
                                overlap=script_params['-overlap'],
                                max_chunks=script_params['-max_chunks']):
-            names.add(seq['title'])
-            seqs.append((seq))
+            if not re.match('^N+$',seq['seq']):
+                names.add(seq['title'])
+                seqs.append((seq))
         n_chunks = len(seqs)
         if n_chunks == 0:
             logger.error("no sequences found in query file '%s'" % script_params['-query'])
@@ -262,7 +264,9 @@ if __name__ == '__main__':
             result = ''
             if p.stderr:
                 logger.info(p.stderr)
-            lines = p.stdout.strip('\n').split('\n')
+            lines = []
+            if p.stdout:
+            	lines = p.stdout.strip('\n').split('\n')
             logger.info("Finished processing batch with %d BLAST hits" % len(lines))
             for line in lines:
                 fields = line.split('\t')

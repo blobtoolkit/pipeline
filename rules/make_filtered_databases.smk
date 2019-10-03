@@ -1,4 +1,4 @@
-rule expand_and_split_fasta:
+rule split_fasta:
     """
     Use taxid_map to split FASTA into 100 files by taxid ending.
     Duplicate sequences in non-redundant databases so each taxon listed in
