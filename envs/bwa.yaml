@@ -5,22 +5,9 @@ channels:
   - defaults
   - conda-forge
 dependencies:
-  - _libgcc_mutex=0.1=main
-  - bamtools=2.5.1=he860b03_5
-  - bamutil=1.0.14=2
-  - bwa=0.7.17=pl5.22.0_2
-  - bzip2=1.0.6=h9a117a8_4
-  - ca-certificates=2019.5.15=1
-  - curl=7.62.0=hbc83047_0
-  - libcurl=7.62.0=h20c2e04_0
-  - libgcc=7.2.0=h69d50b8_2
-  - libgcc-ng=9.1.0=hdf63c60_0
-  - libssh2=1.8.2=h1ba5d50_0
-  - libstdcxx-ng=9.1.0=hdf63c60_0
-  - minimap2=2.11=ha92aebf_0
-  - ncurses=6.0=h9df7e31_2
-  - openssl=1.1.1d=h7b6447c_1
-  - perl=5.22.0.1=0
-  - samtools=1.7=1
-  - xz=5.2.3=h55aa19d_2
-  - zlib=1.2.11=ha838bed_2
+  - samtools>=1.7,<2
+  - bwa>=0.7.17
+  - ncurses
+  - bamutil>=1.0.14
+  - bamtools>=2.5.1
+  - minimap2>=2.11

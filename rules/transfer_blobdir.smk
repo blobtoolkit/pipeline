@@ -19,8 +19,7 @@ rule validate_dataset:
     resources:
         threads=1
     shell:
-        'pip install fastjsonschema \
-        && validate.py {params.assembly}/meta.json > {log} 2>&1 \
+        'validate.py {params.assembly}/meta.json > {log} 2>&1 \
         && touch {params.assembly}.valid'
 
 
@@ -49,7 +48,7 @@ rule host_dataset:
 
 rule generate_images:
     """
-    Use BTK CLI to generate a set of static images.
+    Use BlobTools2 view to generate a set of static images.
     """
     input:
         valid='{assembly}.valid',
