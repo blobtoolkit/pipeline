@@ -33,8 +33,7 @@ try:
              "--view blob --param plotShape=hex --format png --format svg",
              "--view blob --param plotShape=square --format png --format svg",
              "--view cumulative --format png --format svg",
-             "--view snail --format png --format svg",
-             "--stats"]
+             "--view snail --format png --format svg"]
 
     if not COVERAGE:
         views = views[3:]
