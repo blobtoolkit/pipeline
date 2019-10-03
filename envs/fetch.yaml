@@ -5,23 +5,7 @@ channels:
   - defaults
   - conda-forge
 dependencies:
-  - aria2=1.34.0=h2021cec_3
-  - c-ares=1.11.0=h470a237_1
-  - sra-tools=2.8.2=0
-  - tar=1.29=0
-  - ca-certificates=2018.03.07=0
-  - curl=7.58.0=h84994c4_0
-  - icu=58.2=h9c2bf20_1
-  - libcurl=7.58.0=h1ad7b7a_0
-  - libedit=3.1.20170329=h6b74fdf_2
-  - libgcc-ng=7.2.0=hdf63c60_3
-  - libssh2=1.8.0=h9cfc8f7_4
-  - libstdcxx-ng=7.2.0=hdf63c60_3
-  - libxml2=2.9.8=h26e45fe_1
-  - ncurses=6.1=hf484d3e_0
-  - openssl=1.0.2o=h20670df_0
-  - pigz=2.3=0
-  - sqlite=3.24.0=h84994c4_0
-  - system=5.8=2
-  - xz=5.2.4=h14c3975_4
-  - zlib=1.2.11=ha838bed_2
+  - curl
+  - tar
+  - pigz
+  - aria2
