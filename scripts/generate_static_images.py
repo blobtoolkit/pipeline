@@ -42,7 +42,7 @@ try:
     cmds = []
 
     for view in views:
-        cmds.append("%s %s --host %s %s --out %s/" % (CLI, ASSEMBLY, PORT, view, ASSEMBLY))
+        cmds.append("%s %s --host %s %s --out %s/" % (CLI, ASSEMBLY, HOST, view, ASSEMBLY))
 
     cmds.append("%s add --key static_plots=true ./%s" % (BLOBTOOLS, ASSEMBLY))
 
