@@ -58,7 +58,7 @@ rule generate_images:
         '{assembly}/summary.json'
     params:
         assembly=lambda wc: wc.assembly,
-        port=8080
+        host='http://localhost:8080'
     conda:
          '../envs/blobtools2.yaml'
     threads: 1

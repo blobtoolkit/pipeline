@@ -14,8 +14,8 @@ try:
     COVERAGE = snakemake.input.cov
     ASSEMBLY = snakemake.wildcards.assembly
     OUTFILE = str(snakemake.output)
-    PORT = str(snakemake.params.port)
-    CLI = 'cli'
+    HOST = str(snakemake.params.hots)
+    CLI = 'blobtools view'
     BLOBTOOLS = 'blobtools'
 
     views = [
@@ -32,7 +32,7 @@ try:
     cmds = []
 
     for view in views:
-        cmds.append("%s %s --port %s %s --out %s/" % (CLI, ASSEMBLY, PORT, view, ASSEMBLY))
+        cmds.append("%s %s --host %s %s --out %s/" % (CLI, ASSEMBLY, PORT, view, ASSEMBLY))
 
     cmds.append("%s add --key static_plots=true ./%s" % (BLOBTOOLS, ASSEMBLY))
 
