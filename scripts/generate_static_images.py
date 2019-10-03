@@ -8,7 +8,17 @@ import shlex
 import logging
 from pathlib import Path
 
-logging.basicConfig(filename=snakemake.log[0], level=logging.WARNING)
+logger_config = {
+    'level': logging.INFO,
+    'format': '%(asctime)s [%(levelname)s] line %(lineno)d %(message)s',
+    'filemode': 'w'
+}
+try:
+    logger_config.update({'filename': snakemake.log[0]})
+except NameError as err:
+    pass
+logging.basicConfig(**logger_config)
+logger = logging.getLogger()
 
 try:
     COVERAGE = snakemake.input.cov
@@ -40,7 +50,7 @@ try:
         subprocess.run(shlex.split(cmd), encoding='utf-8')
 
     for filename in os.listdir(ASSEMBLY):
-        p = Path("%s/%s" % (ASSEMBLY,filename))
+        p = Path("%s/%s" % (ASSEMBLY, filename))
         parts = filename.split('.')
         if len(parts) == 3 and parts[0] == ASSEMBLY:
             if parts[2] == 'png' or parts[2] == 'svg':
