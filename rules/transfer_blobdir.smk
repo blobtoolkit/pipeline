@@ -55,7 +55,7 @@ rule generate_images:
         hosted='{assembly}.hosted',
         cov=expand("%s%s/{sra}_cov.json" % (asm,rev),sra=list_sra_accessions(reads))
     output:
-        '{assembly}/summary.json'
+        '{assembly}/cumulative.png'
     params:
         assembly=lambda wc: wc.assembly,
         host='http://localhost:8080'
@@ -68,6 +68,27 @@ rule generate_images:
         threads=1
     script:
         '../scripts/generate_static_images.py'
+
+
+rule generate_summary:
+    """
+    Use BlobTools2 filter to generate a dataset summary.
+    """
+    input:
+        '{assembly}/cumulative.png'
+    output:
+        '{assembly}/summary.json'
+    params:
+        assembly=lambda wc: wc.assembly
+    conda:
+         '../envs/blobtools2.yaml'
+    threads: 1
+    log:
+      lambda wc: "logs/%s/generate_summary.log" % (wc.assembly)
+    resources:
+        threads=1
+    shell:
+        'blobtools filter --summary {output} {params.assembly} 2> {log}'
 
 
 rule checksum_files:

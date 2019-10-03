@@ -52,16 +52,13 @@ try:
     for filename in os.listdir(ASSEMBLY):
         p = Path("%s/%s" % (ASSEMBLY, filename))
         parts = filename.split('.')
-        if len(parts) == 3 and parts[0] == ASSEMBLY:
-            if parts[2] == 'png' or parts[2] == 'svg':
-                new_p = Path("%s/%s.%s" % (p.parent.as_posix(), parts[1], parts[2]))
-                p.rename(new_p)
-            elif parts[1] == 'current' and parts[2] == 'json':
-                new_p = Path("%s/summary.%s" % (p.parent.as_posix(), parts[2]))
-                p.rename(new_p)
-        elif len(parts) == 4 and parts[0] == ASSEMBLY:
-            if parts[3] == 'png' or parts[3] == 'svg':
-                new_p = Path("%s/%s.%s.%s" % (p.parent.as_posix(), parts[1], parts[2], parts[3]))
+        if parts[0] == ASSEMBLY:
+            if parts[-1] == 'png' or parts[-1] == 'svg':
+                if parts[2].isdigit():
+                    parts = parts[2:]
+                else:
+                    parts = parts[1:]
+                new_p = Path("%s/%s" % (p.parent.as_posix(), '.'.join(parts)))
                 p.rename(new_p)
 except Exception as err:
     logger.error(err)
