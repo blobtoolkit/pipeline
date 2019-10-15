@@ -16,5 +16,6 @@ dependencies:
   - geckodriver
   - selenium
   - pyvirtualdisplay
-pip:
-  - fastjsonschema
+  - pip
+  - pip:
+    - fastjsonschema

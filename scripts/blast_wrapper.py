@@ -211,7 +211,7 @@ def parse_raw_output(output, outfile, count):
                 for start in lines[name].keys():
                     for i in range(n):
                         if i < len(lines[name][start]):
-                            ofh.write("%s" % str(lines[name][start][i]))
+                            ofh.write("%s\n" % str(lines[name][start][i]))
     except Exception as err:
         logger.error(err)
         logger.error("Unable to write output to %s" % outfile)
