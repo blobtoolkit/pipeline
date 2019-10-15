@@ -30,26 +30,6 @@ rule run_blastn:
     script:
         '../scripts/blast_wrapper.py'
 
-# rule unchunk_blast_results:
-#     """
-#     reformat blast results from chunked input.
-#     """
-#     input:
-#         '{assembly}.{algorithm}.{name}.root.{root}{masked}.out.raw'
-#     output:
-#         '{assembly}.{algorithm}.{name}.root.{root}{masked}.out'
-#     params:
-#         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
-#     conda:
-#          '../envs/py3.yaml'
-#     threads: 1
-#     log:
-#       lambda wc: "logs/%s/unchunk_blast_results/%s.%s.root.%s%s.log" % (wc.assembly, wc.algorithm, wc.name, wc.root, wc.masked)
-#     resources:
-#         threads=1
-#     script:
-#         '../scripts/unchunk_blast.py'
-
 
 rule extract_nohit_sequences:
     """
