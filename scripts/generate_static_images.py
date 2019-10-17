@@ -55,13 +55,13 @@ try:
     for filename in os.listdir(ASSEMBLY):
         p = Path("%s/%s" % (ASSEMBLY, filename))
         parts = filename.split('.')
-        if parts[0] == ASSEMBLY:
-            if parts[-1] == 'png' or parts[-1] == 'svg' or parts[-1] == 'json':
-                if parts[2].isdigit():
+        if filename.startswith(ASSEMBLY):
+            if filename.endswith('png') or filename.endswith('svg') or filename.endswith('json'):
+                if parts[1].isdigit():
                     parts = parts[2:]
                 else:
                     parts = parts[1:]
-                new_p = Path("%s/%s" % (p.parent.as_posix(), '.'.join(parts)))
+                new_p = Path("%s/%s" % (p.parent.as_posix(), filename.replace("%s." % ASSEMBLY, "")))
                 p.rename(new_p)
 except Exception as err:
     logger.error(err)
