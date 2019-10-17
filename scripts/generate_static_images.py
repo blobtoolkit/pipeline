@@ -32,6 +32,7 @@ try:
              "--view blob --param plotShape=circle --format png --format svg",
              "--view blob --param plotShape=hex --format png --format svg",
              "--view blob --param plotShape=square --format png --format svg",
+             "--view blob --param plotShape=kite --format png --format svg",
              "--view cumulative --format png --format svg",
              "--view snail --format png --format svg"]
 
@@ -43,16 +44,19 @@ try:
     for view in views:
         cmds.append("%s %s --host %s %s --out %s/" % (CLI, ASSEMBLY, HOST, view, ASSEMBLY))
 
+    cmds.append("%s filter --summary %s.summary.json ./%s" % (BLOBTOOLS, ASSEMBLY, ASSEMBLY))
+
     cmds.append("%s add --key static_plots=true ./%s" % (BLOBTOOLS, ASSEMBLY))
 
     for cmd in cmds:
+        logger.info(cmd)
         subprocess.run(shlex.split(cmd), encoding='utf-8')
 
     for filename in os.listdir(ASSEMBLY):
         p = Path("%s/%s" % (ASSEMBLY, filename))
         parts = filename.split('.')
         if parts[0] == ASSEMBLY:
-            if parts[-1] == 'png' or parts[-1] == 'svg':
+            if parts[-1] == 'png' or parts[-1] == 'svg' or parts[-1] == 'json':
                 if parts[2].isdigit():
                     parts = parts[2:]
                 else:
