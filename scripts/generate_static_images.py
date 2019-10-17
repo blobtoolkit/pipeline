@@ -37,7 +37,7 @@ try:
              "--view snail --format png --format svg"]
 
     if not COVERAGE:
-        views = views[3:]
+        views = views[4:]
 
     cmds = []
 
