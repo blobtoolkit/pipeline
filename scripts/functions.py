@@ -155,7 +155,7 @@ def generate_subsample_command(accession,reads):
     Generate a read mapping command appropriate to the
     sequencing strategy and library type.
     """
-    cmd = 'ln -s'
+    cmd = 'cp'
     arrow = ''
     seed = 100
     if 'coverage' in reads and 'seed' in reads['coverage']:
