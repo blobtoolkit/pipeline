@@ -90,7 +90,9 @@ def parse_args():
         script_params['-out'] = snakemake.output.out
         blast_params['-window_masker_db'] = snakemake.input.windowmasker
         script_params['-max_target_seqs'] = blast_params['-max_target_seqs']
-        print(script_params)
+        if script_params['-multiprocessing'] == 'False':
+            blast_params['-num_threads'] = str(script_params['-num_threads'])
+        blast_list = [item for k in blast_params for item in (k, blast_params[k])]
         return (script_params, blast_list)
     except NameError as err:
         logger.info(err)
@@ -107,14 +109,12 @@ def parse_args():
                     blast_params[pair] = arg
                 pair = False
         if script_params['-multiprocessing'] == 'False':
-            print(script_params['-num_threads'])
             blast_params['-num_threads'] = str(script_params['-num_threads'])
         for arg in ['-raw', '-out', '-nohit']:
             if script_params[arg] and re.match('.', script_params[arg]):
                 script_params[arg] = script_params['-query']+script_params[arg]
         blast_list = [item for k in blast_params for item in (k, blast_params[k])]
         script_params['-max_target_seqs'] = blast_params['-max_target_seqs']
-        print(blast_params)
         for arg in ['-chunk', '-overlap', '-max_chunks', '-num_threads', '-max_target_seqs']:
             script_params[arg] = int(script_params[arg])
     except Exception as err:
