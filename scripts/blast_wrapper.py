@@ -254,13 +254,11 @@ if __name__ == '__main__':
         min_length = subset_length / script_params['-num_threads']
         while subset_length > script_params['-num_threads'] and subset_length > min_length:
             subset_length //= 2
-        if script_params['-multiprocessing'] == 'False':
-            pool = Pool(1)
-        else:
+        if script_params['-multiprocessing'] != 'False':
             pool = Pool(script_params['-num_threads'])
-        jobs = []
+            jobs = []
+            pool_error = None
         output = []
-        pool_error = None
 
         def close_pool(error):
             """Close pool on error."""
@@ -294,18 +292,18 @@ if __name__ == '__main__':
         batches = math.ceil(len(seqs) / subset_length)
         try:
             if script_params['-multiprocessing'] == 'False':
-                proc = pool.apply_async(run_blast, (seqs, script_params['-program'], blast_list, 1, 1), callback=blast_callback)
-                jobs.append(proc)
+                p = run_blast(seqs, script_params['-program'], blast_list, 1, 1)
+                blast_callback(p)
             else:
                 for subset in split_list(seqs, subset_length):
                     proc = pool.apply_async(run_blast, (subset, script_params['-program'], blast_list, index, batches), callback=blast_callback)
                     jobs.append(proc)
                     index += 1
-            pool.close()
-            pool.join()
-            for job in jobs:
-                job.get()
-                job.wait()
+                pool.close()
+                pool.join()
+                for job in jobs:
+                    job.get()
+                    job.wait()
         except Exception as err:
             logger.error(err)
             logger.error("Unable to process chunks")
