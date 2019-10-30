@@ -43,7 +43,7 @@ rule run_blastn:
         db=lambda wc: "%s/%s" % (similarity[wc.name]['local'],wc.name),
         evalue=lambda wc:similarity[wc.name]['evalue'],
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs'],
-        multiprocessing=True if config['settings']['multiprocessing'] else False,
+        multiprocessing=True if 'multiprocessing' in config['settings'] else False,
         chunk=config['settings']['blast_chunk'],
         overlap=config['settings']['blast_overlap'],
         max_chunks=config['settings']['blast_max_chunks']

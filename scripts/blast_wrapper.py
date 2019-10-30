@@ -59,7 +59,7 @@ def parse_args():
         '-program': 'blastn',
         '-query': None,
         '-chunk': 100000,
-        '-multiprocessing': False,
+        '-multiprocessing': 'False',
         '-overlap': 500,
         '-max_chunks': 10,
         '-num_threads': 16,
@@ -78,7 +78,7 @@ def parse_args():
         script_params['-query'] = snakemake.input.fasta
         blast_params['-db'] = snakemake.params.db
         blast_params['-taxidlist'] = snakemake.input.taxids
-        script_params['-multiprocessing'] = int(snakemake.params.multiprocessing)
+        script_params['-multiprocessing'] = str(snakemake.params.multiprocessing)
         script_params['-chunk'] = int(snakemake.params.chunk)
         script_params['-overlap'] = int(snakemake.params.overlap)
         script_params['-max_chunks'] = int(snakemake.params.max_chunks)
@@ -90,7 +90,7 @@ def parse_args():
         script_params['-out'] = snakemake.output.out
         blast_params['-window_masker_db'] = snakemake.input.windowmasker
         script_params['-max_target_seqs'] = blast_params['-max_target_seqs']
-        blast_list = [item for k in blast_params for item in (k, blast_params[k])]
+        print(script_params)
         return (script_params, blast_list)
     except NameError as err:
         logger.info(err)
@@ -106,13 +106,15 @@ def parse_args():
                 else:
                     blast_params[pair] = arg
                 pair = False
-        if not script_params['-multiprocessing']:
-            blast_params['-num_threads'] = script_params['-num_threads']
+        if script_params['-multiprocessing'] == 'False':
+            print(script_params['-num_threads'])
+            blast_params['-num_threads'] = str(script_params['-num_threads'])
         for arg in ['-raw', '-out', '-nohit']:
             if script_params[arg] and re.match('.', script_params[arg]):
                 script_params[arg] = script_params['-query']+script_params[arg]
         blast_list = [item for k in blast_params for item in (k, blast_params[k])]
         script_params['-max_target_seqs'] = blast_params['-max_target_seqs']
+        print(blast_params)
         for arg in ['-chunk', '-overlap', '-max_chunks', '-num_threads', '-max_target_seqs']:
             script_params[arg] = int(script_params[arg])
     except Exception as err:
@@ -252,10 +254,10 @@ if __name__ == '__main__':
         min_length = subset_length / script_params['-num_threads']
         while subset_length > script_params['-num_threads'] and subset_length > min_length:
             subset_length //= 2
-        if script_params['-multiprocessing']:
-            pool = Pool(script_params['-num_threads'])
-        else:
+        if script_params['-multiprocessing'] == 'False':
             pool = Pool(1)
+        else:
+            pool = Pool(script_params['-num_threads'])
         jobs = []
         output = []
         pool_error = None
@@ -291,14 +293,14 @@ if __name__ == '__main__':
         index = 1
         batches = math.ceil(len(seqs) / subset_length)
         try:
-            if script_params['-multiprocessing']:
+            if script_params['-multiprocessing'] == 'False':
+                proc = pool.apply_async(run_blast, (seqs, script_params['-program'], blast_list, 1, 1), callback=blast_callback)
+                jobs.append(proc)
+            else:
                 for subset in split_list(seqs, subset_length):
                     proc = pool.apply_async(run_blast, (subset, script_params['-program'], blast_list, index, batches), callback=blast_callback)
                     jobs.append(proc)
                     index += 1
-            else:
-                proc = pool.apply_async(run_blast, (seqs, script_params['-program'], blast_list, 1, 1), callback=blast_callback)
-                jobs.append(proc)
             pool.close()
             pool.join()
             for job in jobs:

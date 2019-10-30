@@ -76,7 +76,7 @@ rule make_masked_lists:
     log:
         lambda wc: "logs/make_masked_lists/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
     benchmark:
-        lambda wc: "logs/make_masked_lists/{name}.root.{root}{masked}.benchmark.txt'
+        'logs/make_masked_lists/{name}.root.{root}{masked}.benchmark.txt'
     resources:
         threads=lambda x: maxcore
     script:

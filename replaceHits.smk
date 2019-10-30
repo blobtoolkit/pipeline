@@ -33,6 +33,10 @@ if 'revision' in config:
     if config['revision'] > 0:
         rev = '.'+str(config['revision'])
 
+multicore = int(os.getenv('MULTICORE', 16))
+maxcore = int(os.getenv('MAXCORE', 32))
+
+
 rule all:
     """
     Dummy rule to set blobDB as target of pipeline
@@ -42,3 +46,4 @@ rule all:
         
 
 include: 'rules/blobtools_replace.smk'
+
