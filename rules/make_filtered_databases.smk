@@ -14,10 +14,12 @@ rule split_fasta:
         chunk=config['settings']['chunk'],
         outdir=lambda wc: "%s/split/%s" % (wc.path,wc.name),
     conda:
-         '../envs/py3.yaml'
+        '../envs/py3.yaml'
     threads: lambda x: multicore
     log:
-      lambda wc: "logs/expand_and_split_fasta/%s.log" % (wc.name)
+        lambda wc: "logs/expand_and_split_fasta/%s.log" % (wc.name)
+    benchmark:
+        'logs/expand_and_split_fasta/{name}.benchmark.txt'
     resources:
         tmpdir=128,
         threads=lambda x: multicore
@@ -40,10 +42,12 @@ rule make_taxid_list:
         mask_ids=lambda wc: similarity[wc.name]['mask_ids'],
         db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked))
     conda:
-         '../envs/py3.yaml'
+        '../envs/py3.yaml'
     threads: 1
     log:
-      lambda wc: "logs/make_taxid_list/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
+        lambda wc: "logs/make_taxid_list/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
+    benchmark:
+        'logs/make_taxid_list/{name}.root.{root}{masked}.benchmark.txt'
     resources:
         threads=1
     script:
@@ -67,10 +71,12 @@ rule make_masked_lists:
         indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name),
         chunk=config['settings']['chunk']
     conda:
-         '../envs/py3.yaml'
+        '../envs/py3.yaml'
     threads: lambda x: maxcore
     log:
-      lambda wc: "logs/make_masked_lists/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
+        lambda wc: "logs/make_masked_lists/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
+    benchmark:
+        lambda wc: "logs/make_masked_lists/{name}.root.{root}{masked}.benchmark.txt'
     resources:
         threads=lambda x: maxcore
     script:
@@ -95,10 +101,12 @@ rule make_diamond_db:
     wildcard_constraints:
         root='\d+'
     conda:
-         '../envs/diamond.yaml'
+        '../envs/diamond.yaml'
     threads: lambda x: maxcore
     log:
-      lambda wc: "logs/make_diamond_db/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
+        lambda wc: "logs/make_diamond_db/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
+    benchmark:
+        'logs/make_diamond_db/{name}.root.{root}{masked}.benchmark.txt'
     resources:
         threads=lambda x: maxcore
     shell:

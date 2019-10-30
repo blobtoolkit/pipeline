@@ -12,10 +12,12 @@ rule fetch_ncbi_db:
         ftp_url='ftp://ftp.ncbi.nlm.nih.gov',
         ftp_dir=lambda wc: "/blast/db/%s" % 'v5/' if wc.name.endswith('_v5') else ''
     conda:
-         '../envs/fetch.yaml'
+        '../envs/fetch.yaml'
     threads: 1
     log:
-      lambda wc: "logs/fetch_ncbi_db/%s.%s.log" % (wc.name, wc.suffix)
+        lambda wc: "logs/fetch_ncbi_db/%s.%s.log" % (wc.name, wc.suffix)
+    benchmark:
+        'logs/fetch_ncbi_db/{name}.{suffix}.benchmark.txt'
     resources:
         download=1,
         threads=1
@@ -37,10 +39,12 @@ rule fetch_ncbi_idmap:
     params:
         idmap=lambda wc: ncbi_idmap(wc.name)
     conda:
-         '../envs/fetch.yaml'
+        '../envs/fetch.yaml'
     threads: 1
     log:
-      lambda wc: "logs/fetch_ncbi_idmap/%s.log" % (wc.name)
+        lambda wc: "logs/fetch_ncbi_idmap/%s.log" % (wc.name)
+    benchmark:
+        'logs/fetch_ncbi_idmap/{name}.benchmark.txt'
     resources:
         download=1,
         threads=1
@@ -65,10 +69,12 @@ rule fetch_taxdump:
     params:
         outdir=config['settings']['taxonomy']
     conda:
-         '../envs/fetch.yaml'
+        '../envs/fetch.yaml'
     threads: 1
     log:
-      "logs/fetch_taxdump.log"
+        'logs/fetch_taxdump.log'
+    benchmark:
+        'logs/fetch_taxdump.benchmark.txt'
     resources:
         download=1,
         threads=1
@@ -91,10 +97,12 @@ rule fetch_uniprot:
         ftp_url='ftp.ebi.ac.uk',
         ftp_dir='pub/databases/uniprot/current_release/knowledgebase/{name}'
     conda:
-         '../envs/fetch.yaml'
+        '../envs/fetch.yaml'
     threads: 1
     log:
-      lambda wc: "logs/fetch_uniprot/%s.log" % (wc.name)
+        lambda wc: "logs/fetch_uniprot/%s.log" % (wc.name)
+    benchmark:
+        'logs/fetch_uniprot/{name}.benchmark.txt'
     resources:
         download=1,
         threads=1
@@ -119,10 +127,12 @@ rule extract_uniprot:
         # NB: the path to the local copy of the file must contain the string 'uniprot'
         path='.+uniprot.+'
     conda:
-         '../envs/py3.yaml'
+        '../envs/py3.yaml'
     threads: 1
     log:
-      lambda wc: "logs/extract_uniprot/%s.log" % (wc.name)
+        lambda wc: "logs/extract_uniprot/%s.log" % (wc.name)
+    benchmark:
+        'logs/extract_uniprot/{name}.benchmark.txt'
     resources:
         tmpdir=24,
         threads=1
@@ -143,9 +153,12 @@ rule make_uniprot_db:
         db=lambda wc: wc.name,
         tmpdir="%s" % config['settings']['tmp']
     conda:
-         '../envs/diamond.yaml'
+        '../envs/diamond.yaml'
     threads: lambda x: maxcore
-    log: "logs/make_uniprot_db.log"
+    log:
+        'logs/make_uniprot_db.log'
+    benchmark:
+        'logs/make_uniprot_db.benchmark.txt'
     resources:
         threads=lambda x: maxcore
     shell:
@@ -173,10 +186,12 @@ rule fetch_busco_lineage:
         lineage=lambda wc: wc.lineage,
         dir=lambda wc: config['busco']['lineage_dir']
     conda:
-         '../envs/fetch.yaml'
+        '../envs/fetch.yaml'
     threads: 1
     log:
-      lambda wc: "logs/fetch_busco_lineage/%s.log" % (wc.lineage)
+        lambda wc: "logs/fetch_busco_lineage/%s.log" % (wc.lineage)
+    benchmark:
+        'logs/fetch_busco_lineage/{lineage}.benchmark.txt'
     resources:
         download=1,
         threads=1

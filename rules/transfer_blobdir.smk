@@ -12,10 +12,12 @@ rule validate_dataset:
     params:
         assembly = lambda wc: wc.assembly
     conda:
-         '../envs/blobtools2.yaml'
+        '../envs/blobtools2.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/validate_dataset.log" % (wc.assembly)
+        lambda wc: "logs/%s/validate_dataset.log" % (wc.assembly)
+    benchmark:
+        'logs/{assembly}/validate_dataset.benchmark.txt'
     resources:
         threads=1
     shell:
@@ -35,7 +37,7 @@ rule host_dataset:
         assembly=lambda wc: wc.assembly,
         port=8080
     conda:
-         '../envs/blobtools2.yaml'
+        '../envs/blobtools2.yaml'
     threads: 1
     resources:
         threads=1
@@ -60,10 +62,12 @@ rule generate_images:
         assembly=lambda wc: wc.assembly,
         host='http://localhost:8080'
     conda:
-         '../envs/blobtools2.yaml'
+        '../envs/blobtools2.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/generate_images.log" % (wc.assembly)
+        lambda wc: "logs/%s/generate_images.log" % (wc.assembly)
+    benchmark:
+        'logs/{assembly}/generate_images.benchmark.txt'
     resources:
         threads=1
     script:
@@ -81,10 +85,12 @@ rule generate_summary:
     params:
         assembly=lambda wc: wc.assembly
     conda:
-         '../envs/blobtools2.yaml'
+        '../envs/blobtools2.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/generate_summary.log" % (wc.assembly)
+        lambda wc: "logs/%s/generate_summary.log" % (wc.assembly)
+    benchmark:
+        'logs/{assembly}/generate_summary.benchmark.txt'
     resources:
         threads=1
     shell:
@@ -103,7 +109,9 @@ rule checksum_files:
         assembly=lambda wc: wc.assembly
     threads: 1
     log:
-      lambda wc: "logs/%s/checksum_files.log" % (wc.assembly)
+        lambda wc: "logs/%s/checksum_files.log" % (wc.assembly)
+    benchmark:
+        'logs/{assembly}/checksum_files.benchmark.txt'
     resources:
         threads=1
     shell:
@@ -125,7 +133,9 @@ rule transfer_dataset:
         destdir=config['destdir'],
     threads: 1
     log:
-      lambda wc: "logs/%s/transfer_dataset.log" % (wc.assembly)
+        lambda wc: "logs/%s/transfer_dataset.log" % (wc.assembly)
+    benchmark:
+        'logs/{assembly}/transfer_dataset.benchmark.txt'
     resources:
         threads=1
     shell:

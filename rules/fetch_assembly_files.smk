@@ -12,7 +12,9 @@ rule fetch_assembly:
          '../envs/fetch.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/fetch_assembly.log" % (wc.assembly)
+        lambda wc: "logs/%s/fetch_assembly.log" % (wc.assembly)
+    benchmark:
+        'logs/{assembly}/fetch_assembly.benchmark.txt'
     resources:
         download=1,
         threads=1
@@ -35,7 +37,9 @@ rule fetch_fastq:
          '../envs/fetch.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/fetch_fastq/%s%s.log" % (config['assembly']['prefix'], wc.sra, wc.suff)
+        lambda wc: "logs/%s/fetch_fastq/%s%s.log" % (config['assembly']['prefix'], wc.sra, wc.suff)
+    benchmark:
+        "logs/%s/fetch_fastq/{sra}{suff}.benchmark.txt" % config['assembly']['prefix']
     resources:
         download=1,
         threads=1
@@ -67,7 +71,9 @@ rule subsample_fastq:
          '../envs/pyblast.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/subsample_fastq/%s%s.log" % (config['assembly']['prefix'], wc.sra, wc.suff)
+        lambda wc: "logs/%s/subsample_fastq/%s%s.log" % (config['assembly']['prefix'], wc.sra, wc.suff)
+    benchmark:
+        "logs/%s/subsample_fastq/{sra}{suff}.benchmark.txt" % config['assembly']['prefix']
     resources:
         download=1,
         threads=1

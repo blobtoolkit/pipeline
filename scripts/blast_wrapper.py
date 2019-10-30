@@ -25,6 +25,7 @@ Options:
     -db BLASTDB             BLAST database.
     -query FASTAFILE        query sequence FASTA file.
     -taxidlist TAXIDFILE    list of taxids to include (requires v5 BLAST DB).
+    -multiprocessing        use python multiprocessing for num_threads.
     -chunk 100000           sequences greater than CHUNK bp will be split.
     -overlap 500            length of overlap when splitting sequences.
     -max_chunks 10          maximum number of chunks to split a sequence into.
@@ -34,6 +35,7 @@ Options:
     -raw FASTAFILE.out.raw  raw output filename.
     -out FASTAFILE.out      BLAST output filename (processed from raw output).
     -nohit FASTAFILE.nohit  query sequences with no hit to BLAST DB.
+    -window_masker_db FILE  windowmasker optimized binary format counts file.
     ...                     any additional blast parameters.
 """
 
@@ -57,6 +59,7 @@ def parse_args():
         '-program': 'blastn',
         '-query': None,
         '-chunk': 100000,
+        '-multiprocessing': False,
         '-overlap': 500,
         '-max_chunks': 10,
         '-num_threads': 16,
@@ -75,6 +78,7 @@ def parse_args():
         script_params['-query'] = snakemake.input.fasta
         blast_params['-db'] = snakemake.params.db
         blast_params['-taxidlist'] = snakemake.input.taxids
+        script_params['-multiprocessing'] = int(snakemake.params.multiprocessing)
         script_params['-chunk'] = int(snakemake.params.chunk)
         script_params['-overlap'] = int(snakemake.params.overlap)
         script_params['-max_chunks'] = int(snakemake.params.max_chunks)
@@ -84,6 +88,7 @@ def parse_args():
         script_params['-raw'] = snakemake.output.raw
         script_params['-nohit'] = snakemake.output.nohit
         script_params['-out'] = snakemake.output.out
+        blast_params['-window_masker_db'] = snakemake.input.windowmasker
         script_params['-max_target_seqs'] = blast_params['-max_target_seqs']
         blast_list = [item for k in blast_params for item in (k, blast_params[k])]
         return (script_params, blast_list)
@@ -101,6 +106,8 @@ def parse_args():
                 else:
                     blast_params[pair] = arg
                 pair = False
+        if not script_params['-multiprocessing']:
+            blast_params['-num_threads'] = script_params['-num_threads']
         for arg in ['-raw', '-out', '-nohit']:
             if script_params[arg] and re.match('.', script_params[arg]):
                 script_params[arg] = script_params['-query']+script_params[arg]
@@ -117,6 +124,10 @@ def parse_args():
         logger.error("'%s' is not a valid query file" % script_params['-query'])
         print(docs)
         exit(1)
+    if '-window_masker_db' in blast_params and not os.path.exists(blast_params['-window_masker_db']):
+        logger.error("'%s' is not a valid windowmasker file" % blast_params['-window_masker_db'])
+        print(docs)
+        exit(1)
     if not glob.glob("%s.*" % blast_params['-db']):
         logger.error("'%s' is not a valid database file" % blast_params['-db'])
         print(docs)
@@ -128,7 +139,7 @@ def chunk_size(value):
     """Calculate nice value for chunk size."""
     mag = math.floor(math.log10(value))
     first = int(str(value)[:2]) + 1
-    chunk_size = first * pow(10, mag-2)
+    chunk_size = first * pow(10, mag-1)
     return chunk_size
 
 
@@ -152,12 +163,13 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
             title = header.__next__()[1:].strip().split()[0]
             seq = ''.join(map(lambda s: s.strip(), faiter.__next__()))
             seq_length = len(seq)
+            my_chunk = chunk
             if seq_length > segment:
                 n = (seq_length + chunk) // chunk
                 if n > max_chunks:
-                    chunk = chunk_size(seq_length / max_chunks)
+                    my_chunk = chunk_size(seq_length / max_chunks)
                     n = max_chunks
-                for i in range(0, seq_length, chunk):
+                for i in range(0, seq_length, my_chunk):
                     subseq = seq[i:i+segment]
                     yield {'title': title, 'seq': subseq, 'chunks': n, 'start': i}
             else:
@@ -240,7 +252,10 @@ if __name__ == '__main__':
         min_length = subset_length / script_params['-num_threads']
         while subset_length > script_params['-num_threads'] and subset_length > min_length:
             subset_length //= 2
-        pool = Pool(script_params['-num_threads'])
+        if script_params['-multiprocessing']:
+            pool = Pool(script_params['-num_threads'])
+        else:
+            pool = Pool(1)
         jobs = []
         output = []
         pool_error = None
@@ -276,10 +291,14 @@ if __name__ == '__main__':
         index = 1
         batches = math.ceil(len(seqs) / subset_length)
         try:
-            for subset in split_list(seqs, subset_length):
-                proc = pool.apply_async(run_blast, (subset, script_params['-program'], blast_list, index, batches), callback=blast_callback)
+            if script_params['-multiprocessing']:
+                for subset in split_list(seqs, subset_length):
+                    proc = pool.apply_async(run_blast, (subset, script_params['-program'], blast_list, index, batches), callback=blast_callback)
+                    jobs.append(proc)
+                    index += 1
+            else:
+                proc = pool.apply_async(run_blast, (seqs, script_params['-program'], blast_list, 1, 1), callback=blast_callback)
                 jobs.append(proc)
-                index += 1
             pool.close()
             pool.join()
             for job in jobs:

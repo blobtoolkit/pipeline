@@ -7,10 +7,12 @@ rule bwa_index:
     output:
         temp(expand('{{assembly}}.fasta.{suffix}',suffix=BWA_INDEX))
     conda:
-         '../envs/bwa.yaml'
+        '../envs/bwa.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/bwa_index.log" % (wc.assembly)
+        lambda wc: "logs/%s/bwa_index.log" % (wc.assembly)
+    benchmark:
+        'logs/{assembly}/bwa_index.benchmark.txt'
     resources:
         threads=1
     shell:
@@ -29,10 +31,12 @@ rule map_reads:
     params:
         cmd = lambda wc: generate_mapping_command(wc.sra,reads)
     conda:
-         '../envs/bwa.yaml'
+        '../envs/bwa.yaml'
     threads: lambda x: maxcore
     log:
-      lambda wc: "logs/%s/map_reads/%s.log" % (wc.assembly, wc.sra)
+        lambda wc: "logs/%s/map_reads/%s.log" % (wc.assembly, wc.sra)
+    benchmark:
+        'logs/{assembly}/map_reads/{sra}.benchmark.txt'
     resources:
         threads=lambda x: maxcore
     shell:
@@ -49,10 +53,12 @@ rule bamtools_stats:
     output:
         '{assembly}.{sra}.bam.stats'
     conda:
-         '../envs/bwa.yaml'
+        '../envs/bwa.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/bamtools_stats/%s.log" % (wc.assembly, wc.sra)
+        lambda wc: "logs/%s/bamtools_stats/%s.log" % (wc.assembly, wc.sra)
+    benchmark:
+        'logs/{assembly}/bamtools_stats/{sra}.benchmark.txt'
     resources:
         threads=1
     shell:

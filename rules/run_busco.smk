@@ -19,7 +19,9 @@ rule run_busco:
         '../envs/busco.yaml'
     threads: lambda x: multicore
     log:
-      lambda wc: "logs/%s/run_busco/%s.log" % (wc.assembly, wc.lineage)
+        lambda wc: "logs/%s/run_busco/%s.log" % (wc.assembly, wc.lineage)
+    log:
+        'logs/{assembly}/run_busco/{lineage}.benchmark.txt'
     resources:
         threads=lambda x: multicore
     shell:

@@ -1,9 +1,35 @@
+rule run_windowmasker:
+    """
+    Run windowmasker to mask repeats in the assembly.
+    """
+    input:
+        '{assembly}.fasta'
+    output:
+        '{assembly}.fasta.windowmasker.obinary'
+    conda:
+        '../envs/pyblast.yaml'
+    threads: 1
+    log:
+        lambda wc: "logs/%s/run_windowmasker.log" % wc.assembly
+    benchmark:
+        'logs/{assembly}/run_windowmasker.benchmark.txt'
+    resources:
+        threads=1
+    shell:
+        'windowmasker -in {input} \
+                      -infmt fasta \
+                      -mk_counts \
+                      -parse_seqids \
+                      -sformat obinary \
+                      -out {output} 2> {log}'
+
 rule run_blastn:
     """
     Run NCBI blastn to search nucleotide database with assembly query.
     """
     input:
         fasta='{assembly}.fasta',
+        windowmasker='{assembly}.fasta.windowmasker.obinary',
         db=lambda wc: "%s/%s.nal" % (similarity[wc.name]['local'],wc.name),
         taxids='{name}.root.{root}{masked}.taxids'
     output:
@@ -17,14 +43,17 @@ rule run_blastn:
         db=lambda wc: "%s/%s" % (similarity[wc.name]['local'],wc.name),
         evalue=lambda wc:similarity[wc.name]['evalue'],
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs'],
+        multiprocessing=True if config['settings']['multiprocessing'] else False,
         chunk=config['settings']['blast_chunk'],
         overlap=config['settings']['blast_overlap'],
         max_chunks=config['settings']['blast_max_chunks']
     conda:
-         '../envs/pyblast.yaml'
+        '../envs/pyblast.yaml'
     threads: lambda x: maxcore
     log:
-      lambda wc: "logs/%s/run_blastn/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
+        lambda wc: "logs/%s/run_blastn/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
+    benchmark:
+        'logs/{assembly}/run_blastn/{name}.root.{root}{masked}.benchmark.txt'
     resources:
         threads=lambda x: maxcore
     script:
@@ -41,10 +70,12 @@ rule extract_nohit_sequences:
     output:
         '{assembly}.blastn.{name}.root.{root}{masked}.fasta.nohit' if keep else temp('{assembly}.blastn.{name}.root.{root}{masked}.fasta.nohit')
     conda:
-         '../envs/pyblast.yaml'
+        '../envs/pyblast.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/extract_nohit_sequences/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
+        lambda wc: "logs/%s/extract_nohit_sequences/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
+    benchmark:
+        'logs/{assembly}/extract_nohit_sequences/{name}.root.{root}{masked}.benchmark.txt'
     resources:
         threads=1
     shell:
@@ -108,10 +139,12 @@ rule run_diamond_blastx:
         evalue=lambda wc:similarity[wc.name]['evalue'],
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
     conda:
-         '../envs/diamond.yaml'
+        '../envs/diamond.yaml'
     threads: lambda x: maxcore
     log:
-      lambda wc: "logs/%s/run_diamond_blastx/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
+        lambda wc: "logs/%s/run_diamond_blastx/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
+    benchmark:
+        'logs/{assembly}/run_diamond_blastx/{name}.root.{root}{masked}.benchmark.txt'
     resources:
         threads=lambda x: maxcore
     shell:

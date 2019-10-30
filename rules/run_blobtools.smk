@@ -12,7 +12,9 @@ rule generate_metadata:
         gitdir=os.path.dirname(os.path.abspath(workflow.snakefile))+'/.git'
     threads: 1
     log:
-      lambda wc: "logs/%s/generate_metadata.log" % (wc.assembly)
+        lambda wc: "logs/%s/generate_metadata.log" % (wc.assembly)
+    benchmark:
+        'logs/{assembly}/generate_metadata.benchmark.txt'
     resources:
         threads=1
     script:
@@ -38,12 +40,14 @@ rule blobtoolkit_create:
         '../envs/blobtools2.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/blobtoolkit_create.log" % (wc.assembly)
+        lambda wc: "logs/%s/blobtoolkit_create.log" % (wc.assembly)
+    benchmark:
+        'logs/{assembly}/blobtoolkit_create.benchmark.txt'
     resources:
         threads=1,
         btk=1
     shell:
-        '{params.path}/blobtools create \
+        '{params.path}/blobtools replace \
             --fasta {input.fasta} \
             --meta {input.yaml} \
             --taxdump "{params.taxdump}" \
@@ -70,12 +74,14 @@ rule blobtoolkit_add_hits:
         '../envs/blobtools2.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/blobtoolkit_add_hits.log" % (wc.assembly)
+        lambda wc: "logs/%s/blobtoolkit_add_hits.log" % (wc.assembly)
+    benchmark:
+        'logs/{assembly}/blobtoolkit_add_hits.benchmark.txt'
     resources:
         threads=1,
         btk=1
     shell:
-        '{params.path}/blobtools add \
+        '{params.path}/blobtools replace \
             --hits {params.dbs} \
             --taxrule "{params.taxrule}" \
             --taxdump "{params.taxdump}" \
@@ -98,12 +104,14 @@ rule blobtoolkit_add_cov:
         '../envs/blobtools2.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/blobtoolkit_add_cov.log" % (config['assembly']['prefix'])
+        lambda wc: "logs/%s/blobtoolkit_add_cov.log" % (config['assembly']['prefix'])
+    benchmark:
+        "logs/%s/blobtoolkit_add_cov.benchmark.txt" % (config['assembly']['prefix'])
     resources:
         threads=1,
         btk=1
     shell:
-        '{params.path}/blobtools add \
+        '{params.path}/blobtools replace \
             --cov {params.covs} \
             --threads {threads} \
             {params.id} > {log} 2>&1'
@@ -126,7 +134,9 @@ rule blobtoolkit_add_busco:
         '../envs/blobtools2.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/blobtoolkit_add_busco.log" % (config['assembly']['prefix'])
+        lambda wc: "logs/%s/blobtoolkit_add_busco.log" % (config['assembly']['prefix'])
+    benchmark:
+        "logs/%s/blobtoolkit_add_busco.benchmark.txt" % (config['assembly']['prefix'])
     resources:
         threads=1,
         btk=1
