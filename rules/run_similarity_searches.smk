@@ -5,7 +5,7 @@ rule run_windowmasker:
     input:
         '{assembly}.fasta'
     output:
-        '{assembly}.fasta.windowmasker.obinary'
+        '{assembly}.fasta.windowmasker.obinary' if keep else temp('{assembly}.fasta.windowmasker.obinary')
     conda:
         '../envs/pyblast.yaml'
     threads: 1

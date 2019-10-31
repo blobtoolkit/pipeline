@@ -1,5 +1,29 @@
 import os
 
+rule run_windowmasker:
+    """
+    Run windowmasker to mask repeats in the assembly.
+    """
+    input:
+        '{assembly}.fasta'
+    output:
+        '{assembly}.fasta.windowmasker.obinary' if keep else temp('{assembly}.fasta.windowmasker.obinary')
+    conda:
+        '../envs/pyblast.yaml'
+    threads: 1
+    log:
+        lambda wc: "logs/%s/run_windowmasker.log" % wc.assembly
+    benchmark:
+        'logs/{assembly}/run_windowmasker.benchmark.txt'
+    resources:
+        threads=1
+    shell:
+        'windowmasker -in {input} \
+                      -infmt fasta \
+                      -mk_counts \
+                      -parse_seqids \
+                      -sformat obinary \
+                      -out {output} 2> {log}'
 
 rule make_taxid_list:
     """
@@ -35,6 +59,7 @@ rule run_blastn:
     """
     input:
         fasta='{assembly}.fasta',
+        windowmasker='{assembly}.fasta.windowmasker.obinary',
         db=lambda wc: "%s/%s.nal" % (similarity[wc.name]['local'],wc.name),
         taxids='{name}.root.{root}{masked}.taxids'
     output:
