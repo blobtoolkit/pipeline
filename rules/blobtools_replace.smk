@@ -17,45 +17,17 @@ rule make_taxid_list:
         mask_ids=lambda wc: similarity[wc.name]['mask_ids'],
         db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked))
     conda:
-         '../envs/py3.yaml'
+        '../envs/py3.yaml'
     threads: 1
     log:
-      lambda wc: "logs/make_taxid_list/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
+        lambda wc: "logs/make_taxid_list/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
     benchmark:
-      "logs/make_taxid_list/{name}.root.{root}{masked}.benchmark.txt"
+        'logs/make_taxid_list/{name}.root.{root}{masked}.benchmark.txt'
     resources:
         threads=1
     script:
         '../scripts/make_taxid_list.py'
 
-rule make_masked_lists:
-    """
-    Generate a list of accessions needed to create a custom
-    database containing all descendants of a specified root, optionally
-    with one or more lineages masked.
-    """
-    input:
-        split=lambda wc: "%s/split/%s.done" % (similarity[wc.name]['local'],wc.name),
-        taxids='{name}.root.{root}{masked}.negative.taxids'
-    output:
-        'blast/{name}.root.{root}{masked}.lists'
-    wildcard_constraints:
-        root='\d+'
-    params:
-        db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked)),
-        indir=lambda wc: "%s/split/%s" % (similarity[wc.name]['local'],wc.name),
-        chunk=config['settings']['chunk']
-    conda:
-         '../envs/py3.yaml'
-    threads: lambda x: maxcore
-    log:
-      lambda wc: "logs/make_masked_lists/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
-#    benchmark:
-#      lambda wc: "logs/make_masked_lists/%s.root.%s%s.benchmark.txt" % (wc.name, wc.root, wc.masked)
-    resources:
-        threads=lambda x: maxcore
-    script:
-        '../scripts/make_masked_lists.py'
 
 rule run_blastn:
     """
@@ -80,12 +52,12 @@ rule run_blastn:
         overlap=config['settings']['blast_overlap'],
         max_chunks=config['settings']['blast_max_chunks']
     conda:
-         '../envs/pyblast.yaml'
+        '../envs/pyblast.yaml'
     threads: lambda x: maxcore
     log:
-      lambda wc: "logs/%s/run_blastn/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
-#    benchmark:
-#      "logs/{assembly}/run_blastn/{name}.root.{root}{masked}.benchmark.txt" % (wc.assembly, wc.name, wc.root, wc.masked)
+        lambda wc: "logs/%s/run_blastn/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
+    benchmark:
+        'logs/run_blastn/{name}.root.{root}{masked}.benchmark.txt'
     resources:
         threads=lambda x: maxcore
     script:
@@ -112,7 +84,9 @@ rule blobtoolkit_replace_hits:
         '../envs/blobtools2.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/blobtoolkit_replace_hits.log" % (wc.assembly)
+        lambda wc: "logs/%s/blobtoolkit_replace_hits.log" % (wc.assembly)
+    benchmark:
+        'logs/{assembly}/blobtoolkit_replace_hits.log'
     resources:
         threads=1,
         btk=1
@@ -140,7 +114,9 @@ rule blobtoolkit_replace_cov:
         '../envs/blobtools2.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/blobtoolkit_replace_cov.log" % (config['assembly']['prefix'])
+        lambda wc: "logs/%s/blobtoolkit_replace_cov.log" % (config['assembly']['prefix'])
+    benchmark:
+        "logs/%s/blobtoolkit_replace_cov.benchmark.txt" % (config['assembly']['prefix'])
     resources:
         threads=1,
         btk=1
@@ -169,7 +145,9 @@ rule blobtoolkit_replace_busco:
         '../envs/blobtools2.yaml'
     threads: 1
     log:
-      lambda wc: "logs/%s/blobtoolkit_replace_busco.log" % (config['assembly']['prefix'])
+        lambda wc: "logs/%s/blobtoolkit_replace_busco.log" % (config['assembly']['prefix'])
+    benchmark:
+        "logs/%s/blobtoolkit_replace_busco.benchmark.txt" % (config['assembly']['prefix'])
     resources:
         threads=1,
         btk=1
