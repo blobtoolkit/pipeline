@@ -20,7 +20,7 @@ rule run_busco:
     threads: lambda x: multicore
     log:
         lambda wc: "logs/%s/run_busco/%s.log" % (wc.assembly, wc.lineage)
-    log:
+    benchmark:
         'logs/{assembly}/run_busco/{lineage}.benchmark.txt'
     resources:
         threads=lambda x: multicore

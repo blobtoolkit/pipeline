@@ -55,8 +55,9 @@ $ tar xvf ncbi-blast-2.8.1+-x64-linux.tar.gz
 Running the pipeline requires [BlobTools2](https://github.com/blobtoolkit/blobtools2) and visualisation of processed datasets requires the BlobToolKit [Viewer](https://github.com/blobtoolkit/viewer). To install both, follow the BlobTools2 [installation instruction](https://github.com/blobtoolkit/blobtools2#installing).
 
 ```
-$ conda create -n blobtools2 -y python=3.6 docopt pyyaml ujson pysam tqdm nodejs seqtk
+$ conda create -n blobtools2 -y python=3.6 docopt pyyaml ujson tqdm nodejs
 $ conda activate blobtools2
+$ conda install -c bioconda pysam seqtk
 $ mkdir -p taxdump
 $ cd taxdump
 $ curl -L ftp://ftp.ncbi.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz | tar xzf -
@@ -74,6 +75,9 @@ Create a [Snakemake](http://snakemake.readthedocs.io/en/stable/) environment usi
 
 ```
 $ conda create -n snake_env -c bioconda snakemake
+$ conda activate snake_env
+# optionally install DRMAA Python bindings for cluster execution
+$ conda install -c anaconda drmaa
 ```
 
 ### INSDC pipeline

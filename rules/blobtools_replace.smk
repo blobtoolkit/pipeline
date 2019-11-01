@@ -112,7 +112,7 @@ rule blobtoolkit_replace_hits:
     log:
         lambda wc: "logs/%s/blobtoolkit_replace_hits.log" % (wc.assembly)
     benchmark:
-        'logs/{assembly}/blobtoolkit_replace_hits.log'
+        'logs/{assembly}/blobtoolkit_replace_hits.benchmark.txt'
     resources:
         threads=1,
         btk=1
