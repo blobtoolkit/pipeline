@@ -9,8 +9,8 @@ rule fetch_ncbi_db:
         path='.+ncbi.+',
         suffix='[np]al'
     params:
-        ftp_url='ftp://ftp.ncbi.nlm.nih.gov',
-        ftp_dir=lambda wc: "/blast/db/%s" % 'v5/' if wc.name.endswith('_v5') else ''
+        ftp_url='ftp://ftp.ncbi.nlm.nih.gov/blast/db/',
+        ftp_dir=lambda wc: "%s" % 'v5/' if wc.name.endswith('_v5') else ''
     conda:
         '../envs/fetch.yaml'
     threads: 1
