@@ -10,7 +10,9 @@ rule fetch_ncbi_db:
         suffix='[np]al'
     params:
         ftp_url='ftp://ftp.ncbi.nlm.nih.gov/blast/db/',
-        ftp_dir=lambda wc: "%s" % 'v5/' if wc.name.endswith('_v5') else ''
+        ftp_dir=lambda wc: "%s" % 'v5/' if wc.name.endswith('_v5') else '',
+        name=lambda wc: wc.name,
+        path=lambda wc: wc.path
     conda:
         '../envs/fetch.yaml'
     threads: 1
@@ -22,9 +24,9 @@ rule fetch_ncbi_db:
         download=1,
         threads=1
     shell:
-        '(wget "{params.ftp_url}{params.ftp_dir}{wildcards.name}.??.tar.gz" -P {wildcards.path}/ && \
-        for file in {wildcards.path}/*.tar.gz; \
-            do tar xf $file -C {wildcards.path} && rm $file; \
+        '(wget "{params.ftp_url}{params.ftp_dir}{params.name}.??.tar.gz" -P {params.path}/ && \
+        for file in {params.path}/*.tar.gz; \
+            do tar xf $file -C {params.path} && rm $file; \
         done) 2> {log}'
 
 rule fetch_ncbi_idmap:

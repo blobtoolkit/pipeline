@@ -251,6 +251,8 @@ snakemake -p --use-conda \
              --stats $ASSEMBLY.snakemake.stats \
              --resources btk=1 \
              -j $THREADS
+
+
 ```
 
 ## Format specification
