@@ -1,18 +1,18 @@
 # insdc-pipeline
 
-_A [Snakemake](http://snakemake.readthedocs.io/en/stable/) pipeline to run analyses on public genome assemblies for visualisation in the [BlobToolKit Viewer](http://blobtoolkit.genomehubs.org/view/)_
+_A [Snakemake](http://snakemake.readthedocs.io/en/stable/) pipeline to run analyses on public genome assemblies for visualisation in the [BlobToolKit Viewer](https://blobtoolkit.genomehubs.org/view/)_
 
 While designed for use on public genome assemblies and read files, this pipeline is also suitable for use with local assembly and read files. If the assembly and read files exist locally in the working directory when the pipeline is run, the remote fetches will be skipped.
 
 ## Overview
 
-The final output of this pipeline is a `BlobDir` dataset directory containing a set of JSON files ready for interactive visualisation with the [BlobToolKit Viewer](http://blobtoolkit.genomehubs.org/view/) (Figure 1).
+The final output of this pipeline is a `BlobDir` dataset directory containing a set of JSON files ready for interactive visualisation with the [BlobToolKit Viewer](https://blobtoolkit.genomehubs.org/view/) (Figure 1).
 
-![Figure 1](http://blobtoolkit.genomehubs.org/wp-content/uploads/2018/08/figure1.png)
+![Figure 1](https://blobtoolkit.genomehubs.org/wp-content/uploads/2018/08/figure1.png)
 
 The pipeline (Figure 2) is implemented using Snakemake and will fetch all required database and assembly files then run BLAST/Diamond similarity searches and bwa/minimap2 read mapping and for processing with BlobTools.
 
-![Figure 2](http://blobtoolkit.genomehubs.org/wp-content/uploads/2019/03/DAG-1.png)
+![Figure 2](https://blobtoolkit.genomehubs.org/wp-content/uploads/2019/11/Figure_2.png)
 
 ## Installation
 
@@ -218,8 +218,39 @@ BTKDIR=`pwd`/insdc-pipeline
 cd $BTKDIR
 CORES=32
 WORKDIR=~/btk_workdir
-ASSEMBLY=ABPC01;
-snakemake -p --use-conda --conda-prefix ~/.conda --directory $WORKDIR/ --configfile $WORKDIR/$ASSEMBLY.yaml --stats $ASSEMBLY.snakemake.stats -j $CORES
+ASSEMBLY=ABPC01
+snakemake -p --use-conda --conda-prefix ~/.conda --directory $WORKDIR/ --configfile $WORKDIR/$ASSEMBLY.yaml --stats $ASSEMBLY.snakemake.stats --resources btk=1 -j $CORES
+```
+
+
+### Running the pipeline on a cluster
+
+Cluster configuration can be altered using the cluster.yaml file. The example commands below are for an LSF cluster with DRMAA:
+
+```
+conda activate snake_env
+BTKDIR=`pwd`/insdc-pipeline
+cd $BTKDIR
+WORKDIR=~/btk_workdir
+MULTICORE=8
+MAXCORE=16
+ASSEMBLY=ABPC01
+CONDA_DIR=$HOME/.conda
+THREADS=48
+
+snakemake -p --use-conda \
+             --conda-prefix $CONDA_DIR \
+             --directory $WORKDIR \
+             --configfile $WORKDIR/$ASSEMBLY.yaml \
+             --cluster-config cluster.yaml \
+             --drmaa " -o {log}.o \
+                       -e {log}.e \
+                       -R \"select[mem>{cluster.mem}] rusage[mem={cluster.mem}]\" -M {cluster.mem} \
+                       -n {cluster.threads} \
+                       -q {cluster.queue}" \
+             --stats $ASSEMBLY.snakemake.stats \
+             --resources btk=1 \
+             -j $THREADS
 ```
 
 ## Format specification

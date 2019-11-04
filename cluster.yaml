@@ -1,44 +1,72 @@
 __default__:
-  pe: smp64
-  threads: '{threads}'
-fetch_assembly:
-  pe: smp
-fetch_sra:
-  pe: smp
-extract_paired_fastq:
-  pe: smp
-extract_fastq:
-  pe: smp
-fetch_ncbi_fasta:
-  pe: smp
-fetch_ncbi_idmap:
-  pe: smp
-fetch_taxdump:
-  pe: smp
-fetch_uniprot:
-  pe: smp
-make_masked_lists:
-  pe: smp
-bwa_index:
-  pe: smp
-blobtools_create:
-  pe: smp
-run_blastn:
-  pe: smp
-  threads: 30
-run_blastx:
-  pe: smp
-  threads: 30
-run_diamond_blastx:
-  pe: smp
-  threads: 30
-run_blobtools_taxify:
-  pe: smp
+  mem: 100
+  threads: {threads}
+  queue: 'normal'
 bamtools_stats:
-  pe: smp
-sum_coverage:
-  pe: smp
-blobtools_map2cov:
-  pe: smp
-blobtools_view:
-  pe: smp
+  mem: 1000
+  queue: 'small'
+blobtoolkit_add_busco:
+  mem: 250
+  queue: 'small'
+blobtoolkit_add_cov:
+  mem: 10000
+blobtoolkit_add_hits:
+  mem: 10000
+blobtoolkit_create:
+  mem: 10000
+bwa_index:
+  mem: 4000
+extract_nohit_sequences:
+  mem: 500
+extract_uniprot:
+  mem: 350
+fetch_assembly:
+  mem: 250
+  queue: 'small'
+  threads: 2
+fetch_busco_lineage:
+  default: true
+  queue: 'small'
+fetch_fastq:
+  default: true
+  queue: 'small'
+fetch_ncbi_db:
+  default: true
+  queue: 'small'
+fetch_taxdump:
+  default: true
+  queue: 'small'
+fetch_uniprot:
+  default: true
+  queue: 'small'
+  threads: 2
+generate_metadata:
+  default: true
+  queue: 'small'
+make_diamond_db:
+  mem: 5000
+  queue: 'small'
+make_masked_lists:
+  mem: 1000
+  queue: 'small'
+make_taxid_list:
+  mem: 1000
+  queue: 'small'
+map_reads:
+  mem: 50000
+run_blastn:
+  mem: 100000
+  queue: 'long'
+run_busco:
+  mem: 10000
+  queue: 'long'
+run_diamond_blastx:
+  mem: 20000
+  queue: 'long'
+run_windowmasker:
+  mem: 5000
+split_fasta:
+  mem: 200000
+subsample_fastq:
+  mem: 1000
+  queue: 'small'
