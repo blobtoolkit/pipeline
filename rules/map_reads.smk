@@ -32,13 +32,13 @@ rule map_reads:
         cmd = lambda wc: generate_mapping_command(wc.sra,reads)
     conda:
         '../envs/bwa.yaml'
-    threads: lambda x: maxcore
+    threads: lambda x: cluster_config['map_reads']['threads'] if 'map_reads' in cluster_config else maxcore
     log:
         lambda wc: "logs/%s/map_reads/%s.log" % (wc.assembly, wc.sra)
     benchmark:
         'logs/{assembly}/map_reads/{sra}.benchmark.txt'
     resources:
-        threads=lambda x: maxcore
+        threads=lambda x: cluster_config['map_reads']['threads'] if 'map_reads' in cluster_config else maxcore
     shell:
         '({params.cmd} -t {threads} {input.fasta} {input.fastq} | \
         samtools view -h -T {input.fasta} - | \

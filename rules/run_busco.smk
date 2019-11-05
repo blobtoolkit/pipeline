@@ -17,13 +17,13 @@ rule run_busco:
         lineage='\w+_odb9'
     conda:
         '../envs/busco.yaml'
-    threads: lambda x: multicore
+    threads: lambda x: cluster_config['run_busco']['threads'] if 'run_busco' in cluster_config else multicore
     log:
         lambda wc: "logs/%s/run_busco/%s.log" % (wc.assembly, wc.lineage)
     benchmark:
         'logs/{assembly}/run_busco/{lineage}.benchmark.txt'
     resources:
-        threads=lambda x: multicore
+        threads=lambda x: cluster_config['run_busco']['threads'] if 'run_busco' in cluster_config else multicore
     shell:
         'run_busco \
             -f \

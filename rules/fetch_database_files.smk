@@ -156,13 +156,13 @@ rule make_uniprot_db:
         tmpdir="%s" % config['settings']['tmp']
     conda:
         '../envs/diamond.yaml'
-    threads: lambda x: maxcore
+    threads: lambda x: cluster_config['make_uniprot_db']['threads'] if 'make_uniprot_db' in cluster_config else maxcore
     log:
         'logs/make_uniprot_db.log'
     benchmark:
         'logs/make_uniprot_db.benchmark.txt'
     resources:
-        threads=lambda x: maxcore
+        threads=lambda x: cluster_config['make_uniprot_db']['threads'] if 'make_uniprot_db' in cluster_config else maxcore
     shell:
         '(mkdir -p {params.tmpdir} && \
         echo "accession\taccession.version\ttaxid\tgi" > {params.tmpdir}/{params.db}.taxid_map && \

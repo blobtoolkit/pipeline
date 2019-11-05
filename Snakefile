@@ -21,7 +21,6 @@ Basic usage:
 © 2018-19 Richard Challis (University of Edinburgh), MIT License
 """
 
-
 include: 'scripts/functions.py'
 
 multicore = int(os.getenv('MULTICORE', 16))

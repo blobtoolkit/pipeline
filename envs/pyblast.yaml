@@ -1,12 +1,13 @@
 name: pyblast
 channels:
-  - bioconda
-  - r
   - defaults
   - conda-forge
+  - r
+  - bioconda
 dependencies:
   - pigz
   - python=3.6
   - tqdm>=4.14
   - blast=2.9.0
   - seqtk>=1.2
+

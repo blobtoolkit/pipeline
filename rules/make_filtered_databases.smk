@@ -15,14 +15,14 @@ rule split_fasta:
         outdir=lambda wc: "%s/split/%s" % (wc.path,wc.name),
     conda:
         '../envs/py3.yaml'
-    threads: lambda x: multicore
+    threads: lambda x: cluster_config['split_fasta']['threads'] if 'split_fasta' in cluster_config else multicore
     log:
         lambda wc: "logs/expand_and_split_fasta/%s.log" % (wc.name)
     benchmark:
         'logs/expand_and_split_fasta/{name}.benchmark.txt'
     resources:
         tmpdir=128,
-        threads=lambda x: multicore
+        threads=lambda x: cluster_config['split_fasta']['threads'] if 'split_fasta' in cluster_config else multicore
     script:
         '../scripts/expand_and_split_fasta.py'
 
@@ -72,13 +72,13 @@ rule make_masked_lists:
         chunk=config['settings']['chunk']
     conda:
         '../envs/py3.yaml'
-    threads: lambda x: maxcore
+    threads: lambda x: cluster_config['make_masked_lists']['threads'] if 'make_masked_lists' in cluster_config else maxcore
     log:
         lambda wc: "logs/make_masked_lists/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
     benchmark:
         'logs/make_masked_lists/{name}.root.{root}{masked}.benchmark.txt'
     resources:
-        threads=lambda x: maxcore
+        threads=lambda x: cluster_config['make_masked_lists']['threads'] if 'make_masked_lists' in cluster_config else maxcore
     script:
         '../scripts/make_masked_lists.py'
 
@@ -102,13 +102,13 @@ rule make_diamond_db:
         root='\d+'
     conda:
         '../envs/diamond.yaml'
-    threads: lambda x: maxcore
+    threads: lambda x: cluster_config['make_diamond_db']['threads'] if 'make_diamond_db' in cluster_config else maxcore
     log:
         lambda wc: "logs/make_diamond_db/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
     benchmark:
         'logs/make_diamond_db/{name}.root.{root}{masked}.benchmark.txt'
     resources:
-        threads=lambda x: maxcore
+        threads=lambda x: cluster_config['make_diamond_db']['threads'] if 'make_diamond_db' in cluster_config else maxcore
     shell:
         '(mkdir -p {params.tmpdir} && \
         echo "accession\taccession.version\ttaxid\tgi" > {params.tmpdir}/{params.db}.taxid_map && \

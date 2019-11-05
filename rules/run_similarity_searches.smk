@@ -49,13 +49,13 @@ rule run_blastn:
         max_chunks=config['settings']['blast_max_chunks']
     conda:
         '../envs/pyblast.yaml'
-    threads: lambda x: maxcore
+    threads: lambda x: cluster_config['run_blast']['threads'] if 'run_blast' in cluster_config else maxcore
     log:
         lambda wc: "logs/%s/run_blastn/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
     benchmark:
         'logs/{assembly}/run_blastn/{name}.root.{root}{masked}.benchmark.txt'
     resources:
-        threads=lambda x: maxcore
+        threads=lambda x: cluster_config['run_blast']['threads'] if 'run_blast' in cluster_config else maxcore
     script:
         '../scripts/blast_wrapper.py'
 
@@ -140,13 +140,13 @@ rule run_diamond_blastx:
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
     conda:
         '../envs/diamond.yaml'
-    threads: lambda x: maxcore
+    threads: lambda x: cluster_config['run_diamond_blastx']['threads'] if 'run_diamond_blastx' in cluster_config else maxcore
     log:
         lambda wc: "logs/%s/run_diamond_blastx/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
     benchmark:
         'logs/{assembly}/run_diamond_blastx/{name}.root.{root}{masked}.benchmark.txt'
     resources:
-        threads=lambda x: maxcore
+        threads=lambda x: cluster_config['run_diamond_blastx']['threads'] if 'run_diamond_blastx' in cluster_config else maxcore
     shell:
         'if ! [ -s {input.fasta} ]; then \
             touch {output} && exit 0; \

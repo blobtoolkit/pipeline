@@ -79,13 +79,13 @@ rule run_blastn:
         max_chunks=config['settings']['blast_max_chunks']
     conda:
         '../envs/pyblast.yaml'
-    threads: lambda x: maxcore
+    threads: lambda x: cluster_config['run_blastn']['threads'] if 'run_blastn' in cluster_config else maxcore
     log:
         lambda wc: "logs/%s/run_blastn/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
     benchmark:
         'logs/run_blastn/{name}.root.{root}{masked}.benchmark.txt'
     resources:
-        threads=lambda x: maxcore
+        threads=lambda x: cluster_config['run_blastn']['threads'] if 'run_blastn' in cluster_config else maxcore
     script:
         '../scripts/blast_wrapper.py'
 
