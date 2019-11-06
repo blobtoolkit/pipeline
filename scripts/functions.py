@@ -212,7 +212,7 @@ def platform_cov_files(reads,assembly):
 
 def get_threads(rule,default):
     if rule in cluster_config and 'threads' in cluster_config[rule]:
-        return cluster_config['run_windowmasker']['threads']
+        return cluster_config[rule]['threads']
     elif '__default__' in cluster_config and 'threads' in cluster_config['__default__']:
         return cluster_config['__default__']['threads']
     return default
