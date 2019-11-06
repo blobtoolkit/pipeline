@@ -2,6 +2,8 @@
 
 _A [Snakemake](http://snakemake.readthedocs.io/en/stable/) pipeline to run analyses on public genome assemblies for visualisation in the [BlobToolKit Viewer](https://blobtoolkit.genomehubs.org/view/)_
 
+[![DOI](https://zenodo.org/badge/125039192.svg)](https://zenodo.org/badge/latestdoi/125039192)
+
 While designed for use on public genome assemblies and read files, this pipeline is also suitable for use with local assembly and read files. If the assembly and read files exist locally in the working directory when the pipeline is run, the remote fetches will be skipped.
 
 More information and tutorials are available at [blobtoolkit.genomehubs.org/pipeline/](https://blobtoolkit.genomehubs.org/pipeline/)
