@@ -10,7 +10,7 @@
 # export ASSEMBLY=ABCD01
 # export CLUSTER_CONFIG=/path/to/cluster.yaml
 # export THREADS=64
-# bsub -R "select[mem>10000] rusage[mem=10000]" -M 10000 -q normal < $PIPELINE/scripts/lsf_wrapper.sh
+# bsub -R "select[mem>10000] rusage[mem=10000]" -M 10000 < $PIPELINE/scripts/lsf_wrapper.sh
 
 # Check the insdc-pipeline directory has been specified
 if [ -z "$PIPELINE" ]; then
@@ -51,12 +51,6 @@ fi
 # Check the specified working directory exists
 if [ ! -d "$WORKDIR" ]; then
   echo "ERROR: $WORKDIR is not a valid working directory" >&2
-  exit 1
-fi
-
-# Check an assembly config file exists
-if [ ! -s "$WORKDIR/$ASSEMBLY.yaml" ]; then
-  echo "ERROR: $WORKDIR/$ASSEMBLY.yaml is not a valid configuration file" >&2
   exit 1
 fi
 
