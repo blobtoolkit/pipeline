@@ -100,13 +100,13 @@ rule run_diamond_blastx:
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
     conda:
         '../envs/diamond.yaml'
-    threads: get_threads('run_busco', run_diamond_blastx)
+    threads: get_threads('run_diamond_blastx', maxcore)
     log:
         lambda wc: "logs/%s/run_diamond_blastx/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
     benchmark:
         'logs/{assembly}/run_diamond_blastx/{name}.root.{root}{masked}.benchmark.txt'
     resources:
-        threads=get_threads('run_busco', run_diamond_blastx)
+        threads=get_threads('run_diamond_blastx', maxcore)
     shell:
         'if ! [ -s {input.fasta} ]; then \
             touch {output} && exit 0; \
