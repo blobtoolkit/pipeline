@@ -74,8 +74,8 @@ fi
 
 # Load the Conda environment containing snakemake
 source $HOME/miniconda3/bin/activate snake_env
-$EXITCODE=$?
-if [ ! $REPLACE -eq 0 ]; then
+EXITCODE=$?
+if [ ! $EXITCODE -eq 0 ]; then
   echo "ERROR: Unable to activate conda environment 'snake_env'" >&2
   exit 1
 fi
