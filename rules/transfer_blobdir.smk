@@ -13,13 +13,13 @@ rule validate_dataset:
         assembly = lambda wc: wc.assembly
     conda:
         '../envs/blobtools2.yaml'
-    threads: 1
+    threads: get_threads('validate_dataset', 1)
     log:
         lambda wc: "logs/%s/validate_dataset.log" % (wc.assembly)
     benchmark:
         'logs/{assembly}/validate_dataset.benchmark.txt'
     resources:
-        threads=1
+        threads=get_threads('validate_dataset', 1)
     shell:
         'validate.py {params.assembly}/meta.json > {log} 2>&1 \
         && touch {params.assembly}.valid'
@@ -38,9 +38,9 @@ rule host_dataset:
         port=8080
     conda:
         '../envs/blobtools2.yaml'
-    threads: 1
+    threads: get_threads('host_dataset', 1)
     resources:
-        threads=1
+        threads=get_threads('host_dataset', 1)
     shell:
         'PID="$(lsof -nP -iTCP:{params.port} | grep LISTEN | awk \'{{print $2}}\')"; \
         PID=($PID); \
@@ -63,13 +63,13 @@ rule generate_images:
         host='http://localhost:8080'
     conda:
         '../envs/blobtools2.yaml'
-    threads: 1
+    threads: get_threads('generate_images', 1)
     log:
         lambda wc: "logs/%s/generate_images.log" % (wc.assembly)
     benchmark:
         'logs/{assembly}/generate_images.benchmark.txt'
     resources:
-        threads=1
+        threads=get_threads('generate_images', 1)
     script:
         '../scripts/generate_static_images.py'
 
@@ -86,13 +86,13 @@ rule generate_summary:
         assembly=lambda wc: wc.assembly
     conda:
         '../envs/blobtools2.yaml'
-    threads: 1
+    threads: get_threads('generate_summary', 1)
     log:
         lambda wc: "logs/%s/generate_summary.log" % (wc.assembly)
     benchmark:
         'logs/{assembly}/generate_summary.benchmark.txt'
     resources:
-        threads=1
+        threads=get_threads('generate_summary', 1)
     shell:
         'blobtools filter --summary {output} {params.assembly} 2> {log}'
 
@@ -107,13 +107,13 @@ rule checksum_files:
         '{assembly}/CHECKSUM'
     params:
         assembly=lambda wc: wc.assembly
-    threads: 1
+    threads: get_threads('checksum_files', 1)
     log:
         lambda wc: "logs/%s/checksum_files.log" % (wc.assembly)
     benchmark:
         'logs/{assembly}/checksum_files.benchmark.txt'
     resources:
-        threads=1
+        threads=get_threads('checksum_files', 1)
     shell:
         '(find {params.assembly}/ -type f -exec sha1sum {{}} \';\' \
         | sort -k 2 \
@@ -131,13 +131,13 @@ rule transfer_dataset:
     params:
         assembly=lambda wc: wc.assembly,
         destdir=config['destdir'],
-    threads: 1
+    threads: get_threads('transfer_dataset', 1)
     log:
         lambda wc: "logs/%s/transfer_dataset.log" % (wc.assembly)
     benchmark:
         'logs/{assembly}/transfer_dataset.benchmark.txt'
     resources:
-        threads=1
+        threads=get_threads('transfer_dataset', 1)
     shell:
         '(rsync -av --remove-source-files {params.assembly}* {params.destdir}/ \
         && rmdir {params.assembly} \

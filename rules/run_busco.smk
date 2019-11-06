@@ -6,8 +6,8 @@ rule run_busco:
         fasta='{assembly}.fasta',
         busco=config['busco']['lineage_dir']+'/{lineage}.tar.gz',
     output:
-        full='{assembly}_{lineage}.tsv', # if keep else temp('{assembly}_{lineage}.tsv'),
-        short='{assembly}_{lineage}_short_summary.txt' # if keep else temp('short_summary_{assembly}_{lineage}.txt')
+        full='{assembly}.{lineage}.tsv',
+        short='{assembly}.{lineage}.txt'
     params:
         lineage=lambda wc: wc.lineage,
         lineage_dir=config['busco']['lineage_dir'],
@@ -17,13 +17,13 @@ rule run_busco:
         lineage='\w+_odb9'
     conda:
         '../envs/busco.yaml'
-    threads: lambda x: cluster_config['run_busco']['threads'] if 'run_busco' in cluster_config else multicore
+    threads: get_threads('run_busco', multicore)
     log:
         lambda wc: "logs/%s/run_busco/%s.log" % (wc.assembly, wc.lineage)
     benchmark:
         'logs/{assembly}/run_busco/{lineage}.benchmark.txt'
     resources:
-        threads=lambda x: cluster_config['run_busco']['threads'] if 'run_busco' in cluster_config else multicore
+        threads=get_threads('run_busco', multicore)
     shell:
         'run_busco \
             -f \

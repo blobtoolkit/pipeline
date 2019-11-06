@@ -1,9 +1,9 @@
 name: py3
 channels:
-  - bioconda
-  - r
   - defaults
   - conda-forge
+  - r
+  - bioconda
 dependencies:
   - pigz
   - python=3.6

@@ -10,14 +10,14 @@ rule fetch_assembly:
         assembly='\w+'
     conda:
          '../envs/fetch.yaml'
-    threads: 1
+    threads: get_threads('fetch_assembly', 1)
     log:
         lambda wc: "logs/%s/fetch_assembly.log" % (wc.assembly)
     benchmark:
         'logs/{assembly}/fetch_assembly.benchmark.txt'
     resources:
         download=1,
-        threads=1
+        threads=get_threads('fetch_assembly', 1)
     shell:
         '(curl -s {params.url} | \
         pigz -d > {output.fa}) 2> {log}'
@@ -35,14 +35,14 @@ rule fetch_fastq:
         suff='[_\d\w]*\.fastq'
     conda:
          '../envs/fetch.yaml'
-    threads: 1
+    threads: get_threads('fetch_fastq', 1)
     log:
         lambda wc: "logs/%s/fetch_fastq/%s%s.log" % (config['assembly']['prefix'], wc.sra, wc.suff)
     benchmark:
         "logs/%s/fetch_fastq/{sra}{suff}.benchmark.txt" % config['assembly']['prefix']
     resources:
         download=1,
-        threads=1
+        threads=get_threads('fetch_fastq', 1)
     shell:
         'aria2c -c \
         --max-connection-per-server=8 \
@@ -69,13 +69,13 @@ rule subsample_fastq:
         suff='[_\dsubread]*\.subsampled.fastq'
     conda:
          '../envs/pyblast.yaml'
-    threads: 1
+    threads: get_threads('subsample_fastq', 1)
     log:
         lambda wc: "logs/%s/subsample_fastq/%s%s.log" % (config['assembly']['prefix'], wc.sra, wc.suff)
     benchmark:
         "logs/%s/subsample_fastq/{sra}{suff}.benchmark.txt" % config['assembly']['prefix']
     resources:
         download=1,
-        threads=1
+        threads=get_threads('subsample_fastq', 1)
     shell:
         '({params.cmd[0]} {input} {params.cmd[1]} {output}) 2> {log}'

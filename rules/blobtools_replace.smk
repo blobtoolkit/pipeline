@@ -10,13 +10,13 @@ rule run_windowmasker:
         '{assembly}.fasta.windowmasker.obinary' if keep else temp('{assembly}.fasta.windowmasker.obinary')
     conda:
         '../envs/pyblast.yaml'
-    threads: 1
+    threads: get_threads('run_windowmasker', 1)
     log:
         lambda wc: "logs/%s/run_windowmasker.log" % wc.assembly
     benchmark:
         'logs/{assembly}/run_windowmasker.benchmark.txt'
     resources:
-        threads=1
+        threads=get_threads('run_windowmasker', 1)
     shell:
         'windowmasker -in {input} \
                       -infmt fasta \
@@ -42,13 +42,13 @@ rule make_taxid_list:
         db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked))
     conda:
         '../envs/py3.yaml'
-    threads: 1
+    threads: get_threads('make_taxid_list', 1)
     log:
         lambda wc: "logs/make_taxid_list/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
     benchmark:
         'logs/make_taxid_list/{name}.root.{root}{masked}.benchmark.txt'
     resources:
-        threads=1
+        threads=get_threads('make_taxid_list', 1)
     script:
         '../scripts/make_taxid_list.py'
 
@@ -79,13 +79,13 @@ rule run_blastn:
         max_chunks=config['settings']['blast_max_chunks']
     conda:
         '../envs/pyblast.yaml'
-    threads: lambda x: cluster_config['run_blastn']['threads'] if 'run_blastn' in cluster_config else maxcore
+    threads: get_threads('run_blastn', maxcore)
     log:
         lambda wc: "logs/%s/run_blastn/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
     benchmark:
         'logs/run_blastn/{name}.root.{root}{masked}.benchmark.txt'
     resources:
-        threads=lambda x: cluster_config['run_blastn']['threads'] if 'run_blastn' in cluster_config else maxcore
+        threads=get_threads('run_blastn', maxcore)
     script:
         '../scripts/blast_wrapper.py'
 
@@ -108,13 +108,13 @@ rule blobtoolkit_replace_hits:
         dbs='.raw --hits '.join(list_similarity_results(config))
     conda:
         '../envs/blobtools2.yaml'
-    threads: 1
+    threads: get_threads('blobtoolkit_replace_hits', maxcore)
     log:
         lambda wc: "logs/%s/blobtoolkit_replace_hits.log" % (wc.assembly)
     benchmark:
         'logs/{assembly}/blobtoolkit_replace_hits.benchmark.txt'
     resources:
-        threads=1,
+        threads=get_threads('blobtoolkit_replace_hits', maxcore),
         btk=1
     shell:
         '{params.path}/blobtools replace \
@@ -138,13 +138,13 @@ rule blobtoolkit_replace_cov:
         covs=lambda wc: ' --cov '.join(["%s.%s.bam=%s" % (config['assembly']['prefix'], sra, sra) for sra in list_sra_accessions(reads)])
     conda:
         '../envs/blobtools2.yaml'
-    threads: 1
+    threads: get_threads('blobtoolkit_replace_cov', 1)
     log:
         lambda wc: "logs/%s/blobtoolkit_replace_cov.log" % (config['assembly']['prefix'])
     benchmark:
         "logs/%s/blobtoolkit_replace_cov.benchmark.txt" % (config['assembly']['prefix'])
     resources:
-        threads=1,
+        threads=get_threads('blobtoolkit_replace_cov', 1),
         btk=1
     shell:
         '{params.path}/blobtools replace \
@@ -159,7 +159,7 @@ rule blobtoolkit_replace_busco:
     """
     input:
         meta="%s%s/identifiers.json" % (config['assembly']['prefix'],rev),
-        tsv=expand("%s_{lineage}.tsv" % config['assembly']['prefix'],lineage=config['busco']['lineages'])
+        tsv=expand("%s.{lineage}.tsv" % config['assembly']['prefix'],lineage=config['busco']['lineages'])
     output:
         temp('busco.replaced'),
         expand("%s%s/{lineage}_busco.json" % (config['assembly']['prefix'],rev),lineage=config['busco']['lineages'])
@@ -169,13 +169,13 @@ rule blobtoolkit_replace_busco:
         busco=' --busco '.join(["%s_%s.tsv" % (config['assembly']['prefix'],lineage) for lineage in config['busco']['lineages']])
     conda:
         '../envs/blobtools2.yaml'
-    threads: 1
+    threads: get_threads('blobtoolkit_replace_busco', 1)
     log:
         lambda wc: "logs/%s/blobtoolkit_replace_busco.log" % (config['assembly']['prefix'])
     benchmark:
         "logs/%s/blobtoolkit_replace_busco.benchmark.txt" % (config['assembly']['prefix'])
     resources:
-        threads=1,
+        threads=get_threads('blobtoolkit_replace_busco', 1),
         btk=1
     shell:
         '{params.path}/blobtools replace \

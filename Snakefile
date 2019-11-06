@@ -42,11 +42,8 @@ rule all:
     Dummy rule to set blobDB as target of pipeline
     """
     input:
-        "%s.fasta" % asm,
-        expand("%s.{sra}.bam.stats" % asm,sra=list_sra_accessions(reads)),
         expand("%s%s/{sra}_cov.json" % (asm,rev),sra=list_sra_accessions(reads)),
         "%s%s/%s_phylum_positions.json" % (asm,rev,config['similarity']['taxrule']),
-        expand("%s_{lineage}.tsv" % asm,lineage=config['busco']['lineages']),
         expand("%s%s/{lineage}_busco.json" % (asm,rev),lineage=config['busco']['lineages']),
         "%s%s/identifiers.json" % (asm,rev)
 

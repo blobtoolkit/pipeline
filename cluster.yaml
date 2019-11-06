@@ -1,17 +1,16 @@
 __default__:
   mem: 100
-  queue: 'normal'
+  queue: 'small'
 bamtools_stats:
   threads: 1
   mem: 1000
-  queue: 'small'
 blobtoolkit_add_busco:
   threads: 1
   mem: 250
-  queue: 'small'
 blobtoolkit_add_cov:
   threads: 1
   mem: 10000
+  queue: 'normal'
 blobtoolkit_add_hits:
   threads: 1
   mem: 10000
@@ -20,7 +19,8 @@ blobtoolkit_create:
   mem: 10000
 bwa_index:
   threads: 1
-  mem: 4000
+  mem: 10000
+  queue: 'normal'
 extract_nohit_sequences:
   threads: 1
   mem: 500
@@ -30,60 +30,53 @@ extract_uniprot:
 fetch_assembly:
   threads: 1
   mem: 250
-  queue: 'small'
   threads: 2
 fetch_busco_lineage:
   threads: 1
-  queue: 'small'
 fetch_fastq:
   threads: 1
-  queue: 'small'
 fetch_ncbi_db:
   threads: 1
   queue: 'normal'
 fetch_taxdump:
   threads: 1
-  queue: 'small'
 fetch_uniprot:
   threads: 2
   queue: 'normal'
 generate_metadata:
   threads: 1
-  queue: 'small'
 make_diamond_db:
   threads: 16
   mem: 5000
-  queue: 'small'
 make_masked_lists:
   threads: 8
   mem: 1000
-  queue: 'small'
 make_taxid_list:
   threads: 1
   mem: 1000
-  queue: 'small'
 map_reads:
   threads: 16
   mem: 50000
+  queue: 'normal'
 run_blastn:
   threads: 16
   mem: 100000
-  queue: 'long'
+  queue: 'normal'
 run_busco:
   threads: 16
-  mem: 10000
+  mem: 50000
   queue: 'long'
 run_diamond_blastx:
   threads: 16
   mem: 20000
-  queue: 'long'
+  queue: 'normal'
 run_windowmasker:
   threads: 1
   mem: 5000
+  queue: 'normal'
 split_fasta:
   threads: 8
   mem: 200000
 subsample_fastq:
   threads: 1
-  mem: 1000
-  queue: 'small'
+  mem: 5000

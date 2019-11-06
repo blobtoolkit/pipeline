@@ -15,14 +15,14 @@ rule fetch_ncbi_db:
         path=lambda wc: wc.path
     conda:
         '../envs/fetch.yaml'
-    threads: 1
+    threads: get_threads('fetch_ncbi_db', 1)
     log:
         lambda wc: "logs/fetch_ncbi_db/%s.%s.log" % (wc.name, wc.suffix)
     benchmark:
         'logs/fetch_ncbi_db/{name}.{suffix}.benchmark.txt'
     resources:
         download=1,
-        threads=1
+        threads=get_threads('fetch_ncbi_db', 1)
     shell:
         '(wget "{params.ftp_url}{params.ftp_dir}{params.name}.??.tar.gz" -P {params.path}/ && \
         for file in {params.path}/*.tar.gz; \
@@ -42,14 +42,14 @@ rule fetch_ncbi_idmap:
         idmap=lambda wc: ncbi_idmap(wc.name)
     conda:
         '../envs/fetch.yaml'
-    threads: 1
+    threads: get_threads('fetch_ncbi_idmap', 1)
     log:
         lambda wc: "logs/fetch_ncbi_idmap/%s.log" % (wc.name)
     benchmark:
         'logs/fetch_ncbi_idmap/{name}.benchmark.txt'
     resources:
         download=1,
-        threads=1
+        threads=get_threads('fetch_ncbi_idmap', 1)
     shell:
         '(> {output.idmap} && \
         for x in "{params.idmap}"; do \
@@ -72,14 +72,14 @@ rule fetch_taxdump:
         outdir=config['settings']['taxonomy']
     conda:
         '../envs/fetch.yaml'
-    threads: 1
+    threads: get_threads('fetch_taxdump', 1)
     log:
         'logs/fetch_taxdump.log'
     benchmark:
         'logs/fetch_taxdump.benchmark.txt'
     resources:
         download=1,
-        threads=1
+        threads=get_threads('fetch_taxdump', 1)
     shell:
         '(wget -q -O taxdump.tar.gz ftp.ncbi.nlm.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz \
         && tar xzvf taxdump.tar.gz \
@@ -100,14 +100,14 @@ rule fetch_uniprot:
         ftp_dir='pub/databases/uniprot/current_release/knowledgebase/{name}'
     conda:
         '../envs/fetch.yaml'
-    threads: 1
+    threads: get_threads('fetch_uniprot', 1)
     log:
         lambda wc: "logs/fetch_uniprot/%s.log" % (wc.name)
     benchmark:
         'logs/fetch_uniprot/{name}.benchmark.txt'
     resources:
         download=1,
-        threads=1
+        threads=get_threads('fetch_uniprot', 1)
     shell:
         '(wget -q -O {output} \
             {params.ftp_url}/{params.ftp_dir}/$(curl \
@@ -130,14 +130,14 @@ rule extract_uniprot:
         path='.+uniprot.+'
     conda:
         '../envs/py3.yaml'
-    threads: 1
+    threads: get_threads('extract_uniprot', 1)
     log:
         lambda wc: "logs/extract_uniprot/%s.log" % (wc.name)
     benchmark:
         'logs/extract_uniprot/{name}.benchmark.txt'
     resources:
         tmpdir=24,
-        threads=1
+        threads=get_threads('extract_uniprot', 1)
     script:
         '../scripts/extract_uniprot.py'
 
@@ -156,13 +156,13 @@ rule make_uniprot_db:
         tmpdir="%s" % config['settings']['tmp']
     conda:
         '../envs/diamond.yaml'
-    threads: lambda x: cluster_config['make_uniprot_db']['threads'] if 'make_uniprot_db' in cluster_config else maxcore
+    threads: get_threads('make_uniprot_db', maxcore)
     log:
         'logs/make_uniprot_db.log'
     benchmark:
         'logs/make_uniprot_db.benchmark.txt'
     resources:
-        threads=lambda x: cluster_config['make_uniprot_db']['threads'] if 'make_uniprot_db' in cluster_config else maxcore
+        threads=get_threads('make_uniprot_db', maxcore)
     shell:
         '(mkdir -p {params.tmpdir} && \
         echo "accession\taccession.version\ttaxid\tgi" > {params.tmpdir}/{params.db}.taxid_map && \
@@ -189,14 +189,14 @@ rule fetch_busco_lineage:
         dir=lambda wc: config['busco']['lineage_dir']
     conda:
         '../envs/fetch.yaml'
-    threads: 1
+    threads: get_threads('fetch_busco_lineage', 1)
     log:
         lambda wc: "logs/fetch_busco_lineage/%s.log" % (wc.lineage)
     benchmark:
         'logs/fetch_busco_lineage/{lineage}.benchmark.txt'
     resources:
         download=1,
-        threads=1
+        threads=get_threads('fetch_busco_lineage', 1)
     shell:
         '(wget -q -O {output.gz} "https://busco.ezlab.org/datasets/{params.lineage}.tar.gz" \
         && tar xf {output.gz} -C {params.dir}) 2> {log}'

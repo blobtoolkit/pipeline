@@ -1,9 +1,9 @@
 name: diamond
 channels:
-  - bioconda
-  - r
   - defaults
   - conda-forge
+  - r
+  - bioconda
 dependencies:
   - diamond>=0.9.19
   - parallel>=20170422

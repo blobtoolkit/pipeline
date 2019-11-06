@@ -10,13 +10,13 @@ rule generate_metadata:
         '../envs/py3.yaml'
     params:
         gitdir=os.path.dirname(os.path.abspath(workflow.snakefile))+'/.git'
-    threads: 1
+    threads: get_threads('generate_metadata', 1)
     log:
         lambda wc: "logs/%s/generate_metadata.log" % (wc.assembly)
     benchmark:
         'logs/{assembly}/generate_metadata.benchmark.txt'
     resources:
-        threads=1
+        threads=get_threads('generate_metadata', 1)
     script:
         '../scripts/generate_metadata.py'
 
@@ -38,13 +38,13 @@ rule blobtoolkit_create:
         taxid=config['taxon']['taxid'],
     conda:
         '../envs/blobtools2.yaml'
-    threads: 1
+    threads: get_threads('blobtoolkit_create', 1)
     log:
         lambda wc: "logs/%s/blobtoolkit_create.log" % (wc.assembly)
     benchmark:
         'logs/{assembly}/blobtoolkit_create.benchmark.txt'
     resources:
-        threads=1,
+        threads=get_threads('blobtoolkit_create', 1),
         btk=1
     shell:
         '{params.path}/blobtools replace \
@@ -72,13 +72,13 @@ rule blobtoolkit_add_hits:
         dbs='.raw --hits '.join(list_similarity_results(config))
     conda:
         '../envs/blobtools2.yaml'
-    threads: 1
+    threads: get_threads('blobtoolkit_add_hits', 1)
     log:
         lambda wc: "logs/%s/blobtoolkit_add_hits.log" % (wc.assembly)
     benchmark:
         'logs/{assembly}/blobtoolkit_add_hits.benchmark.txt'
     resources:
-        threads=1,
+        threads=get_threads('blobtoolkit_add_hits', 1),
         btk=1
     shell:
         '{params.path}/blobtools replace \
@@ -102,13 +102,13 @@ rule blobtoolkit_add_cov:
         covs=lambda wc: ' --cov '.join(["%s.%s.bam=%s" % (config['assembly']['prefix'], sra, sra) for sra in list_sra_accessions(reads)])
     conda:
         '../envs/blobtools2.yaml'
-    threads: 1
+    threads: get_threads('blobtoolkit_add_cov', 1)
     log:
         lambda wc: "logs/%s/blobtoolkit_add_cov.log" % (config['assembly']['prefix'])
     benchmark:
         "logs/%s/blobtoolkit_add_cov.benchmark.txt" % (config['assembly']['prefix'])
     resources:
-        threads=1,
+        threads=get_threads('blobtoolkit_add_cov', 1),
         btk=1
     shell:
         '{params.path}/blobtools replace \
@@ -123,7 +123,7 @@ rule blobtoolkit_add_busco:
     """
     input:
         meta="%s%s/identifiers.json" % (config['assembly']['prefix'],rev),
-        tsv=expand("%s_{lineage}.tsv" % config['assembly']['prefix'],lineage=config['busco']['lineages'])
+        tsv=expand("%s.{lineage}.tsv" % config['assembly']['prefix'],lineage=config['busco']['lineages'])
     output:
         expand("%s%s/{lineage}_busco.json" % (config['assembly']['prefix'],rev),lineage=config['busco']['lineages'])
     params:
@@ -132,13 +132,13 @@ rule blobtoolkit_add_busco:
         busco=' --busco '.join(["%s_%s.tsv" % (config['assembly']['prefix'],lineage) for lineage in config['busco']['lineages']])
     conda:
         '../envs/blobtools2.yaml'
-    threads: 1
+    threads: get_threads('blobtoolkit_add_busco', 1)
     log:
         lambda wc: "logs/%s/blobtoolkit_add_busco.log" % (config['assembly']['prefix'])
     benchmark:
         "logs/%s/blobtoolkit_add_busco.benchmark.txt" % (config['assembly']['prefix'])
     resources:
-        threads=1,
+        threads=get_threads('blobtoolkit_add_busco', 1),
         btk=1
     shell:
         '{params.path}/blobtools replace \

@@ -1,12 +1,11 @@
 name: busco
 channels:
-  - bioconda
-  - r
   - defaults
   - conda-forge
+  - r
+  - bioconda
 dependencies:
-dependencies:
-  - busco>=3.0.2,<4
+  - busco=3
   - yq
   - docopt
   - blast=2.2

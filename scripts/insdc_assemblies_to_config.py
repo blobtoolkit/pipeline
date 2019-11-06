@@ -331,7 +331,10 @@ def current_versions(string='all'):
     if response.ok:
         data = yaml.load(response.text)
         for asm in data:
-            current.update({asm['prefix']: asm['version']})
+            if 'version' in asm:
+                current.update({asm['prefix']: asm['version']})
+            else:
+                current.update({asm['prefix']: 1})
     return current
 
 

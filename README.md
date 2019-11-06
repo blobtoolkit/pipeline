@@ -4,6 +4,8 @@ _A [Snakemake](http://snakemake.readthedocs.io/en/stable/) pipeline to run analy
 
 While designed for use on public genome assemblies and read files, this pipeline is also suitable for use with local assembly and read files. If the assembly and read files exist locally in the working directory when the pipeline is run, the remote fetches will be skipped.
 
+More information and tutorials are available at [blobtoolkit.genomehubs.org/pipeline/](https://blobtoolkit.genomehubs.org/pipeline/)
+
 ## Overview
 
 The final output of this pipeline is a `BlobDir` dataset directory containing a set of JSON files ready for interactive visualisation with the [BlobToolKit Viewer](https://blobtoolkit.genomehubs.org/view/) (Figure 1).
@@ -12,7 +14,7 @@ The final output of this pipeline is a `BlobDir` dataset directory containing a 
 
 The pipeline (Figure 2) is implemented using Snakemake and will fetch all required database and assembly files then run BLAST/Diamond similarity searches and bwa/minimap2 read mapping and for processing with BlobTools.
 
-![Figure 2](https://blobtoolkit.genomehubs.org/wp-content/uploads/2019/11/Figure_2.png)
+![Figure 2](https://blobtoolkit.genomehubs.org/wp-content/uploads/2019/11/Figure_2-1.png)
 
 ## Installation
 
@@ -74,7 +76,7 @@ $ cd ..
 Create a [Snakemake](http://snakemake.readthedocs.io/en/stable/) environment using Conda.
 
 ```
-$ conda create -n snake_env -c bioconda snakemake
+$ conda create -n snake_env -c bioconda snakemake=4.5
 $ conda activate snake_env
 # optionally install DRMAA Python bindings for cluster execution
 $ conda install -c anaconda drmaa
@@ -164,7 +166,6 @@ settings:
   blast_chunk: 100000
   blast_max_chunks: 10
   blast_overlap: 500
-  blast_path: /home/ubuntu/blast/ncbi-blast-2.8.1+/bin
   blobtools2_path: /home/ubuntu/blobtools2
   chunk: 1000000
   taxonomy: /home/ubuntu/databases/taxdump/
@@ -177,7 +178,6 @@ The `settings` section defines some parameters for running the pipeline includin
 similarity:
   databases:
   - name: nt
-    idmap: [nucl_est, nucl_gb, nucl_gss, nucl_wgs, pdb]
     local: /home/ubuntu/databases/ncbi_2019_03
     source: ncbi
     tool: blast
@@ -209,6 +209,14 @@ taxon:
 
 While the only required keys for the `taxon` section are `taxon.name` and `taxon.taxid`, all entries in in this section will be searchable once the dataset is loaded into the BlobToolKit Viewer. Full taxonomic information will be added to this section during pipeline execution.
 
+
+### Building Conda environments
+
+When the pipeline is run, Snakemake will create Conda environments based on the files in the `envs/` directory. Due to the way that some Conda recipes are written, it may be necessary to add the following entry to a `.condarc` file:
+
+```
+path_conflict: warn
+```
 
 ### Running the pipeline
 
@@ -245,9 +253,7 @@ snakemake -p --use-conda \
              --cluster-config cluster.yaml \
              --drmaa " -o {log}.o \
                        -e {log}.e \
-                       -R \"select[mem>{cluster.mem}] rusage[mem={cluster.mem}]\" -M {cluster.mem} \
-                       -n {cluster.threads} \
-                       -q {cluster.queue}" \
+                       -R \"select[mem>5000] rusage[mem=5000]\" -M 5000" \
              --stats $ASSEMBLY.snakemake.stats \
              --resources btk=1 \
              -j $THREADS
