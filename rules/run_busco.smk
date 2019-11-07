@@ -6,8 +6,8 @@ rule run_busco:
         fasta='{assembly}.fasta',
         busco=config['busco']['lineage_dir']+'/{lineage}.tar.gz',
     output:
-        full='{assembly}.{lineage}.tsv',
-        short='{assembly}.{lineage}.txt'
+        full='{assembly}.busco.{lineage}.tsv',
+        short='{assembly}.busco.{lineage}.txt'
     params:
         lineage=lambda wc: wc.lineage,
         lineage_dir=config['busco']['lineage_dir'],

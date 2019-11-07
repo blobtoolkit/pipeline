@@ -123,13 +123,13 @@ rule blobtoolkit_add_busco:
     """
     input:
         meta="%s%s/identifiers.json" % (config['assembly']['prefix'],rev),
-        tsv=expand("%s.{lineage}.tsv" % config['assembly']['prefix'],lineage=config['busco']['lineages'])
+        tsv=expand("%s.busco.{lineage}.tsv" % config['assembly']['prefix'],lineage=config['busco']['lineages'])
     output:
         expand("%s%s/{lineage}_busco.json" % (config['assembly']['prefix'],rev),lineage=config['busco']['lineages'])
     params:
         id="%s%s" % (config['assembly']['prefix'],rev),
         path=config['settings']['blobtools2_path'],
-        busco=' --busco '.join(["%s_%s.tsv" % (config['assembly']['prefix'],lineage) for lineage in config['busco']['lineages']])
+        busco=' --busco '.join(["%s.busco.%s.tsv" % (config['assembly']['prefix'],lineage) for lineage in config['busco']['lineages']])
     conda:
         '../envs/blobtools2.yaml'
     threads: get_threads('blobtoolkit_add_busco', 1)
