@@ -1,9 +1,9 @@
 name: fetch
 channels:
-  - defaults
+  - bioconda
   - conda-forge
   - r
-  - bioconda
+  - defaults
 dependencies:
   - curl
   - tar

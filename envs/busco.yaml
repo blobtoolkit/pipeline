@@ -1,9 +1,9 @@
 name: busco
 channels:
-  - defaults
   - conda-forge
-  - r
   - bioconda
+  - r
+  - defaults
 dependencies:
   - busco=3
   - yq

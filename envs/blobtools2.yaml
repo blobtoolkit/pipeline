@@ -1,9 +1,9 @@
 name: blobtools2
 channels:
-  - defaults
+  - bioconda
   - conda-forge
   - r
-  - bioconda
+  - defaults
 dependencies:
   - python=3.6
   - docopt

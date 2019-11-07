@@ -80,3 +80,4 @@ split_fasta:
 subsample_fastq:
   threads: 1
   mem: 5000
+  queue: 'normal'
