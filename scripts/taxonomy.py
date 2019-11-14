@@ -4,6 +4,7 @@ import os
 import re
 from collections import defaultdict
 
+
 def node_graph(nodes_file):
     """
     Read an NCBI nodes.dmp file and return a dict of child taxids and ranks for
@@ -23,23 +24,27 @@ def node_graph(nodes_file):
                 graph[parent_id].update({tax_id:rank})
     return graph
 
-def parents_at_rank(graph,root,parent_rank):
+
+def parents_at_rank(graph, root, parent_rank):
     """
     loop through graph from root taxon, assigning leaf nodes to parent nodes at
     a given rank.
     """
     parents = {}
-    def descend(root,parent):
+
+    def descend(root, parent):
         """
         Iteratively descend from a root to generate a set of taxids
         unless the child taxid is in the list of taxids to mask.
         """
         if root in graph:
-            for child,rank in graph[root].items():
+            for child, rank in graph[root].items():
                 if rank == parent_rank:
-                    parent = child
+                    descend(child, child)
                 elif parent:
                     parents[child] = parent
-                descend(child,parent)
-    descend(str(root),None)
+                    descend(child, parent)
+                else:
+                    descend(child, None)
+    descend(str(root), str(root))
     return parents
