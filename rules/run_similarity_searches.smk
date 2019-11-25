@@ -100,7 +100,7 @@ rule run_diamond_blastx:
         max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
     conda:
         '../envs/diamond.yaml'
-    threads: get_threads('run_diamond_blastx', maxcore)
+    threads: get_threads('run_diamond_blastx', maxcore, 1.8)
     log:
         lambda wc: "logs/%s/run_diamond_blastx/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
     benchmark:
@@ -118,5 +118,5 @@ rule run_diamond_blastx:
             --sensitive \
             --max-target-seqs {params.max_target_seqs} \
             --evalue {params.evalue} \
-            --threads {threads} \
+            --threads {resources.threads} \
             > {output} 2> {log}'
