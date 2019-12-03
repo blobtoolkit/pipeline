@@ -25,7 +25,7 @@ try:
     ASSEMBLY = snakemake.wildcards.assembly
     OUTFILE = str(snakemake.output)
     HOST = str(snakemake.params.host)
-    CLI = 'blobtools view'
+    PORTS = str(snakemake.params.ports)
     BLOBTOOLS = 'blobtools'
 
     views = [
@@ -42,7 +42,7 @@ try:
     cmds = []
 
     for view in views:
-        cmds.append("%s %s --host %s %s --out %s/" % (CLI, ASSEMBLY, HOST, view, ASSEMBLY))
+        cmds.append("%s view --host %s --ports %s %s --out ./%s/ %s" % (BLOBTOOLS, HOST, PORTS,  view, ASSEMBLY, ASSEMBLY))
 
     cmds.append("%s filter --summary %s.summary.json ./%s" % (BLOBTOOLS, ASSEMBLY, ASSEMBLY))
 

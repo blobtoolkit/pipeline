@@ -25,51 +25,28 @@ rule validate_dataset:
         && touch {params.assembly}.valid'
 
 
-rule host_dataset:
-    """
-    Host dataset with BTK Viewer.
-    """
-    input:
-        valid='{assembly}.valid'
-    output:
-        temp('{assembly}.hosted')
-    params:
-        assembly=lambda wc: wc.assembly,
-        port=8080
-    conda:
-        '../envs/blobtools2.yaml'
-    threads: get_threads('host_dataset', 1)
-    resources:
-        threads=get_threads('host_dataset', 1)
-    shell:
-        'PID="$(lsof -nP -iTCP:{params.port} | grep LISTEN | awk \'{{print $2}}\')"; \
-        PID=($PID); \
-        [[ "${{PID:-}}" == "-" ]] && {{ echo "BlobToolKit Viewer is not running on port {params.port}"; exit 1; }}; \
-        touch {params.assembly}.hosted'
-
-
 rule generate_images:
     """
     Use BlobTools2 view to generate a set of static images.
     """
     input:
         valid='{assembly}.valid',
-        hosted='{assembly}.hosted',
         cov=expand("%s%s/{sra}_cov.json" % (asm,rev),sra=list_sra_accessions(reads))
     output:
         '{assembly}/cumulative.png'
     params:
         assembly=lambda wc: wc.assembly,
-        host='http://localhost:8080'
+        host='http://localhost',
+        ports='8000-8099'
     conda:
         '../envs/blobtools2.yaml'
-    threads: get_threads('generate_images', 1)
+    threads: get_threads('generate_images', 3)
     log:
         lambda wc: "logs/%s/generate_images.log" % (wc.assembly)
     benchmark:
         'logs/{assembly}/generate_images.benchmark.txt'
     resources:
-        threads=get_threads('generate_images', 1)
+        threads=get_threads('generate_images', 3)
     script:
         '../scripts/generate_static_images.py'
 
