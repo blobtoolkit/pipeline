@@ -108,4 +108,5 @@ snakemake -p --use-conda \
              --latency-wait 300 \
              --rerun-incomplete \
              -j $THREADS \
-             -s $PIPELINE/Snakefile
+             -s $PIPELINE/Snakefile && touch $WORKDIR/$ASSEMBLY.complete
+

@@ -33,17 +33,17 @@ STEP = 50  # how many assembly records to request at a time
 
 opts = docopt(__doc__)
 
-NODES = Path(opts['--taxdump']) / 'nodes.dmp'
+NODES = str(Path(opts['--taxdump']) / 'nodes.dmp')
 if not os.path.isfile(NODES):
     print("ERROR: File '%s' does not exist" % NODES, file=sys.stderr)
     quit(__doc__)
 
-NAMES = Path(opts['--taxdump']) / 'names.dmp'
+NAMES = str(Path(opts['--taxdump']) / 'names.dmp')
 if not os.path.isfile(NAMES):
     print("ERROR: File '%s' does not exist" % NAMES, file=sys.stderr)
     quit(__doc__)
 
-LINEAGES = Path(opts['--taxdump']) / 'taxidlineage.dmp'
+LINEAGES = str(Path(opts['--taxdump']) / 'taxidlineage.dmp')
 if not os.path.isfile(LINEAGES):
     print("ERROR: File '%s' does not exist" % LINEAGES, file=sys.stderr)
     quit(__doc__)
