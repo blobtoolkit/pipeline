@@ -5,7 +5,8 @@ rule run_windowmasker:
     input:
         '{assembly}.fasta'
     output:
-        '{assembly}.fasta.windowmasker.obinary' if keep else temp('{assembly}.fasta.windowmasker.obinary')
+        counts='{assembly}.windowmasker.counts' if keep else temp('{assembly}.windowmasker.counts')
+        masked='{assembly}.windowmasker.fasta' if keep else temp('{assembly}.windowmasker.fasta')
     conda:
         '../envs/pyblast.yaml'
     threads: get_threads('run_windowmasker', 1)
@@ -21,15 +22,21 @@ rule run_windowmasker:
                       -mk_counts \
                       -parse_seqids \
                       -sformat obinary \
-                      -out {output} 2> {log}'
+                      -out {output.counts} 2> {log} \
+        && windowmasker -in {input} \
+                        -infmt fasta \
+                        -parse_seqids \
+                        -ustat {output.counts} \
+                        -dust T \
+                        -outfmt fasta \
+                        -out {output.masked} 2>> {log} '
 
 rule run_blastn:
     """
     Run NCBI blastn to search nucleotide database with assembly query.
     """
     input:
-        fasta='{assembly}.fasta',
-        windowmasker='{assembly}.fasta.windowmasker.obinary',
+        fasta='{assembly}.windowmasker.fasta',
         db=lambda wc: "%s/%s.nal" % (similarity[wc.name]['local'],wc.name),
         taxids='{name}.root.{root}{masked}.taxids'
     output:

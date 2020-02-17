@@ -88,7 +88,7 @@ def parse_args():
         script_params['-raw'] = snakemake.output.raw
         script_params['-nohit'] = snakemake.output.nohit
         script_params['-out'] = snakemake.output.out
-        blast_params['-window_masker_db'] = snakemake.input.windowmasker
+        blast_params['-lcase_masking'] = ''
         script_params['-max_target_seqs'] = blast_params['-max_target_seqs']
         if script_params['-multiprocessing'] == 'False':
             blast_params['-num_threads'] = str(script_params['-num_threads'])

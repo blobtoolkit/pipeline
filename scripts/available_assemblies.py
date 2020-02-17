@@ -26,7 +26,7 @@ from collections import defaultdict
 from copy import deepcopy
 import taxonomy
 
-STEP = 50  # how many assembly records to request at a time
+STEP = 100  # how many assembly records to request at a time
 
 opts = docopt(__doc__)
 
@@ -196,7 +196,14 @@ available = defaultdict(lambda: {'assemblies': set(), 'species': set(), 'with': 
 hosted = defaultdict(lambda: {'assemblies': set(), 'species': set(), 'with': set(), 'without': set()})
 step = STEP
 kingdom_ids = set()
-for offset in range(0, asm_count + 1, step):
+offset = 0
+processed = 0
+processed_ids = set()
+previous_processed = -1
+while processed < asm_count:
+    if processed == previous_processed:
+        break
+    previous_processed = processed
     count = step if offset + step < asm_count else asm_count - offset + 1
     print("%d: %d" % (offset, offset+count), file=sys.stderr)
     xml = list_assemblies(ROOT, offset, count)
@@ -215,6 +222,9 @@ for offset in range(0, asm_count + 1, step):
                 species_id = int(species[str(meta['taxid'])])
             else:
                 species_id = meta['taxid']
+            if meta['prefix'] not in processed_ids:
+                processed_ids.add(meta['prefix'])
+                processed += 1
             print("INFO: %s has taxid %s (species: %s, kingdom: %s)" % (str(meta['prefix']), str(meta['taxid']), str(species_id), str(kingdom_id)), file=sys.stderr)
             available[kingdom_id]['species'].add(species_id)
             available[kingdom_id]['assemblies'].add(meta['prefix'])
@@ -230,6 +240,7 @@ for offset in range(0, asm_count + 1, step):
                     hosted[kingdom_id]['with'].add(meta['prefix'])
                 else:
                     hosted[kingdom_id]['without'].add(meta['prefix'])
+    offset += step
 for kingdom_id in kingdom_ids:
     table[kingdom_id]['species'] = {'hosted': len(hosted[kingdom_id]['species']), 'available': len(available[kingdom_id]['species'])}
     table[kingdom_id]['assemblies'] = {}
