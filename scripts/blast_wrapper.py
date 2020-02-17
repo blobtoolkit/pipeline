@@ -88,7 +88,6 @@ def parse_args():
         script_params['-raw'] = snakemake.output.raw
         script_params['-nohit'] = snakemake.output.nohit
         script_params['-out'] = snakemake.output.out
-        blast_params['-lcase_masking'] = ''
         script_params['-max_target_seqs'] = blast_params['-max_target_seqs']
         if script_params['-multiprocessing'] == 'False':
             blast_params['-num_threads'] = str(script_params['-num_threads'])
@@ -186,7 +185,7 @@ def run_blast(seqs, cmd, blast_list, index, batches):
         for seq in seqs:
             input += ">%s_-_%d\n" % (seq['title'], seq['start'])
             input += "%s\n" % seq['seq']
-        cmd += ' -outfmt "6 qseqid staxids bitscore std"'
+        cmd += ' -lcase_masking -outfmt "6 qseqid staxids bitscore std"'
         p = run(shlex.split(cmd)+blast_list, stdout=PIPE, stderr=PIPE, input=input, encoding='ascii')
         return p
     except Exception as err:

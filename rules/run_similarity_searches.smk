@@ -5,7 +5,7 @@ rule run_windowmasker:
     input:
         '{assembly}.fasta'
     output:
-        counts='{assembly}.windowmasker.counts' if keep else temp('{assembly}.windowmasker.counts')
+        counts='{assembly}.windowmasker.counts' if keep else temp('{assembly}.windowmasker.counts'),
         masked='{assembly}.windowmasker.fasta' if keep else temp('{assembly}.windowmasker.fasta')
     conda:
         '../envs/pyblast.yaml'
