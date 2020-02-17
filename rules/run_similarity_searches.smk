@@ -20,12 +20,10 @@ rule run_windowmasker:
         'windowmasker -in {input} \
                       -infmt fasta \
                       -mk_counts \
-                      -parse_seqids \
                       -sformat obinary \
                       -out {output.counts} 2> {log} \
         && windowmasker -in {input} \
                         -infmt fasta \
-                        -parse_seqids \
                         -ustat {output.counts} \
                         -dust T \
                         -outfmt fasta \
