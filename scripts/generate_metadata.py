@@ -37,7 +37,7 @@ try:
     meta['taxon'] = config['taxon']
     meta['settings'] = config['settings']
     meta['similarity'] = config['similarity']
-    meta['reads'] = get_read_info(config)
+    meta['reads'] = config['reads']
 
 
     p = subprocess.Popen(['git','--git-dir',GITDIR,'rev-parse','--short','HEAD'], stdout=subprocess.PIPE,encoding='utf-8')

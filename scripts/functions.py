@@ -220,3 +220,13 @@ def get_threads(rule, default, ratio=1):
     elif '__default__' in cluster_config and 'threads' in cluster_config['__default__']:
         return int(cluster_config['__default__']['threads'] * ratio)
     return default
+
+
+def hit_fields(asm, rev, taxrule):
+    if taxrule.startswith('bestsum'):
+        return "%s%s/%s_phylum_positions.json" % (asm, rev, taxrule)
+    if taxrule.startswith('eachsum'):
+        return [
+            "%s%s/%s_nt_phylum_positions.json" % (asm, rev, taxrule.replace('each', 'best')),
+            "%s%s/%s_aa_phylum_positions.json" % (asm, rev, taxrule.replace('each', 'best'))
+        ]

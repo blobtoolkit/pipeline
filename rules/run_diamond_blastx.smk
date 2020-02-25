@@ -1,10 +1,21 @@
+def blastx_inputs(wc):
+    if 'taxrule' in config['similarity'] and config['similarity']['taxrule'].startswith('each'):
+        return [
+            "%s.fasta" % wc.assembly,
+            "%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)
+        ]
+    return [
+        "%s.blastn.%s.root.%s%s.fasta.nohit" % (wc.assembly, blast_db_name(config), wc.root, wc.masked),
+        "%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)
+    ]
+
+
 rule run_diamond_blastx:
     """
     Run Diamond blastx to search protein database with assembly query.
     """
     input:
-        fasta = "{assembly}.blastn.%s.root.{root}{masked}.fasta.nohit" % blast_db_name(config),
-        db = '{name}.root.{root}{masked}.dmnd'
+        blastx_inputs
     output:
         '{assembly}.diamond.{name}.root.{root}{masked}.out'
     wildcard_constraints:
@@ -25,11 +36,11 @@ rule run_diamond_blastx:
     resources:
         threads = get_threads('run_diamond_blastx', maxcore)
     shell:
-        'if ! [ -s {input.fasta} ]; then \
+        'if ! [ -s {input[0]} ]; then \
             touch {output} && exit 0; \
         fi; \
         diamond blastx \
-            --query {input.fasta} \
+            --query {input[0]} \
             --db {params.db} \
             --outfmt 6 qseqid staxids bitscore qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore \
             --sensitive \
