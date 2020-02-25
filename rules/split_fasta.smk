@@ -12,7 +12,7 @@ rule split_fasta:
     params:
         tmpdir = lambda wc: "%s/%s" % (config['settings']['tmp'], wc.name),
         chunk = config['settings']['chunk'],
-        outdir = lambda wc: "%s/split/%s" % (wc.path, wc.name),
+        outdir = lambda wc: "%s/split/%s" % (similarity['reference_proteomes']['local'], wc.name),
     conda:
         '../envs/py3.yaml'
     threads: get_threads('split_fasta', multicore)

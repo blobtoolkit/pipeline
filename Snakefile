@@ -54,7 +54,6 @@ rule all:
 
 # fetch database files
 include: 'rules/fetch_ncbi_db.smk'
-# include: 'rules/fetch_ncbi_idmap.smk'
 include: 'rules/fetch_taxdump.smk'
 include: 'rules/fetch_uniprot.smk'
 include: 'rules/extract_uniprot.smk'
