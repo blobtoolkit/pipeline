@@ -142,7 +142,7 @@ def generate_mapping_command(accession,reads):
         cmd = 'minimap2 -ax map-ont'
     return cmd
 
-def list_read_files(accession,reads,subsample):
+def list_read_files(accession, reads, subsample):
     """
     List read files.
     """

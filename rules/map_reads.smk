@@ -3,7 +3,7 @@ rule map_reads:
     Run bwa/minimap2 with settings appropriate to sequencing platform
     """
     input:
-        fastq = lambda wc: list_read_files(wc.sra, reads, True),
+        fastq = lambda wc: list_read_files(wc.sra, reads, 'coverage' in config['reads']),
         fasta = '{assembly}.fasta',
         index = expand('{{assembly}}.fasta.{suffix}', suffix=BWA_INDEX)
     output:
