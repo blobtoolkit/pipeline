@@ -20,7 +20,7 @@ logging.basicConfig(**logger_config)
 logger = logging.getLogger()
 
 try:
-    CONFIG = snakemake.input.yaml
+    CONFIG = snakemake.config
     ASSEMBLY = snakemake.wildcards.assembly
     INFILES = snakemake.input.stats
     OUTFILE = str(snakemake.output)
@@ -31,8 +31,8 @@ except Exception as err:
 
 try:
     meta = {}
-    with open(CONFIG,'r') as fh:
-        config = yaml.load(fh)
+    # with open(CONFIG,'r') as fh:
+    config = yaml.load(CONFIG)
     meta['assembly'] = config['assembly']
     meta['taxon'] = config['taxon']
     meta['settings'] = config['settings']

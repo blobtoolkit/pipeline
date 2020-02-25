@@ -28,12 +28,12 @@ settings:
   tmp: /tmp
 similarity:
   databases:
-    - local: ~databases/ncbi_2019_11
+    - local: ~/databases/ncbi_2019_11
       name: nt_v5
       source: ncbi
       tool: blast
       type: nucl
-    - local: ~databases/uniprot_2019_11
+    - local: ~/databases/uniprot_2019_11
       max_target_seqs: 1
       name: reference_proteomes
       source: uniprot

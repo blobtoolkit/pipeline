@@ -10,14 +10,18 @@ def apply_similarity_search_defaults():
     """
     similarity = {}
     if 'defaults' in config['similarity']:
-        for key,value in config['similarity']['defaults'].items():
+        for key, value in config['similarity']['defaults'].items():
             for db in config['similarity']['databases']:
                 if key not in db:
                     db[key] = value
-                similarity.update({db['name']:db})
+                similarity.update({db['name']: db})
+                if db['name'].startswith('nt'):
+                    similarity.update({'blastdb': {'local': db['local']}})
     else:
         for db in config['similarity']['databases']:
-            similarity.update({db['name']:db})
+            similarity.update({db['name']: db})
+            if db['name'].startswith('nt'):
+                similarity.update({'blastdb': {'local': db['local']}})
     return similarity
 
 def get_read_info(config):

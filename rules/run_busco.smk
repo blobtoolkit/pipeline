@@ -3,27 +3,27 @@ rule run_busco:
     Run BUSCO on a lineage.
     """
     input:
-        fasta='{assembly}.fasta',
-        busco=config['busco']['lineage_dir']+'/{lineage}.tar.gz',
+        fasta = '{assembly}.fasta',
+        busco = config['busco']['lineage_dir']+'/{lineage}.tar.gz',
     output:
-        full='{assembly}.busco.{lineage}.tsv',
-        short='{assembly}.busco.{lineage}.txt'
+        full = '{assembly}.busco.{lineage}.tsv',
+        short = '{assembly}.busco.{lineage}.txt'
     params:
-        lineage=lambda wc: wc.lineage,
-        lineage_dir=config['busco']['lineage_dir'],
-        assembly=lambda wc: wc.assembly,
-        outdir=lambda wc: "run_%s_%s" % (wc.assembly, wc.lineage)
+        lineage = lambda wc: wc.lineage,
+        lineage_dir = config['busco']['lineage_dir'],
+        assembly = lambda wc: wc.assembly,
+        outdir = lambda wc: "run_%s_%s" % (wc.assembly, wc.lineage)
     wildcard_constraints:
-        lineage='\w+_odb9'
+        lineage = r'\w+_odb\d+'
     conda:
         '../envs/busco.yaml'
     threads: get_threads('run_busco', multicore)
     log:
-        lambda wc: "logs/%s/run_busco/%s.log" % (wc.assembly, wc.lineage)
+        'logs/{assembly}/run_busco/{lineage}.log'
     benchmark:
         'logs/{assembly}/run_busco/{lineage}.benchmark.txt'
     resources:
-        threads=get_threads('run_busco', multicore)
+        threads = get_threads('run_busco', multicore)
     shell:
         'run_busco \
             -f \
