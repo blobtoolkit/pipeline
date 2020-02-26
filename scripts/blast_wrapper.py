@@ -186,6 +186,7 @@ def run_blast(seqs, cmd, blast_list, index, batches):
             input += ">%s_-_%d\n" % (seq['title'], seq['start'])
             input += "%s\n" % seq['seq']
         cmd += ' -lcase_masking -outfmt "6 qseqid staxids bitscore std"'
+        logger.info(shlex.split(cmd)+blast_list)
         p = run(shlex.split(cmd)+blast_list, stdout=PIPE, stderr=PIPE, input=input, encoding='ascii')
         return p
     except Exception as err:
@@ -268,6 +269,7 @@ if __name__ == '__main__':
         def blast_callback(p):
             """Process BLAST chunk."""
             global output
+            logger.info('entering callback')
             try:
                 p.check_returncode()
             except CalledProcessError as err:
@@ -280,7 +282,7 @@ if __name__ == '__main__':
                 logger.info(p.stderr)
             lines = []
             if p.stdout:
-            	lines = p.stdout.strip('\n').split('\n')
+                lines = p.stdout.strip('\n').split('\n')
             logger.info("Finished processing batch with %d BLAST hits" % len(lines))
             for line in lines:
                 fields = line.split('\t')
@@ -291,7 +293,9 @@ if __name__ == '__main__':
         batches = math.ceil(len(seqs) / subset_length)
         try:
             if script_params['-multiprocessing'] == 'False':
+                logger.info('running single BLAST')
                 p = run_blast(seqs, script_params['-program'], blast_list, 1, 1)
+                logger.info('calling callback')
                 blast_callback(p)
             else:
                 for subset in split_list(seqs, subset_length):
