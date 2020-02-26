@@ -2,11 +2,11 @@ def blastx_inputs(wc):
     if 'taxrule' in config['similarity'] and config['similarity']['taxrule'].startswith('each'):
         chunks = '{assembly}.blastn.{name}.root.{root}{masked}.chunks.fasta'
         return [
-            "%s.diamond.%s.root.%s%s.chunks.fasta" % (wc.assembly, wc.name, wc.root, wc.masked),
+            "%s.chunks.fasta" % wc.assembly,
             "%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)
         ]
     return [
-        "%s.diamond.%s.root.%s%s.fasta.nohit" % (wc.assembly, wc.name, wc.root, wc.masked),
+        "%s.blastn.%s.root.%s%s.fasta.nohit" % (wc.assembly, blast_db_name(config), wc.root, wc.masked),
         "%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)
     ]
 
