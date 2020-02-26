@@ -8,6 +8,7 @@ rule run_blastn:
         taxids = '{name}.root.{root}{masked}.taxids'
     output:
         out = '{assembly}.blastn.{name}.root.{root}{masked}.out',
+        chunks = '{assembly}.blastn.{name}.root.{root}{masked}.chunks.fasta',
         raw = '{assembly}.blastn.{name}.root.{root}{masked}.out.raw',
         nohit = '{assembly}.blastn.{name}.root.{root}{masked}.nohit' if keep else temp('{assembly}.blastn.{name}.root.{root}{masked}.nohit')
     wildcard_constraints:

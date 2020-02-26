@@ -21,22 +21,23 @@ Run BLAST
 Usage: ./blast_wrapper.py -query FASTA -db BLASTDB
 
 Options:
-    -program blastn         BLAST program to use.
-    -db BLASTDB             BLAST database.
-    -query FASTAFILE        query sequence FASTA file.
-    -taxidlist TAXIDFILE    list of taxids to include (requires v5 BLAST DB).
-    -multiprocessing        use python multiprocessing for num_threads.
-    -chunk 100000           sequences greater than CHUNK bp will be split.
-    -overlap 500            length of overlap when splitting sequences.
-    -max_chunks 10          maximum number of chunks to split a sequence into.
-    -num_threads 16         number of threads.
-    -evalue 1e-25           BLAST evalue.
-    -max_target_seqs 10     BLAST max_target_seqs.
-    -raw FASTAFILE.out.raw  raw output filename.
-    -out FASTAFILE.out      BLAST output filename (processed from raw output).
-    -nohit FASTAFILE.nohit  query sequences with no hit to BLAST DB.
-    -window_masker_db FILE  windowmasker optimized binary format counts file.
-    ...                     any additional blast parameters.
+    -program blastn           BLAST program to use.
+    -db BLASTDB               BLAST database.
+    -query FASTAFILE          query sequence FASTA file.
+    -taxidlist TAXIDFILE      list of taxids to include (requires v5 BLAST DB).
+    -multiprocessing          use python multiprocessing for num_threads.
+    -chunk 100000             sequences greater than CHUNK bp will be split.
+    -overlap 500              length of overlap when splitting sequences.
+    -max-chunks 10            maximum number of chunks to split a sequence into.
+    -chunks FASTAFILE.chunks  chunked sequence filename.
+    -num-threads 16           number of threads.
+    -evalue 1e-25             BLAST evalue.
+    -max-target-seqs 10       BLAST max_target_seqs.
+    -raw FASTAFILE.out.raw    raw output filename.
+    -out FASTAFILE.out        BLAST output filename (processed from raw output).
+    -nohit FASTAFILE.nohit    query sequences with no hit to BLAST DB.
+    -window_masker_db FILE    windowmasker optimized binary format counts file.
+    ...                       any additional blast parameters.
 """
 
 logger_config = {
@@ -65,7 +66,8 @@ def parse_args():
         '-num_threads': 16,
         '-raw': None,
         '-out': '.out',
-        '-nohit': '.nohit'
+        '-nohit': '.nohit',
+        '-chunks': None
     }
     blast_params = {
         '-db': None,
@@ -86,6 +88,7 @@ def parse_args():
         blast_params['-evalue'] = str(snakemake.params.evalue)
         blast_params['-max_target_seqs'] = str(snakemake.params.max_target_seqs)
         script_params['-raw'] = snakemake.output.raw
+        script_params['-chunks'] = snakemake.output.chunks
         script_params['-nohit'] = snakemake.output.nohit
         script_params['-out'] = snakemake.output.out
         script_params['-max_target_seqs'] = blast_params['-max_target_seqs']
@@ -242,9 +245,16 @@ if __name__ == '__main__':
                                chunk=script_params['-chunk'],
                                overlap=script_params['-overlap'],
                                max_chunks=script_params['-max_chunks']):
-            if not re.match('^N+$',seq['seq']):
+            if not re.match('^N+$', seq['seq']):
                 names.add(seq['title'])
                 seqs.append((seq))
+        if script_params['-chunks']:
+            chunked = ''
+            for seq in seqs:
+                chunked += ">%s_-_%d\n" % (seq['title'], seq['start'])
+                chunked += "%s\n" % seq['seq']
+            with open(script_params['-raw'], 'w') as ofh:
+                ofh.writelines(chunked)
         n_chunks = len(seqs)
         if n_chunks == 0:
             logger.error("no sequences found in query file '%s'" % script_params['-query'])
