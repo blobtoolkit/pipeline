@@ -77,6 +77,7 @@ include: 'rules/run_windowmasker.smk'
 include: 'rules/run_blastn.smk'
 include: 'rules/extract_nohit_sequences.smk'
 include: 'rules/run_diamond_blastx.smk'
+include: 'rules/unchunk_blast.smk'
 # run busco
 include: 'rules/run_busco.smk'
 # run blobtools

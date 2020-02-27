@@ -1,14 +1,31 @@
+#def blastx_inputs(wc):
+#    if 'taxrule' in config['similarity'] and config['similarity']['taxrule'].startswith('each'):
+#        chunks = '{assembly}.blastn.{name}.root.{root}{masked}.chunks.fasta'
+#        return [
+#            "%s.blastn.%s.root.%s%s.chunks.fasta" % (wc.assembly, blast_db_name(config), wc.root, wc.masked),
+#            "%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)
+#        ]
+#    return [
+#        "%s.blastn.%s.root.%s%s.fasta.nohit" % (wc.assembly, blast_db_name(config), wc.root, wc.masked),
+#        "%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)
+#    ]
 def blastx_inputs(wc):
     if 'taxrule' in config['similarity'] and config['similarity']['taxrule'].startswith('each'):
-        chunks = '{assembly}.blastn.{name}.root.{root}{masked}.chunks.fasta'
-        return [
-            "%s.chunks.fasta" % wc.assembly,
-            "%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)
-        ]
+        return ['nullfile','nullfile2']
     return [
         "%s.blastn.%s.root.%s%s.fasta.nohit" % (wc.assembly, blast_db_name(config), wc.root, wc.masked),
         "%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)
     ]
+
+
+def blastx_chunk_inputs(wc):
+    if 'taxrule' in config['similarity'] and config['similarity']['taxrule'].startswith('each'):
+        return [
+            "%s.blastn.%s.root.%s%s.chunks.fasta" % (wc.assembly, blast_db_name(config), wc.root, wc.masked),
+            "%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)
+        ]
+    return ['nullfile1','nullfile2']
+
 
 
 rule run_diamond_blastx:
@@ -22,7 +39,8 @@ rule run_diamond_blastx:
     wildcard_constraints:
         root = r'\d+',
         masked = r'.[fm][ulins\d\.]+',
-        assembly = r'\w+'
+        assembly = r'\w+',
+        name = 'reference_proteomes'
     params:
         db = lambda wc: "%s.root.%s%s" % (wc.name, wc.root, wc.masked),
         evalue = lambda wc: similarity[wc.name]['evalue'],
@@ -56,13 +74,14 @@ rule run_diamond_blastx_chunks:
     Run Diamond blastx to search protein database with assembly query.
     """
     input:
-        blastx_inputs
+        blastx_chunk_inputs
     output:
         '{assembly}.diamond.{name}.root.{root}{masked}.chunks.out'
     wildcard_constraints:
         root = r'\d+',
         masked = r'.[fm][ulins\d\.]+',
-        assembly = r'\w+'
+        assembly = r'\w+',
+        name = 'reference_proteomes'
     params:
         db = lambda wc: "%s.root.%s%s" % (wc.name, wc.root, wc.masked),
         evalue = lambda wc: similarity[wc.name]['evalue'],
