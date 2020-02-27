@@ -46,4 +46,5 @@ rule all:
         
 
 include: 'rules/blobtools_replace.smk'
-
+include: 'rules/make_filtered_databases.smk'
+include: 'rules/fetch_database_files.smk'

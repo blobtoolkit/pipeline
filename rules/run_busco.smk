@@ -14,7 +14,7 @@ rule run_busco:
         assembly=lambda wc: wc.assembly,
         outdir=lambda wc: "run_%s_%s" % (wc.assembly, wc.lineage)
     wildcard_constraints:
-        lineage='\w+_odb9'
+        lineage='\w+_odb\d+'
     conda:
         '../envs/busco.yaml'
     threads: get_threads('run_busco', multicore)

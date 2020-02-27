@@ -25,34 +25,6 @@ rule run_windowmasker:
                       -sformat obinary \
                       -out {output} 2> {log}'
 
-rule make_taxid_list:
-    """
-    Generate a list of taxids containing all descendants of a specified root,
-    optionally with one or more lineages masked.
-    """
-    input:
-        nodes="%s/nodes.dmp" % config['settings']['taxonomy']
-    output:
-        '{name}.root.{root}{masked}.taxids',
-        '{name}.root.{root}{masked}.negative.taxids'
-    wildcard_constraints:
-        root='\d+'
-    params:
-        mask_ids=lambda wc: similarity[wc.name]['mask_ids'],
-        db=lambda wc: str("%s.root.%s%s" % (wc.name,wc.root,wc.masked))
-    conda:
-        '../envs/py3.yaml'
-    threads: get_threads('make_taxid_list', 1)
-    log:
-        lambda wc: "logs/make_taxid_list/%s.root.%s%s.log" % (wc.name, wc.root, wc.masked)
-    benchmark:
-        'logs/make_taxid_list/{name}.root.{root}{masked}.benchmark.txt'
-    resources:
-        threads=get_threads('make_taxid_list', 1)
-    script:
-        '../scripts/make_taxid_list.py'
-
-
 rule run_blastn:
     """
     Run NCBI blastn to search nucleotide database with assembly query.
@@ -88,6 +60,69 @@ rule run_blastn:
         threads=get_threads('run_blastn', maxcore)
     script:
         '../scripts/blast_wrapper.py'
+
+
+rule extract_nohit_sequences:
+    """
+    Run seqtk to extract nohit sequences from assembly.
+    """
+    input:
+        fasta='{assembly}.fasta',
+        nohit='{assembly}.blastn.{name}.root.{root}{masked}.nohit'
+    output:
+        '{assembly}.blastn.{name}.root.{root}{masked}.fasta.nohit' if keep else temp('{assembly}.blastn.{name}.root.{root}{masked}.fasta.nohit')
+    conda:
+        '../envs/pyblast.yaml'
+    threads: get_threads('extract_nohit_sequences', 1)
+    log:
+        lambda wc: "logs/%s/extract_nohit_sequences/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
+    benchmark:
+        'logs/{assembly}/extract_nohit_sequences/{name}.root.{root}{masked}.benchmark.txt'
+    resources:
+        threads=get_threads('extract_nohit_sequences', 1)
+    shell:
+        'seqtk subseq {input.fasta} {input.nohit} > {output} 2> {log}'
+
+
+rule run_diamond_blastx:
+    """
+    Run Diamond blastx to search protein database with assembly query.
+    """
+    input:
+        fasta="{assembly}.blastn.%s.root.{root}{masked}.fasta.nohit" % blast_db_name(config),
+        db='{name}.root.{root}{masked}.dmnd'
+    output:
+        '{assembly}.diamond.{name}.root.{root}{masked}.out'
+    wildcard_constraints:
+        root='\d+',
+        masked='.[fm][ulins\d\.]+',
+        assembly='\w+'
+    params:
+        db=lambda wc: "%s.root.%s%s" % (wc.name,wc.root,wc.masked),
+        evalue=lambda wc:similarity[wc.name]['evalue'],
+        max_target_seqs=lambda wc:similarity[wc.name]['max_target_seqs']
+    conda:
+        '../envs/diamond.yaml'
+    threads: get_threads('run_diamond_blastx', maxcore, 1.8)
+    log:
+        lambda wc: "logs/%s/run_diamond_blastx/%s.root.%s%s.log" % (wc.assembly, wc.name, wc.root, wc.masked)
+    benchmark:
+        'logs/{assembly}/run_diamond_blastx/{name}.root.{root}{masked}.benchmark.txt'
+    resources:
+        threads=get_threads('run_diamond_blastx', maxcore)
+    shell:
+        'if ! [ -s {input.fasta} ]; then \
+            touch {output} && exit 0; \
+        fi; \
+        diamond blastx \
+            --query {input.fasta} \
+            --db {params.db} \
+            --outfmt 6 qseqid staxids bitscore qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore \
+            --sensitive \
+            --max-target-seqs {params.max_target_seqs} \
+            --evalue {params.evalue} \
+            --threads {resources.threads} \
+            > {output} 2> {log}'
 
 
 rule blobtoolkit_replace_hits:
