@@ -24,6 +24,8 @@ Basic usage:
 
 include: 'scripts/functions.py'
 
+check_config()
+
 multicore = int(os.getenv('MULTICORE', 16))
 maxcore = int(os.getenv('MAXCORE', 32))
 

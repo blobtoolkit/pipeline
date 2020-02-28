@@ -7,7 +7,7 @@ def hits_inputs(config, rev):
 
 
 def hits_params(config, rev, aa=False):
-    taxrule = config['similarity']['taxrule'] if 'taxrule' in config['similarity'] else 'bestsumorder'
+    taxrule = config['similarity']['taxrule']
     files = list_similarity_results(config)
     if aa:
         files.reverse()

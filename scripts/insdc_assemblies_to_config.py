@@ -81,7 +81,7 @@ DEFAULT_META = {}
 if os.path.isfile(sys.argv[1]):
     with open(sys.argv[1], 'r') as fh:
         try:
-            DEFAULT_META = yaml.load(fh)
+            DEFAULT_META = yaml.full_load(fh)
         except yaml.YAMLError as exc:
             print(exc)
 
@@ -329,7 +329,7 @@ def current_versions(string='all'):
     response = requests.get(btk)
     current = {}
     if response.ok:
-        data = yaml.load(response.text)
+        data = yaml.full_load(response.text)
         for asm in data:
             if 'version' in asm:
                 current.update({asm['prefix']: asm['version']})

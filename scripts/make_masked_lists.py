@@ -7,7 +7,6 @@ from collections import defaultdict
 from multiprocessing import Pool
 
 # set variables from snakemake params, wildcards, input and threads
-CHUNK = snakemake.params.chunk
 INDIR = snakemake.params.indir
 DBTITLE = snakemake.params.db
 TAXID_FILE = snakemake.input.taxids

@@ -16,6 +16,7 @@ Basic usage:
   snakemake -p --use-conda \
     --directory ~/workdir \
     --configfile example.yaml \
+    -s replaceHits.smk
     -j 8
 
 © 2018-19 Richard Challis (University of Edinburgh), MIT License
@@ -23,6 +24,8 @@ Basic usage:
 """
 
 include: 'scripts/functions.py'
+
+check_config()
 
 multicore = int(os.getenv('MULTICORE', 16))
 maxcore = int(os.getenv('MAXCORE', 32))
@@ -44,7 +47,7 @@ rule all:
     Dummy rule to set target of pipeline
     """
     input:
-        hit_fields(asm, rev, config['similarity']['taxrule'] if 'taxrule' in config['similarity'] else 'bestsumorder')
+        hit_fields(asm, rev, config['similarity']['taxrule'])
 
 
 # fetch database files
@@ -60,6 +63,7 @@ include: 'rules/split_fasta.smk'
 include: 'rules/make_taxid_list.smk'
 include: 'rules/make_masked_lists.smk'
 include: 'rules/make_diamond_db.smk'
+include: 'rules/unchunk_blast.smk'
 # run similarity searches
 include: 'rules/run_windowmasker.smk'
 include: 'rules/run_blastn.smk'

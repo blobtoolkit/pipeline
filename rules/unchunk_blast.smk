@@ -3,7 +3,7 @@ rule unchunk_blast:
     Unchunk chunked blast results.
     """
     input:
-        '{assembly}.diamond.{name}.root.{root}{masked}.chunks.out'
+        '{assembly}.diamond.{name}.root.{root}{masked}.out.raw'
     output:
         '{assembly}.diamond.{name}.root.{root}{masked}.out'
     wildcard_constraints:

@@ -174,7 +174,7 @@ def hosted_assemblies(string='all'):
     response = requests.get(btk)
     hosted = set()
     if response.ok:
-        data = yaml.load(response.text)
+        data = yaml.full_load(response.text)
         for asm in data:
             hosted.add(asm['prefix'])
     return hosted

@@ -1,17 +1,6 @@
-#def blastx_inputs(wc):
-#    if 'taxrule' in config['similarity'] and config['similarity']['taxrule'].startswith('each'):
-#        chunks = '{assembly}.blastn.{name}.root.{root}{masked}.chunks.fasta'
-#        return [
-#            "%s.blastn.%s.root.%s%s.chunks.fasta" % (wc.assembly, blast_db_name(config), wc.root, wc.masked),
-#            "%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)
-#        ]
-#    return [
-#        "%s.blastn.%s.root.%s%s.fasta.nohit" % (wc.assembly, blast_db_name(config), wc.root, wc.masked),
-#        "%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)
-#    ]
 def blastx_inputs(wc):
-    if 'taxrule' in config['similarity'] and config['similarity']['taxrule'].startswith('each'):
-        return ['nullfile','nullfile2']
+    if config['similarity']['taxrule'].startswith('each'):
+        return ['nullfile', 'nullfile2']
     return [
         "%s.blastn.%s.root.%s%s.fasta.nohit" % (wc.assembly, blast_db_name(config), wc.root, wc.masked),
         "%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)
@@ -19,13 +8,12 @@ def blastx_inputs(wc):
 
 
 def blastx_chunk_inputs(wc):
-    if 'taxrule' in config['similarity'] and config['similarity']['taxrule'].startswith('each'):
+    if config['similarity']['taxrule'].startswith('each'):
         return [
             "%s.blastn.%s.root.%s%s.chunks.fasta" % (wc.assembly, blast_db_name(config), wc.root, wc.masked),
             "%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)
         ]
-    return ['nullfile1','nullfile2']
-
+    return ['nullfile1', 'nullfile2']
 
 
 rule run_diamond_blastx:
@@ -76,7 +64,7 @@ rule run_diamond_blastx_chunks:
     input:
         blastx_chunk_inputs
     output:
-        '{assembly}.diamond.{name}.root.{root}{masked}.chunks.out'
+        '{assembly}.diamond.{name}.root.{root}{masked}.out.raw'
     wildcard_constraints:
         root = r'\d+',
         masked = r'.[fm][ulins\d\.]+',
@@ -102,7 +90,8 @@ rule run_diamond_blastx_chunks:
         diamond blastx \
             --query {input[0]} \
             --db {params.db} \
-            --outfmt 6 qseqid staxids bitscore qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore \
+            --outfmt 6 qseqid staxids bitscore qseqid sseqid pident length \
+                     mismatch gapopen qstart qend sstart send evalue bitscore \
             --sensitive \
             --max-target-seqs {params.max_target_seqs} \
             --evalue {params.evalue} \

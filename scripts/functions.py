@@ -5,21 +5,63 @@ import math
 BWA_INDEX = ['amb', 'ann', 'bwt', 'pac', 'sa']
 
 
+def check_config():
+    """
+    Check required fields are present in config.
+    """
+    sections = [{'name': 'assembly',
+                 'keys': ['accession', 'prefix', 'alias', 'span'],
+                 'defaults': {'accession': 'draft', 'alias': '==prefix'}},
+                {'name': 'busco',
+                 'keys': ['lineage_dir', 'lineages'],
+                 'defaults': {'lineage_dir': 'busco_lineages', 'lineages': []}},
+                {'name': 'reads',
+                 'keys': ['paired', 'single'],
+                 'defaults': {'paired': [], 'single': []}},
+                {'name': 'settings',
+                 'keys': ['blast_chunk', 'blast_max_chunks', 'blast_overlap',
+                          'blobtools2_path', 'chunk', 'taxonomy', 'tmp'],
+                 'defaults': {'blast_chunk': 100000, 'blast_max_chunks': 10,
+                              'blast_overlap': 500, 'chunk': 1000000,
+                              'tmp': '/tmp'}},
+                {'name': 'similarity',
+                 'keys': ['databases', 'defaults', 'taxrule'],
+                 'defaults': {'defaults': {'evalue': 1e-25, 'max_target_seqs': 10, 'root': 1},
+                              'taxrule': 'bestsumorder'}},
+                {'name': 'taxon',
+                 'keys': ['name', 'taxid'],
+                 'defaults': {}}]
+    optional = ['busco', 'reads']
+    for section in sections:
+        if section['name'] not in config:
+            if section['name'] in optional:
+                print("INFO: optional section '%s' is not present in config file" % section['name'])
+                config[section['name']] = {}
+            else:
+                quit("ERROR: config file must contain a '%s' section with keys '%s'" % (section['name'],
+                                                                                        ', '.join(section['keys'])))
+        for key in section['keys']:
+            if key not in config[section['name']]:
+                if key in section['defaults']:
+                    value = section['defaults'][key]
+                    if isinstance(value, str) and value.startswith('=='):
+                        value = config[section['name']][value.replace('==', '')]
+                    print("INFO: using default value for '%s.%s'" % (section['name'], key))
+                    print(value)
+                    config[section['name']][key] = value
+                else:
+                    quit("ERROR: config file section '%s' must contain '%s'" % (section['name'], key))
+
+
 def apply_similarity_search_defaults():
     """
     Apply defaults to similarity search databases.
     """
     similarity = {}
-    if 'defaults' in config['similarity']:
-        for key, value in config['similarity']['defaults'].items():
-            for db in config['similarity']['databases']:
-                if key not in db:
-                    db[key] = value
-                similarity.update({db['name']: db})
-                if db['name'].startswith('nt'):
-                    similarity.update({'blastdb': {'local': db['local']}})
-    else:
+    for key, value in config['similarity']['defaults'].items():
         for db in config['similarity']['databases']:
+            if key not in db:
+                db[key] = value
             similarity.update({db['name']: db})
             if db['name'].startswith('nt'):
                 similarity.update({'blastdb': {'local': db['local']}})
@@ -43,39 +85,38 @@ def get_read_info(config):
         if 'max' in config['reads']['coverage']:
             max = config['reads']['coverage']['max']
     for strategy in strategies:
-        if strategy in config['reads']:
-            for row in config['reads'][strategy]:
-                accession = row[0]
-                platform = row[1]
-                if platform not in platforms:
-                    print("WARNING: platform %s is not recognised, must be one of %s" % (platform, platforms),
-                          file=sys.stderr)
+        for row in config['reads'][strategy]:
+            accession = row[0]
+            platform = row[1]
+            if platform not in platforms:
+                print("WARNING: platform %s is not recognised, must be one of %s" % (platform, platforms),
+                      file=sys.stderr)
+            try:
+                bases = row[2]
+                coverage = bases / config['assembly']['span']
+            except:
+                coverage = 10
+            if strategy == 'paired':
                 try:
-                    bases = row[2]
-                    coverage = bases / config['assembly']['span']
+                    url = re.split(',|;', row[3])
+                    if len(reads) > 2:
+                        reads = reads[-2:]
                 except:
-                    coverage = 10
-                if strategy == 'paired':
-                    try:
-                        url = re.split(',|;', row[3])
-                        if len(reads) > 2:
-                            reads = reads[-2:]
-                    except:
-                        url = ["%s_1.fastq.gz" % accession, "%s_2.fastq.gz" % accession]
-                else:
-                    try:
-                        url = [row[3]]
-                    except:
-                        url = ["%s.fastq.gz" % accession]
-                if coverage >= min:
-                    reads[accession] = {'platform': platform, 'coverage': coverage, 'strategy': strategy, 'url': url}
-                    if coverage > max:
-                        reads[accession]['subsample'] = max / coverage
-                        print("WARNING: read file %s will be subsampled due to high coverage (%.2f > %.2f)" % (accession, coverage, max),
-                              file=sys.stderr)
-                else:
-                    print("WARNING: skipping read file %s due to low coverage (%.2f < %.2f)" % (accession, coverage, min),
+                    url = ["%s_1.fastq.gz" % accession, "%s_2.fastq.gz" % accession]
+            else:
+                try:
+                    url = [row[3]]
+                except:
+                    url = ["%s.fastq.gz" % accession]
+            if coverage >= min:
+                reads[accession] = {'platform': platform, 'coverage': coverage, 'strategy': strategy, 'url': url}
+                if coverage > max:
+                    reads[accession]['subsample'] = max / coverage
+                    print("WARNING: read file %s will be subsampled due to high coverage (%.2f > %.2f)" % (accession, coverage, max),
                           file=sys.stderr)
+            else:
+                print("WARNING: skipping read file %s due to low coverage (%.2f < %.2f)" % (accession, coverage, min),
+                      file=sys.stderr)
     return reads
 
 
@@ -209,12 +250,6 @@ def prepare_ncbi_assembly_url(accession, name):
     asm = asm.replace('__', '_').replace(',', '')
     url = "%s/%s/%s/%s_genomic.fna.gz" % (base, path, asm, asm)
     return url
-
-# def prepare_ebi_sra_url(acc):
-#     base = 'ftp://ftp.sra.ebi.ac.uk/vol1'
-#     subdir = "/00%s" % acc[-1:] if len(acc) == 10 else ''
-#     url = "%s/%s/%s%s/%s" % ( base, acc[:3].lower(), acc[:6], subdir, acc )
-#     return url
 
 
 def cov_files_by_platform(reads, assembly, platform):
