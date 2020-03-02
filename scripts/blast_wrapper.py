@@ -253,7 +253,7 @@ if __name__ == '__main__':
             for seq in seqs:
                 chunked += ">%s_-_%d\n" % (seq['title'], seq['start'])
                 chunked += "%s\n" % seq['seq']
-            with open(script_params['-raw'], 'w') as ofh:
+            with open(script_params['-chunks'], 'w') as ofh:
                 ofh.writelines(chunked)
         n_chunks = len(seqs)
         if n_chunks == 0:

@@ -1,3 +1,5 @@
+singularity: "docker://genomehubs/blobtoolkit:latest"
+
 rule validate_dataset:
     """
     Run BlobToolKit validator on a dataset to check all expected fields are present.
@@ -15,7 +17,7 @@ rule validate_dataset:
         '../envs/blobtools2.yaml'
     threads: get_threads('validate_dataset', 1)
     log:
-        lambda wc: "logs/%s/validate_dataset.log" % (wc.assembly)
+        'logs/{assembly}/validate_dataset.log'
     benchmark:
         'logs/{assembly}/validate_dataset.benchmark.txt'
     resources:
@@ -42,7 +44,7 @@ rule generate_images:
         '../envs/blobtools2.yaml'
     threads: get_threads('generate_images', 3)
     log:
-        lambda wc: "logs/%s/generate_images.log" % (wc.assembly)
+        'logs/{assembly}/generate_images.log'
     benchmark:
         'logs/{assembly}/generate_images.benchmark.txt'
     resources:
@@ -65,7 +67,7 @@ rule generate_summary:
         '../envs/blobtools2.yaml'
     threads: get_threads('generate_summary', 1)
     log:
-        lambda wc: "logs/%s/generate_summary.log" % (wc.assembly)
+        'logs/{assembly}/generate_summary.log'
     benchmark:
         'logs/{assembly}/generate_summary.benchmark.txt'
     resources:
@@ -86,7 +88,7 @@ rule checksum_files:
         assembly=lambda wc: wc.assembly
     threads: get_threads('checksum_files', 1)
     log:
-        lambda wc: "logs/%s/checksum_files.log" % (wc.assembly)
+        'logs/{assembly}/checksum_files.log'
     benchmark:
         'logs/{assembly}/checksum_files.benchmark.txt'
     resources:
@@ -110,7 +112,7 @@ rule transfer_dataset:
         destdir=config['destdir'],
     threads: get_threads('transfer_dataset', 1)
     log:
-        lambda wc: "logs/%s/transfer_dataset.log" % (wc.assembly)
+        'logs/{assembly}/transfer_dataset.log'
     benchmark:
         'logs/{assembly}/transfer_dataset.benchmark.txt'
     resources:
