@@ -12,7 +12,8 @@ rule make_taxid_list:
         root = r'\d+'
     params:
         mask_ids = lambda wc: similarity[wc.name]['mask_ids'],
-        db = lambda wc: str("%s.root.%s%s" % (wc.name, wc.root, wc.masked))
+        db = lambda wc: str("%s.root.%s%s" % (wc.name, wc.root, wc.masked)),
+        taxdump = taxdump_dir
     conda:
         '../envs/py3.yaml'
     threads: get_threads('make_taxid_list', 1)

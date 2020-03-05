@@ -78,7 +78,7 @@ def parse_args():
     }
     try:
         script_params['-query'] = snakemake.input.fasta
-        blast_params['-db'] = snakemake.params.db
+        blast_params['-db'] = "%s/%s" % (snakemake.params.dir, snakemake.wildcards.name)
         blast_params['-taxidlist'] = snakemake.input.taxids
         script_params['-multiprocessing'] = str(snakemake.params.multiprocessing)
         script_params['-chunk'] = int(snakemake.params.chunk)

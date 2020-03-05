@@ -8,7 +8,7 @@ from collections import defaultdict
 DBTITLE = snakemake.params.db
 ROOT = int(snakemake.wildcards.root)
 MASKS = set(snakemake.params.mask_ids + [32630, 111789, 6])  # mask synthetic constructs by default
-NODES = snakemake.input.nodes
+NODES = "%s/nodes.dmp" % snakemake.params.indir
 
 
 def node_graph(nodes_file):

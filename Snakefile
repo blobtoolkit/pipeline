@@ -28,6 +28,10 @@ include: 'scripts/functions.py'
 
 check_config()
 
+use_singularity = False
+if '--use-singularity' in sys.argv:
+    use_singularity = True
+
 multicore = int(os.getenv('MULTICORE', 16))
 maxcore = int(os.getenv('MAXCORE', 32))
 

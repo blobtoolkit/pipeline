@@ -11,6 +11,7 @@ rule split_fasta:
         touch("%s/split/{name}.done" % similarity['reference_proteomes']['local'])
     params:
         tmpdir = lambda wc: "%s/%s" % (config['settings']['tmp'], wc.name),
+        dir = uniprot_dir,
         chunk = config['settings']['chunk'],
         outdir = lambda wc: "%s/split/%s" % (similarity['reference_proteomes']['local'], wc.name),
     conda:

@@ -9,3 +9,4 @@ dependencies:
   - tar
   - pigz
   - aria2
+  - rsync

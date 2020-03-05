@@ -12,7 +12,7 @@ rule fetch_ncbi_db:
         ftp_url = 'ftp://ftp.ncbi.nlm.nih.gov/blast/db/',
         ftp_dir = lambda wc: "%s" % 'v5/' if wc.name.endswith('_v5') else '',
         name = lambda wc: wc.name,
-        path = similarity['blastdb']['local']
+        path = ncbi_dir
     conda:
         '../envs/fetch.yaml'
     threads: get_threads('fetch_ncbi_db', 1)

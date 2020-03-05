@@ -13,7 +13,7 @@ rule make_masked_lists:
         root = r'\d+'
     params:
         db = lambda wc: str("%s.root.%s%s" % (wc.name, wc.root, wc.masked)),
-        indir = lambda wc: "%s/split/%s" % (similarity[wc.name]['local'], wc.name)
+        indir = uniprot_dir
     conda:
         '../envs/py3.yaml'
     threads: get_threads('make_masked_lists', maxcore)

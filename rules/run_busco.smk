@@ -10,7 +10,7 @@ rule run_busco:
         short = '{assembly}.busco.{lineage}.txt'
     params:
         lineage = lambda wc: wc.lineage,
-        lineage_dir = config['busco']['lineage_dir'],
+        lineage_dir = busco_dir,
         assembly = lambda wc: wc.assembly,
         outdir = lambda wc: "run_%s_%s" % (wc.assembly, wc.lineage)
     wildcard_constraints:

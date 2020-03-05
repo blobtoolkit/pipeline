@@ -7,7 +7,7 @@ from collections import defaultdict
 from multiprocessing import Pool
 
 # set variables from snakemake params, wildcards, input and threads
-INDIR = snakemake.params.indir
+INDIR = "%s/split/%s" % (snakemake.params.indir, snakemake.wildcards.name)
 DBTITLE = snakemake.params.db
 TAXID_FILE = snakemake.input.taxids
 THREADS = snakemake.threads

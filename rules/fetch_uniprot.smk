@@ -9,7 +9,8 @@ rule fetch_uniprot:
         path = '.+uniprot.+'
     params:
         ftp_url = 'ftp.ebi.ac.uk',
-        ftp_dir = 'pub/databases/uniprot/current_release/knowledgebase/{name}'
+        ftp_dir = 'pub/databases/uniprot/current_release/knowledgebase/{name}',
+        path = uniprot_dir
     conda:
         '../envs/fetch.yaml'
     threads: get_threads('fetch_uniprot', 1)
@@ -21,7 +22,7 @@ rule fetch_uniprot:
         download = 1,
         threads = get_threads('fetch_uniprot', 1)
     shell:
-        '(wget -q -O {output} \
+        '(wget -q -O {params.path}/full/{wildcards.name}.tar.gz \
             {params.ftp_url}/{params.ftp_dir}/$(curl \
             -vs {params.ftp_url}/{params.ftp_dir}/ 2>&1 | \
             awk \'/tar.gz/ {{print $9}}\')) 2> {log}'

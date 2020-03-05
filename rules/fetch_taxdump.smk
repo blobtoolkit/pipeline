@@ -7,7 +7,7 @@ rule fetch_taxdump:
         "%s/nodes.dmp" % config['settings']['taxonomy'],
         "%s/taxidlineage.dmp" % config['settings']['taxonomy']
     params:
-        outdir=config['settings']['taxonomy']
+        outdir=taxdump_dir
     conda:
         '../envs/fetch.yaml'
     threads: get_threads('fetch_taxdump', 1)

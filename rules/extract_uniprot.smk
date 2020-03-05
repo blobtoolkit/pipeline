@@ -8,7 +8,8 @@ rule extract_uniprot:
         "%s/full/{name}.fa.gz" % similarity['reference_proteomes']['local'],
         "%s/full/{name}.taxid_map.gz" % similarity['reference_proteomes']['local']
     params:
-        tmpdir = lambda wc: "%s/%s" % (config['settings']['tmp'], wc.name)
+        tmpdir = lambda wc: "%s/%s" % (config['settings']['tmp'], wc.name),
+        dir = uniprot_dir,
     wildcard_constraints:
         # NB: the path to the local copy of the file must contain the string 'uniprot'
         path = '.+uniprot.+'

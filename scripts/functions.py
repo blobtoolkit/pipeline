@@ -287,3 +287,37 @@ def hit_fields(asm, rev, taxrule):
             "%s%s/%s_nt_phylum_positions.json" % (asm, rev, taxrule.replace('each', 'best')),
             "%s%s/%s_aa_phylum_positions.json" % (asm, rev, taxrule.replace('each', 'best'))
         ]
+
+
+def ncbi_dir(wc):
+    if use_singularity:
+        dir = '/blobtoolkit/databases/ncbi_db'
+    else:
+        dir = similarity['blastdb']['local']
+    return dir
+
+
+def uniprot_dir(wc):
+    if use_singularity:
+        dir = '/blobtoolkit/databases/uniprot_db'
+    else:
+        dir = similarity['reference_proteomes']['local']
+    return dir
+
+
+def busco_dir(wc):
+    if use_singularity:
+        dir = '/blobtoolkit/databases/busco'
+    else:
+        dir = config['busco']['lineage_dir']
+    return dir
+
+
+def taxdump_dir(wc):
+    if use_singularity:
+        dir = '/blobtoolkit/databases/ncbi_taxdump'
+    else:
+        dir = config['settings']['taxonomy']
+    return dir
+
+

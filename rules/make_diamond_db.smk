@@ -12,7 +12,7 @@ rule make_diamond_db:
     params:
         outfile = lambda wc: str("%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)),
         db = lambda wc: str("%s.root.%s%s" % (wc.name, wc.root, wc.masked)),
-        indir = lambda wc: "%s/split/%s" % (similarity[wc.name]['local'], wc.name),
+        dir = uniprot_dir,
         tmpdir = "%s" % config['settings']['tmp']
     wildcard_constraints:
         root = r'\d+'
@@ -29,12 +29,12 @@ rule make_diamond_db:
         '(mkdir -p {params.tmpdir} && \
         echo "accession\taccession.version\ttaxid\tgi" > {params.tmpdir}/{params.db}.taxid_map && \
         parallel --no-notice -j {threads} \
-            "gunzip -c {params.indir}/{{}}.taxid_map.gz" \
+            "gunzip -c {params.dir}/split/{wildcards.name}/{{}}.taxid_map.gz" \
             :::: {input.lists} | \
                 awk \'{{print $1 "\\t" $1 "\\t" $2 "\\t" 0}}\' >> \
                 {params.tmpdir}/{params.db}.taxid_map && \
         parallel --no-notice -j {threads} \
-            "seqtk subseq {params.indir}/{{}}.fa.gz blast/{params.db}_{{}}.accessions" \
+            "seqtk subseq {params.dir}/split/{wildcards.name}/{{}}.fa.gz blast/{params.db}_{{}}.accessions" \
             :::: {input.lists} | \
         diamond makedb \
             -p {threads} \
