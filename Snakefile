@@ -22,6 +22,8 @@ Basic usage:
 © 2019-20 Richard Challis (Wellcome Sanger Institute), MIT License
 """
 
+singularity: "docker://genomehubs/blobtoolkit:latest"
+
 include: 'scripts/functions.py'
 
 check_config()
