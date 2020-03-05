@@ -20,10 +20,6 @@ rule validate_dataset:
         'logs/{assembly}/validate_dataset.benchmark.txt'
     resources:
         threads = get_threads('validate_dataset', 1)
-    singularity:
-        'docker://genomehubs/sequenceserver:latest'
     shell:
-        'ls -d */*/ \
-        && echo $PATH \
-        && validate.py {params.assembly}/meta.json > {log} 2>&1 \
+        'validate.py {params.assembly}/meta.json > {log} 2>&1 \
         && touch {params.assembly}.valid'
