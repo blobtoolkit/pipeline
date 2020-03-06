@@ -10,9 +10,6 @@ rule extract_uniprot:
     params:
         tmpdir = lambda wc: "%s/%s" % (config['settings']['tmp'], wc.name),
         dir = uniprot_dir,
-    wildcard_constraints:
-        # NB: the path to the local copy of the file must contain the string 'uniprot'
-        path = '.+uniprot.+'
     conda:
         '../envs/py3.yaml'
     threads: get_threads('extract_uniprot', 1)
