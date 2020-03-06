@@ -13,7 +13,8 @@ rule make_diamond_db:
         outfile = lambda wc: str("%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)),
         db = lambda wc: str("%s.root.%s%s" % (wc.name, wc.root, wc.masked)),
         dir = uniprot_dir,
-        tmpdir = "%s" % config['settings']['tmp']
+        tmpdir = "%s" % config['settings']['tmp'],
+        taxdump = taxdump_dir
     wildcard_constraints:
         root = r'\d+'
     conda:
@@ -40,5 +41,5 @@ rule make_diamond_db:
             -p {threads} \
             -d {params.outfile} \
             --taxonmap {params.tmpdir}/{params.db}.taxid_map \
-            --taxonnodes {input.nodes} && \
+            --taxonnodes {params.taxdump}/nodes.dmp && \
         rm {params.tmpdir}/{params.db}.taxid_map) 2> {log}'

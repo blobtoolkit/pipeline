@@ -13,9 +13,8 @@ def hits_params(config, rev, aa=False):
         files.reverse()
     return {
         'taxrule': taxrule,
-        'taxdump': config['settings']['taxonomy'],
+        'taxdump': taxdump_dir,
         'id': lambda wc: "%s%s" % (wc.assembly, rev),
-        'path': config['settings']['blobtools2_path'],
         'dbs': '.raw --hits '.join(files)
     }
 
@@ -41,7 +40,7 @@ rule blobtoolkit_add_hits:
         threads = get_threads('blobtoolkit_add_hits', 1),
         btk = 1
     shell:
-        '{params.path}/blobtools replace \
+        'blobtools replace \
             --hits {params.dbs} \
             --taxrule "{params.taxrule}" \
             --taxdump "{params.taxdump}" \
@@ -69,7 +68,7 @@ rule blobtoolkit_add_nt_hits:
         threads = get_threads('blobtoolkit_add_hits', 1),
         btk = 1
     shell:
-        '{params.path}/blobtools replace \
+        'blobtools replace \
             --hits {params.dbs} \
             --taxrule "{params.taxrule}={params.taxrule}_nt" \
             --taxdump "{params.taxdump}" \
@@ -97,7 +96,7 @@ rule blobtoolkit_add_aa_hits:
         threads = get_threads('blobtoolkit_add_hits', 1),
         btk = 1
     shell:
-        '{params.path}/blobtools replace \
+        'blobtools replace \
             --hits {params.dbs} \
             --taxrule "{params.taxrule}={params.taxrule}_aa" \
             --taxdump "{params.taxdump}" \

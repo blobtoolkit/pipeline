@@ -51,6 +51,10 @@ def check_config():
                     config[section['name']][key] = value
                 else:
                     quit("ERROR: config file section '%s' must contain '%s'" % (section['name'], key))
+    if '--use-singularity' in sys.argv:
+        return True
+    sys.path.insert(0,config['settings']['blobtools2_path'])
+    return False
 
 
 def apply_similarity_search_defaults():
@@ -318,6 +322,14 @@ def taxdump_dir(wc):
         dir = '/blobtoolkit/databases/ncbi_taxdump'
     else:
         dir = config['settings']['taxonomy']
+    return dir
+
+
+def git_dir(wc):
+    if use_singularity:
+        dir = '/blobtoolkit/insdc-pipeline/.git'
+    else:
+        dir = os.path.dirname(os.path.abspath(workflow.snakefile))+'/.git'
     return dir
 
 

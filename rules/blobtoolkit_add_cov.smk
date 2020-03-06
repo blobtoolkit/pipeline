@@ -9,7 +9,6 @@ rule blobtoolkit_add_cov:
         expand("%s%s/{sra}_cov.json" % (config['assembly']['prefix'], rev), sra=list_sra_accessions(reads))
     params:
         id = "%s%s" % (config['assembly']['prefix'], rev),
-        path = config['settings']['blobtools2_path'],
         covs = lambda wc: ' --cov '.join(["%s.%s.bam=%s" % (config['assembly']['prefix'], sra, sra)
                                          for sra in list_sra_accessions(reads)])
     conda:
@@ -23,7 +22,7 @@ rule blobtoolkit_add_cov:
         threads = get_threads('blobtoolkit_add_cov', 1),
         btk = 1
     shell:
-        '{params.path}/blobtools replace \
+        'blobtools replace \
             --cov {params.covs} \
             --threads {threads} \
             {params.id} > {log} 2>&1'

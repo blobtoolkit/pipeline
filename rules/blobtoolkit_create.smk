@@ -9,9 +9,8 @@ rule blobtoolkit_create:
     output:
         "{assembly}%s/identifiers.json" % rev
     params:
-        taxdump = config['settings']['taxonomy'],
+        taxdump = taxdump_dir,
         id = lambda wc: "%s%s" % (wc.assembly, rev),
-        path = config['settings']['blobtools2_path'],
         taxid = config['taxon']['taxid'],
     conda:
         '../envs/blobtools2.yaml'
@@ -24,7 +23,7 @@ rule blobtoolkit_create:
         threads = get_threads('blobtoolkit_create', 1),
         btk = 1
     shell:
-        '{params.path}/blobtools replace \
+        'blobtools replace \
             --fasta {input.fasta} \
             --meta {input.yaml} \
             --taxdump "{params.taxdump}" \

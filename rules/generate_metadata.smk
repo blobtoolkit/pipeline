@@ -8,7 +8,7 @@ rule generate_metadata:
     conda:
         '../envs/py3.yaml'
     params:
-        gitdir = os.path.dirname(os.path.abspath(workflow.snakefile))+'/.git'
+        gitdir = git_dir
     threads: get_threads('generate_metadata', 1)
     log:
         'logs/{assembly}/generate_metadata.log'

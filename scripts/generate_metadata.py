@@ -41,12 +41,13 @@ try:
     strategies = ['paired', 'single']
     for strategy in strategies:
         for arr in config['reads'][strategy]:
-            meta['reads'][arr[0]] = {
-                'strategy': strategy,
-                'platform': arr[1],
-            }
-            if len(arr) == 4:
-                meta['reads'][arr[0]]['url'] = re.split(',|;', arr[3])
+            if arr:
+                meta['reads'][arr[0]] = {
+                    'strategy': strategy,
+                    'platform': arr[1],
+                }
+                if len(arr) == 4:
+                    meta['reads'][arr[0]]['url'] = re.split(',|;', arr[3])
 
     p = subprocess.Popen(['git', '--git-dir', GITDIR, 'rev-parse', '--short', 'HEAD'],
                          stdout=subprocess.PIPE, encoding='utf-8')
