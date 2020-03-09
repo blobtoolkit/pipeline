@@ -3,10 +3,12 @@ rule blobtoolkit_add_meta:
     Use BlobTools2 replace to update metadata in a BlobDir.
     """
     input:
-        yaml = '{assembly}.meta.yaml'
+        yaml = '{assembly}.meta.yaml',
+        lineages = "%s/taxidlineage.dmp" % config['settings']['taxonomy']
     output:
         temp('{assembly}.meta.updated')
     params:
+        taxdump = taxdump_dir,
         id = lambda wc: "%s%s" % (wc.assembly, rev),
         taxid = config['taxon']['taxid'],
         path = config['settings']['blobtools2_path']
@@ -25,4 +27,5 @@ rule blobtoolkit_add_meta:
         blobtools replace \
             --meta {input.yaml} \
             --taxid {params.taxid} \
+            --taxdump {params.taxdump} \
             {params.id} > {log} 2>&1'

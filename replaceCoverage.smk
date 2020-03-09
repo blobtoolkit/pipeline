@@ -54,6 +54,8 @@ rule all:
         "%s.meta.updated" % asm
 
 
+# fetch database files
+include: 'rules/fetch_taxdump.smk'
 # fetch assembly files
 include: 'rules/fetch_fastq.smk'
 include: 'rules/subsample_fastq.smk'
