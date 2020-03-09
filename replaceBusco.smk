@@ -36,9 +36,14 @@ similarity = apply_similarity_search_defaults()
 
 reads = get_read_info(config)
 keep = False
+keep = False
 if 'keep_intermediates' in config:
     keep = bool(config['keep_intermediates'])
 asm = config['assembly']['prefix']
+rev = ''
+if 'revision' in config:
+    if config['revision'] > 0:
+        rev = '.'+str(config['revision'])
 
 rule all:
     """
