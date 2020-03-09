@@ -50,7 +50,6 @@ rule all:
     Dummy rule to set blobDB as target of pipeline
     """
     input:
-        'busco.replaced',
         expand("%s/{lineage}_busco.json" % asm,lineage=config['busco']['lineages'])
 
 
