@@ -64,4 +64,4 @@ include: 'rules/bamtools_stats.smk'
 # run blobtools
 include: 'rules/generate_metadata.smk'
 include: 'rules/blobtoolkit_add_cov.smk'
-include: 'rules/blobtoolkit_update_meta.smk'
+include: 'rules/blobtoolkit_add_meta.smk'
