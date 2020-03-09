@@ -27,7 +27,11 @@ singularity: "docker://genomehubs/blobtoolkit:latest"
 
 include: 'scripts/functions.py'
 
+multicore = int(os.getenv('MULTICORE', 16))
+maxcore = int(os.getenv('MAXCORE', 32))
+
 use_singularity = check_config()
+
 similarity = apply_similarity_search_defaults()
 reads = get_read_info(config)
 keep = False

@@ -29,7 +29,11 @@ include: 'scripts/functions.py'
 
 use_singularity = check_config()
 
+multicore = int(os.getenv('MULTICORE', 16))
+maxcore = int(os.getenv('MAXCORE', 32))
+
 similarity = apply_similarity_search_defaults()
+
 reads = get_read_info(config)
 keep = False
 if 'keep_intermediates' in config:
