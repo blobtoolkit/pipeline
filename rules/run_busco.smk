@@ -25,8 +25,7 @@ rule run_busco:
     resources:
         threads = get_threads('run_busco', multicore)
     shell:
-        'ls {params.lineage_dir}/{params.lineage} && \
-         run_busco \
+        'run_busco \
             -f \
             -i {input.fasta} \
             -o {params.assembly}_{params.lineage} \
@@ -66,8 +65,7 @@ rule run_busco_v4:
     resources:
         threads = get_threads('run_busco', multicore)
     shell:
-        'ls {params.lineage_dir}/{params.lineage} && \
-         busco \
+        'busco \
             -f \
             -i {input.fasta} \
             -o {params.assembly}_{params.lineage} \
