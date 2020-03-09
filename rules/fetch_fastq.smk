@@ -7,8 +7,8 @@ rule fetch_fastq:
     params:
         url = lambda wc: prepare_ebi_sra_url(wc.sra, "%s%s.gz" % (wc.sra, wc.suff))
     wildcard_constraints:
-        sra = r'\wRR\d+',
-        suff = r'[_\d\w]*\.fastq'
+        sra = r'[a-zA-Z0-9]+',
+        suff = r'[\._\d\w]*\.fast[aq]'
     conda:
         '../envs/fetch.yaml'
     threads: get_threads('fetch_fastq', 1)
@@ -20,12 +20,16 @@ rule fetch_fastq:
         download = 1,
         threads = get_threads('fetch_fastq', 1)
     shell:
-        'aria2c -c \
-        --max-connection-per-server=8 \
-        --min-split-size=1M \
-        -s 8 \
-        -l {log} \
-        --log-level=notice \
-        --show-console-readout=false \
-        --console-log-level=error \
-        {params.url}'
+        'if [[ "{params.url}" == *tp://* ]]; then \
+            aria2c -c \
+            --max-connection-per-server=8 \
+            --min-split-size=1M \
+            -s 8 \
+            -l {log} \
+            --log-level=notice \
+            --show-console-readout=false \
+            --console-log-level=error \
+            {params.url}; \
+        else; \
+            cp -n {params.url} ./; \
+        fi'

@@ -1,27 +1,33 @@
+import os
+
 """
 https://github.com/blobtoolkit/insdc-pipeline
+https://blobtoolkit.genomehubs.org/pipeline/
 
-Pipeline to run BlobTools on public assemblies
-----------------------------------------------
+Pipeline to run replace read coverage in a BlobDir
+--------------------------------------------------
 
 Requirements:
- - BLAST+ (ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/)
  - BlobTools2 (https://github.com/blobtoolkit/blobtools2)
  - Conda (https://conda.io/docs/commands/conda-install.html)
  - SnakeMake (http://snakemake.readthedocs.io/en/stable/)
 
 Basic usage:
-  snakemake -p --use-conda
-    --directory path/to/workdir/
-    --configfile path/to/config.yaml
+  snakemake -p --use-conda \
+    --directory ~/workdir \
+    --configfile example.yaml \
+    -s replaceHits.smk
     -j 8
 
 © 2018-19 Richard Challis (University of Edinburgh), MIT License
+© 2019-20 Richard Challis (Wellcome Sanger Institute), MIT License
 """
 
+singularity: "docker://genomehubs/blobtoolkit:latest"
 
 include: 'scripts/functions.py'
 
+use_singularity = check_config()
 similarity = apply_similarity_search_defaults()
 reads = get_read_info(config)
 keep = False
@@ -34,10 +40,19 @@ rule all:
     Dummy rule to set blobDB as target of pipeline
     """
     input:
-        expand("%s.{sra}.bam.stats" % asm,sra=list_sra_accessions(reads)),
-        expand("%s/{sra}_cov.json" % asm,sra=list_sra_accessions(reads))
+        expand("%s.{sra}.bam.stats" % asm, sra=list_sra_accessions(reads)),
+        expand("%s/{sra}_cov.json" % asm, sra=list_sra_accessions(reads)),
+        "%s.meta.updated" % asm
 
 
-include: 'rules/fetch_assembly_files.smk'
+# fetch assembly files
+include: 'rules/fetch_fastq.smk'
+include: 'rules/subsample_fastq.smk'
+# map reads
+include: 'rules/bwa_index.smk'
 include: 'rules/map_reads.smk'
-include: 'rules/blobtools_replace.smk'
+include: 'rules/bamtools_stats.smk'
+# run blobtools
+include: 'rules/generate_metadata.smk'
+include: 'rules/blobtoolkit_add_cov.smk'
+include: 'rules/blobtoolkit_update_meta.smk'

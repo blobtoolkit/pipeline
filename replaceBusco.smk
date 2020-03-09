@@ -1,26 +1,33 @@
+import os
+
 """
 https://github.com/blobtoolkit/insdc-pipeline
+https://blobtoolkit.genomehubs.org/pipeline/
 
-Pipeline to run BlobTools on public assemblies
-----------------------------------------------
+Pipeline to run replace BUSCO results in a BlobDir
+--------------------------------------------------
 
 Requirements:
- - BLAST+ (ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/)
  - BlobTools2 (https://github.com/blobtoolkit/blobtools2)
  - Conda (https://conda.io/docs/commands/conda-install.html)
  - SnakeMake (http://snakemake.readthedocs.io/en/stable/)
 
 Basic usage:
-  snakemake -p --use-conda
-    --directory path/to/workdir/
-    --configfile path/to/config.yaml
+  snakemake -p --use-conda \
+    --directory ~/workdir \
+    --configfile example.yaml \
+    -s replaceHits.smk
     -j 8
 
 © 2018-19 Richard Challis (University of Edinburgh), MIT License
+© 2019-20 Richard Challis (Wellcome Sanger Institute), MIT License
 """
 
+singularity: "docker://genomehubs/blobtoolkit:latest"
 
 include: 'scripts/functions.py'
+
+use_singularity = check_config()
 
 similarity = apply_similarity_search_defaults()
 reads = get_read_info(config)
@@ -38,4 +45,6 @@ rule all:
         expand("%s/{lineage}_busco.json" % asm,lineage=config['busco']['lineages'])
 
 
-include: 'rules/blobtools_replace.smk'
+include: 'rules/fetch_busco_lineage.smk'
+include: 'rules/run_busco.smk'
+include: 'rules/blobtoolkit_add_busco.smk'

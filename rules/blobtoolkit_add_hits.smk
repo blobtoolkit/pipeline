@@ -15,7 +15,8 @@ def hits_params(config, rev, aa=False):
         'taxrule': taxrule,
         'taxdump': taxdump_dir,
         'id': lambda wc: "%s%s" % (wc.assembly, rev),
-        'dbs': '.raw --hits '.join(files)
+        'dbs': '.raw --hits '.join(files),
+        'path': config['settings']['blobtools2_path']
     }
 
 
@@ -40,7 +41,8 @@ rule blobtoolkit_add_hits:
         threads = get_threads('blobtoolkit_add_hits', 1),
         btk = 1
     shell:
-        'blobtools replace \
+        'PATH={params.path}:$PATH && \
+        blobtools replace \
             --hits {params.dbs} \
             --taxrule "{params.taxrule}" \
             --taxdump "{params.taxdump}" \
@@ -68,7 +70,8 @@ rule blobtoolkit_add_nt_hits:
         threads = get_threads('blobtoolkit_add_hits', 1),
         btk = 1
     shell:
-        'blobtools replace \
+        'PATH={params.path}:$PATH && \
+        blobtools replace \
             --hits {params.dbs} \
             --taxrule "{params.taxrule}={params.taxrule}_nt" \
             --taxdump "{params.taxdump}" \
@@ -96,7 +99,8 @@ rule blobtoolkit_add_aa_hits:
         threads = get_threads('blobtoolkit_add_hits', 1),
         btk = 1
     shell:
-        'blobtools replace \
+        'PATH={params.path}:$PATH && \
+        blobtools replace \
             --hits {params.dbs} \
             --taxrule "{params.taxrule}={params.taxrule}_aa" \
             --taxdump "{params.taxdump}" \

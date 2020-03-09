@@ -10,7 +10,8 @@ rule blobtoolkit_add_busco:
     params:
         id = "%s%s" % (config['assembly']['prefix'], rev),
         busco = ' --busco '.join(["%s.busco.%s.tsv" % (config['assembly']['prefix'], lineage)
-                                  for lineage in config['busco']['lineages']])
+                                  for lineage in config['busco']['lineages']]),
+        path = config['settings']['blobtools2_path']
     conda:
         '../envs/blobtools2.yaml'
     threads: get_threads('blobtoolkit_add_busco', 1)
@@ -22,6 +23,7 @@ rule blobtoolkit_add_busco:
         threads = get_threads('blobtoolkit_add_busco', 1),
         btk = 1
     shell:
-        'blobtools replace \
+        'PATH={params.path}:$PATH && \
+        blobtools replace \
             --busco {params.busco} \
             {params.id} > {log} 2>&1'

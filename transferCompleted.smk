@@ -25,7 +25,7 @@ singularity: "docker://genomehubs/blobtoolkit:latest"
 
 include: 'scripts/functions.py'
 
-check_config()
+use_singularity = check_config()
 
 reads = get_read_info(config)
 keep = False

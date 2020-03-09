@@ -1,15 +1,12 @@
-rule blobtoolkit_create:
+rule blobtoolkit_add_meta:
     """
-    Use BlobTools2 create to generate a BlobDir using an assembly fasta file and metadata.
+    Use BlobTools2 replace to update metadata in a BlobDir.
     """
     input:
-        fasta = '{assembly}.fasta',
-        yaml = '{assembly}.meta.yaml',
-        lineages = "%s/taxidlineage.dmp" % config['settings']['taxonomy']
+        yaml = '{assembly}.meta.yaml'
     output:
-        "{assembly}%s/identifiers.json" % rev
+        temp('{assembly}.meta.updated')
     params:
-        taxdump = taxdump_dir,
         id = lambda wc: "%s%s" % (wc.assembly, rev),
         taxid = config['taxon']['taxid'],
         path = config['settings']['blobtools2_path']
@@ -26,8 +23,6 @@ rule blobtoolkit_create:
     shell:
         'PATH={params.path}:$PATH && \
         blobtools replace \
-            --fasta {input.fasta} \
             --meta {input.yaml} \
-            --taxdump "{params.taxdump}" \
             --taxid {params.taxid} \
             {params.id} > {log} 2>&1'

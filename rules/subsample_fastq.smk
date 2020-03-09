@@ -9,8 +9,8 @@ rule subsample_fastq:
     params:
         cmd = lambda wc: generate_subsample_command(wc.sra, reads)
     wildcard_constraints:
-        sra = r'\wRR\d+',
-        suff = r'[_\dsubread]*\.subsampled.fastq'
+        sra = r'[a-zA-Z0-9]+',
+        suff = r'[\._\d\w]*\.subsampled.fast[aq]'
     conda:
         '../envs/pyblast.yaml'
     threads: get_threads('subsample_fastq', 1)

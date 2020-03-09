@@ -53,7 +53,6 @@ def check_config():
                     quit("ERROR: config file section '%s' must contain '%s'" % (section['name'], key))
     if '--use-singularity' in sys.argv:
         return True
-    sys.path.insert(0,config['settings']['blobtools2_path'])
     return False
 
 
@@ -210,7 +209,7 @@ def list_read_files(accession, reads, subsample):
     files = []
     for fq_url in reads[accession]['url']:
         file = re.sub(r'.+\/', '', fq_url)
-        if subsample:
+        if subsample and 'subsample' in reads[accession]:
             file = file.replace('fastq', 'subsampled.fastq')
         files.append(file)
     return files
@@ -240,7 +239,7 @@ def prepare_ebi_sra_url(acc, file):
         urls += url.split(';')
     for url in urls:
         if file in url:
-            if 'ftp://' not in url:
+            if url.startswith('ftp') and 'ftp://' not in url:
                 url = 'ftp://'+url
             return url
     return ''
@@ -331,5 +330,3 @@ def git_dir(wc):
     else:
         dir = os.path.dirname(os.path.abspath(workflow.snakefile))+'/.git'
     return dir
-
-
