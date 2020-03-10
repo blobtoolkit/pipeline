@@ -17,8 +17,6 @@ rule map_reads:
         'logs/{assembly}/map_reads/{sra}.log'
     benchmark:
         'logs/{assembly}/map_reads/{sra}.benchmark.txt'
-    resources:
-        threads = get_threads('map_reads', maxcore)
     shell:
         '({params.cmd} -t {threads} {input.fasta} {input.fastq} | \
         samtools view -h -T {input.fasta} - | \

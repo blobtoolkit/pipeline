@@ -20,7 +20,5 @@ rule unchunk_blast:
         'logs/{assembly}/unchunk_blast/{type}.{name}.root.{root}{masked}.log'
     benchmark:
         'logs/{assembly}/unchunk_blast/{type}.{name}.root.{root}{masked}.benchmark.txt'
-    resources:
-        threads = get_threads('unchunk_blast', 1)
     script:
         'scripts/unchunk_blast.py'

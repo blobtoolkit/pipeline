@@ -22,8 +22,6 @@ rule run_busco:
         'logs/{assembly}/run_busco/{lineage}.log'
     benchmark:
         'logs/{assembly}/run_busco/{lineage}.benchmark.txt'
-    resources:
-        threads = get_threads('run_busco', multicore)
     shell:
         'run_busco \
             -f \

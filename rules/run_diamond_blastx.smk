@@ -35,7 +35,7 @@ rule run_diamond_blastx:
         max_target_seqs = lambda wc: similarity[wc.name]['max_target_seqs']
     conda:
         '../envs/diamond.yaml'
-    threads: get_threads('run_diamond_blastx', maxcore, 0.56)
+    threads: get_threads('run_diamond_blastx', maxcore)
     log:
         'logs/{assembly}/run_diamond_blastx/{name}.root.{root}{masked}.log'
     benchmark:
@@ -74,13 +74,11 @@ rule run_diamond_blastx_chunks:
         max_target_seqs = lambda wc: similarity[wc.name]['max_target_seqs']
     conda:
         '../envs/diamond.yaml'
-    threads: get_threads('run_diamond_blastx', maxcore, 0.56)
+    threads: get_threads('run_diamond_blastx', maxcore)
     log:
         'logs/{assembly}/run_diamond_blastx_chunks/{name}.root.{root}{masked}.log'
     benchmark:
         'logs/{assembly}/run_diamond_blastx_chunks/{name}.root.{root}{masked}.benchmark.txt'
-    resources:
-        threads = get_threads('run_diamond_blastx', maxcore)
     shell:
         'if ! [ -s {input[0]} ]; then \
             touch {output} && exit 0; \

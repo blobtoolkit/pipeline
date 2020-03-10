@@ -18,8 +18,6 @@ rule validate_dataset:
         'logs/{assembly}/validate_dataset.log'
     benchmark:
         'logs/{assembly}/validate_dataset.benchmark.txt'
-    resources:
-        threads = get_threads('validate_dataset', 1)
     shell:
         'validate.py {params.assembly}/meta.json > {log} 2>&1 \
         && touch {params.assembly}.valid'

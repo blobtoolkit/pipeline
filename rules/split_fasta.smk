@@ -22,7 +22,6 @@ rule split_fasta:
     benchmark:
         'logs/expand_and_split_fasta/{name}.benchmark.txt'
     resources:
-        tmpdir = 128,
-        threads = get_threads('split_fasta', multicore)
+        tmpdir = 128
     script:
         '../scripts/expand_and_split_fasta.py'

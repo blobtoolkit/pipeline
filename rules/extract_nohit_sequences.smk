@@ -14,7 +14,5 @@ rule extract_nohit_sequences:
         'logs/{assembly}/extract_nohit_sequences/{name}.root.{root}{masked}.log'
     benchmark:
         'logs/{assembly}/extract_nohit_sequences/{name}.root.{root}{masked}.benchmark.txt'
-    resources:
-        threads = get_threads('extract_nohit_sequences', 1)
     shell:
         'seqtk subseq {input.fasta} {input.nohit} > {output} 2> {log}'

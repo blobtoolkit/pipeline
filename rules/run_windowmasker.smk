@@ -14,8 +14,6 @@ rule run_windowmasker:
         'logs/{assembly}/run_windowmasker.log'
     benchmark:
         'logs/{assembly}/run_windowmasker.benchmark.txt'
-    resources:
-        threads = get_threads('run_windowmasker', 1)
     shell:
         'windowmasker -in {input} \
                       -infmt fasta \

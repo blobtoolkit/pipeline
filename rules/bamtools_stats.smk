@@ -13,8 +13,6 @@ rule bamtools_stats:
         'logs/{assembly}/bamtools_stats/{sra}.log'
     benchmark:
         'logs/{assembly}/bamtools_stats/{sra}.benchmark.txt'
-    resources:
-        threads = get_threads('bamtools_stats', 1)
     shell:
         'bamtools stats \
             -in {input.bam} \

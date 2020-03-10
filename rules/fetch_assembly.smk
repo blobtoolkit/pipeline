@@ -16,8 +16,7 @@ rule fetch_assembly:
     benchmark:
         'logs/{assembly}/fetch_assembly.benchmark.txt'
     resources:
-        download = 1,
-        threads = get_threads('fetch_assembly', 1)
+        download = 1
     shell:
         '(curl -s {params.url} | \
         pigz -d > {output.fa}) 2> {log}'

@@ -14,7 +14,5 @@ rule generate_metadata:
         'logs/{assembly}/generate_metadata.log'
     benchmark:
         'logs/{assembly}/generate_metadata.benchmark.txt'
-    resources:
-        threads = get_threads('generate_metadata', 1)
     script:
         '../scripts/generate_metadata.py'

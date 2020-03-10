@@ -19,8 +19,7 @@ rule fetch_ncbi_db:
     benchmark:
         'logs/fetch_ncbi_db/{name}.{suffix}.benchmark.txt'
     resources:
-        download = 1,
-        threads = get_threads('fetch_ncbi_db', 1)
+        download = 1
     shell:
         '(wget "{params.ftp_url}{params.ftp_dir}{params.name}.??.tar.gz" -P {params.path}/ && \
         for file in {params.path}/*.tar.gz; \

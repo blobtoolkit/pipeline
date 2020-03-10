@@ -16,8 +16,7 @@ rule fetch_uniprot:
     benchmark:
         'logs/fetch_uniprot/{name}.benchmark.txt'
     resources:
-        download = 1,
-        threads = get_threads('fetch_uniprot', 1)
+        download = 1
     shell:
         '(wget -q -O {params.path}/full/{wildcards.name}.tar.gz \
             {params.ftp_url}/{params.ftp_dir}/$(curl \

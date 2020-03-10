@@ -32,7 +32,5 @@ rule run_blastn:
         'logs/{assembly}/run_blastn/{name}.root.{root}{masked}.log'
     benchmark:
         'logs/{assembly}/run_blastn/{name}.root.{root}{masked}.benchmark.txt'
-    resources:
-        threads = get_threads('run_blastn', maxcore)
     script:
         '../scripts/blast_wrapper.py'

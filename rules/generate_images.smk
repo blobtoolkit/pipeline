@@ -18,7 +18,5 @@ rule generate_images:
         'logs/{assembly}/generate_images.log'
     benchmark:
         'logs/{assembly}/generate_images.benchmark.txt'
-    resources:
-        threads = get_threads('generate_images', 3)
     script:
         '../scripts/generate_static_images.py'

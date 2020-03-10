@@ -288,8 +288,10 @@ def platform_cov_files(reads, assembly):
     return list(map(lambda platform: "%s.%s.sum.cov" % (assembly, platform), platforms))
 
 
-def get_threads(rule, default, ratio=1):
-    if rule in cluster_config and 'threads' in cluster_config[rule]:
+def get_threads(rule, default):
+    if rule in cluster_config and 'run_threads' in cluster_config[rule]:
+        return int(cluster_config[rule]['run_threads'] * ratio)
+    elif rule in cluster_config and 'threads' in cluster_config[rule]:
         return int(cluster_config[rule]['threads'] * ratio)
     elif '__default__' in cluster_config and 'threads' in cluster_config['__default__']:
         return int(cluster_config['__default__']['threads'] * ratio)

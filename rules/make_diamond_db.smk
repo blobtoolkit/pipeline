@@ -24,8 +24,6 @@ rule make_diamond_db:
         'logs/make_diamond_db/{name}.root.{root}{masked}.log'
     benchmark:
         'logs/make_diamond_db/{name}.root.{root}{masked}.benchmark.txt'
-    resources:
-        threads = get_threads('make_diamond_db', maxcore)
     shell:
         '(mkdir -p {params.tmpdir} && \
         echo "accession\taccession.version\ttaxid\tgi" > {params.tmpdir}/{params.db}.taxid_map && \

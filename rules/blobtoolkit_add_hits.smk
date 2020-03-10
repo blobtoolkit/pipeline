@@ -38,7 +38,6 @@ rule blobtoolkit_add_hits:
     benchmark:
         'logs/{assembly}/blobtoolkit_add_hits.benchmark.txt'
     resources:
-        threads = get_threads('blobtoolkit_add_hits', 1),
         btk = 1
     shell:
         'PATH={params.path}:$PATH && \
@@ -67,7 +66,6 @@ rule blobtoolkit_add_nt_hits:
     benchmark:
         'logs/{assembly}/blobtoolkit_add_nt_hits.benchmark.txt'
     resources:
-        threads = get_threads('blobtoolkit_add_hits', 1),
         btk = 1
     shell:
         'PATH={params.path}:$PATH && \

@@ -20,7 +20,6 @@ rule blobtoolkit_add_cov:
     benchmark:
         "logs/%s/blobtoolkit_add_cov.benchmark.txt" % config['assembly']['prefix']
     resources:
-        threads = get_threads('blobtoolkit_add_cov', 1),
         btk = 1
     shell:
         'PATH={params.path}:$PATH && \

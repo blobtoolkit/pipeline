@@ -18,8 +18,6 @@ rule make_uniprot_db:
         'logs/{name}.make_uniprot_db.log'
     benchmark:
         'logs/{name}.make_uniprot_db.benchmark.txt'
-    resources:
-        threads = get_threads('make_uniprot_db', maxcore)
     shell:
         '(mkdir -p {params.tmpdir} && \
         echo "accession\taccession.version\ttaxid\tgi" > {params.tmpdir}/{params.db}.taxid_map && \

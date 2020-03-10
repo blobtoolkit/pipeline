@@ -18,8 +18,7 @@ rule fetch_busco_lineage:
     benchmark:
         'logs/fetch_busco_lineage/{lineage}.benchmark.txt'
     resources:
-        download = 1,
-        threads = get_threads('fetch_busco_lineage', 1)
+        download = 1
     shell:
         '(wget -q -O {params.dir}/{params.lineage}.tar.gz "https://{params.path}/{params.lineage}{params.date}.tar.gz" \
         && tar xf {params.dir}/{params.lineage}.tar.gz -C {params.dir}) 2> {log}'

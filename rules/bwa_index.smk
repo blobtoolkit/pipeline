@@ -13,7 +13,5 @@ rule bwa_index:
         'logs/{assembly}/bwa_index.log'
     benchmark:
         'logs/{assembly}/bwa_index.benchmark.txt'
-    resources:
-        threads = get_threads('bwa_index', 1)
     shell:
         'bwa index -a bwtsw {input} > {log} 2>&1'

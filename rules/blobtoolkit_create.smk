@@ -21,7 +21,6 @@ rule blobtoolkit_create:
     benchmark:
         'logs/{assembly}/blobtoolkit_create.benchmark.txt'
     resources:
-        threads = get_threads('blobtoolkit_create', 1),
         btk = 1
     shell:
         'PATH={params.path}:$PATH && \

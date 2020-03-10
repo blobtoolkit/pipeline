@@ -16,8 +16,7 @@ rule fetch_taxdump:
     benchmark:
         'logs/fetch_taxdump.benchmark.txt'
     resources:
-        download=1,
-        threads=get_threads('fetch_taxdump', 1)
+        download=1
     shell:
         '(wget -q -O taxdump.tar.gz ftp.ncbi.nlm.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz \
         && tar xzvf taxdump.tar.gz \

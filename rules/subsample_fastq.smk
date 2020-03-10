@@ -19,7 +19,6 @@ rule subsample_fastq:
     benchmark:
         "logs/%s/subsample_fastq/{sra}{suff}.benchmark.txt" % config['assembly']['prefix']
     resources:
-        download = 1,
-        threads = get_threads('subsample_fastq', 1)
+        download = 1
     shell:
         '({params.cmd[0]} {input} {params.cmd[1]} {output}) 2> {log}'

@@ -17,8 +17,7 @@ rule fetch_fastq:
     benchmark:
         "logs/%s/fetch_fastq/{sra}{suff}.benchmark.txt" % config['assembly']['prefix']
     resources:
-        download = 1,
-        threads = get_threads('fetch_fastq', 1)
+        download = 1
     shell:
         'if [[ "{params.url}" == *tp://* ]]; then \
             aria2c -c \

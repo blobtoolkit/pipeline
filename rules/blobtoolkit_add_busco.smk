@@ -20,7 +20,6 @@ rule blobtoolkit_add_busco:
     benchmark:
         "logs/%s/blobtoolkit_add_busco.benchmark.txt" % config['assembly']['prefix']
     resources:
-        threads = get_threads('blobtoolkit_add_busco', 1),
         btk = 1
     shell:
         'PATH={params.path}:$PATH && \

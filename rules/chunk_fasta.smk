@@ -17,7 +17,5 @@ rule chunk_fasta:
         'logs/{assembly}/chunk_fasta.log'
     benchmark:
         'logs/{assembly}/chunk_fasta.benchmark.txt'
-    resources:
-        threads = get_threads('run_blastn', 1)
     script:
         '../scripts/chunk_fasta.py'

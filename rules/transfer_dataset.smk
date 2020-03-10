@@ -14,8 +14,6 @@ rule transfer_dataset:
         'logs/{assembly}/transfer_dataset.log'
     benchmark:
         'logs/{assembly}/transfer_dataset.benchmark.txt'
-    resources:
-        threads = get_threads('transfer_dataset', 1)
     shell:
         '(rsync -av --remove-source-files {params.assembly}* {params.destdir}/ \
         && rmdir {params.assembly} \

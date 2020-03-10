@@ -18,7 +18,6 @@ rule extract_uniprot:
     benchmark:
         'logs/extract_uniprot/{name}.benchmark.txt'
     resources:
-        tmpdir = 24,
-        threads = get_threads('extract_uniprot', 1)
+        tmpdir = 24
     script:
         '../scripts/extract_uniprot.py'

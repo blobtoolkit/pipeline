@@ -15,7 +15,5 @@ rule generate_summary:
         'logs/{assembly}/generate_summary.log'
     benchmark:
         'logs/{assembly}/generate_summary.benchmark.txt'
-    resources:
-        threads = get_threads('generate_summary', 1)
     shell:
         'blobtools filter --summary {output} {params.assembly} 2> {log}'

@@ -21,7 +21,5 @@ rule make_taxid_list:
         'logs/make_taxid_list/{name}.root.{root}{masked}.log'
     benchmark:
         'logs/make_taxid_list/{name}.root.{root}{masked}.benchmark.txt'
-    resources:
-        threads = get_threads('make_taxid_list', 1)
     script:
         '../scripts/make_taxid_list.py'

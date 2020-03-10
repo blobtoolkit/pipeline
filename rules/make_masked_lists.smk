@@ -21,7 +21,5 @@ rule make_masked_lists:
         'logs/make_masked_lists/{name}.root.{root}{masked}.log'
     benchmark:
         'logs/make_masked_lists/{name}.root.{root}{masked}.benchmark.txt'
-    resources:
-        threads = get_threads('make_masked_lists', maxcore)
     script:
         '../scripts/make_masked_lists.py'

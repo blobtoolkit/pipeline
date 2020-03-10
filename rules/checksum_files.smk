@@ -13,8 +13,6 @@ rule checksum_files:
         'logs/{assembly}/checksum_files.log'
     benchmark:
         'logs/{assembly}/checksum_files.benchmark.txt'
-    resources:
-        threads = get_threads('checksum_files', 1)
     shell:
         '(find {params.assembly}/ -type f -exec sha1sum {{}} \';\' \
         | sort -k 2 \
