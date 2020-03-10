@@ -30,6 +30,6 @@ rule fetch_fastq:
             --show-console-readout=false \
             --console-log-level=error \
             {params.url}; \
-        else; \
-            cp -n {params.url} ./; \
+        else \
+            cp -n {params.url} ./ 2> {log}; \
         fi'

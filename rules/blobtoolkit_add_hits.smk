@@ -98,6 +98,8 @@ rule blobtoolkit_add_aa_hits:
     resources:
         threads = get_threads('blobtoolkit_add_hits', 1),
         btk = 1
+    priority:
+        100
     shell:
         'PATH={params.path}:$PATH && \
         blobtools replace \

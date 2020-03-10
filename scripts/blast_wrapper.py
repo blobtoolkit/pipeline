@@ -77,6 +77,7 @@ def parse_args():
         '-max_hsps': '1'
     }
     try:
+        script_params['-chunks'] = snakemake.output.chunks
         script_params['-query'] = snakemake.input.fasta
         blast_params['-db'] = "%s/%s" % (snakemake.params.dir, snakemake.wildcards.name)
         blast_params['-taxidlist'] = snakemake.input.taxids
@@ -87,10 +88,43 @@ def parse_args():
         script_params['-num_threads'] = int(snakemake.threads)
         blast_params['-evalue'] = str(snakemake.params.evalue)
         blast_params['-max_target_seqs'] = str(snakemake.params.max_target_seqs)
-        script_params['-raw'] = snakemake.output.raw
-        script_params['-chunks'] = snakemake.output.chunks
-        script_params['-nohit'] = snakemake.output.nohit
-        script_params['-out'] = snakemake.output.out
+        try:
+            script_params['-raw'] = snakemake.output.raw
+        except AttributeError:
+            pass
+        try:
+            script_params['-nohit'] = snakemake.output.nohit
+        except AttributeError:
+            pass
+        try:
+            script_params['-out'] = snakemake.output.out
+        except AttributeError:
+            pass
+        script_params['-max_target_seqs'] = blast_params['-max_target_seqs']
+        if script_params['-multiprocessing'] == 'False':
+            blast_params['-num_threads'] = str(script_params['-num_threads'])
+        blast_list = [item for k in blast_params for item in (k, blast_params[k])]
+        return (script_params, blast_list)
+    except AttributeError:
+        script_params['-query'] = snakemake.input.fasta
+        blast_params['-db'] = "%s/%s" % (snakemake.params.dir, snakemake.wildcards.name)
+        blast_params['-taxidlist'] = snakemake.input.taxids
+        script_params['-multiprocessing'] = str(snakemake.params.multiprocessing)
+        script_params['-num_threads'] = int(snakemake.threads)
+        blast_params['-evalue'] = str(snakemake.params.evalue)
+        blast_params['-max_target_seqs'] = str(snakemake.params.max_target_seqs)
+        try:
+            script_params['-raw'] = snakemake.output.raw
+        except AttributeError:
+            pass
+        try:
+            script_params['-nohit'] = snakemake.output.nohit
+        except AttributeError:
+            pass
+        try:
+            script_params['-out'] = snakemake.output.out
+        except AttributeError:
+            pass
         script_params['-max_target_seqs'] = blast_params['-max_target_seqs']
         if script_params['-multiprocessing'] == 'False':
             blast_params['-num_threads'] = str(script_params['-num_threads'])
@@ -180,7 +214,7 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
                 yield {'title': title, 'seq': seq, 'chunks': 1, 'start': 0}
 
 
-def read_fasta(fastafile, ):
+def read_fasta(fastafile):
     """Read FASTA file one sequence at a time."""
     cmd = "cat %s" % fastafile
     # TODO: read gzipped files if needed
@@ -193,8 +227,7 @@ def read_fasta(fastafile, ):
             title = header.__next__()[1:].strip().split()[0]
             seq = ''.join(map(lambda s: s.strip(), faiter.__next__()))
             seq_length = len(seq)
-            else:
-                yield {'title': title, 'seq': seq, 'chunks': 1, 'start': 0}
+            yield {'title': title, 'seq': seq, 'chunks': 1, 'start': 0}
 
 
 def run_blast(seqs, cmd, blast_list, index, batches):
@@ -258,7 +291,7 @@ if __name__ == '__main__':
     try:
         seqs = []
         names = set()
-        if script_params['-chunks']:
+        if script_params['-chunk']:
             for seq in chunk_fasta(script_params['-query'],
                                    chunk=script_params['-chunk'],
                                    overlap=script_params['-overlap'],
@@ -266,14 +299,18 @@ if __name__ == '__main__':
                 if not re.match('^N+$', seq['seq']):
                     names.add(seq['title'])
                     seqs.append((seq))
-            chunked = ''
-            for seq in seqs:
-                chunked += ">%s_-_%d\n" % (seq['title'], seq['start'])
-                chunked += "%s\n" % seq['seq']
-            with open(script_params['-chunks'], 'w') as ofh:
-                ofh.writelines(chunked)
+            if script_params['-chunks']:
+                chunked = ''
+                for seq in seqs:
+                    chunked += ">%s_-_%d\n" % (seq['title'], seq['start'])
+                    chunked += "%s\n" % seq['seq']
+                with open(script_params['-chunks'], 'w') as ofh:
+                    ofh.writelines(chunked)
         else:
-
+            for seq in read_fasta(script_params['-query']):
+                if not re.match('^N+$', seq['seq']):
+                    names.add(seq['title'])
+                    seqs.append((seq))
         n_chunks = len(seqs)
         if n_chunks == 0:
             logger.error("no sequences found in query file '%s'" % script_params['-query'])

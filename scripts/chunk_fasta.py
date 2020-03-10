@@ -1,18 +1,5 @@
 #!/usr/bin/env python3
-
-"""
-Chunk FASTA.
-
-Usage: ./chunk_fasta.py --in FASTA [--chunk INT] [--overlap INT] [--max-chunks INT]
-                                   [--out CHUNKED_FASTA]
-
-Options:
-    --in FASTA           input FASTA file.
-    --chunk INT          sequences greater than CHUNK bp will be split. [Default: 100000]
-    --overlap INT        length of overlap when splitting sequences. [Default: 500]
-    --max-chunks INT     maximum number of chunks to split a sequence into. [Default: 10]
-    --out CHUNKED_FASTA  output filename. [Default: .chunked]
-"""
+"""Split long sequences into chunks."""
 
 import math
 import sys
@@ -27,6 +14,20 @@ from docopt import docopt
 from random import shuffle
 from itertools import groupby
 from subprocess import Popen, PIPE
+
+docs = """
+Chunk FASTA.
+
+Usage: ./chunk_fasta.py [--in FASTA] [--chunk INT] [--overlap INT] [--max-chunks INT]
+                                     [--out CHUNKED_FASTA]
+
+Options:
+    --in FASTA           input FASTA file.
+    --chunk INT          sequences greater than CHUNK bp will be split. [Default: 100000]
+    --overlap INT        length of overlap when splitting sequences. [Default: 500]
+    --max-chunks INT     maximum number of chunks to split a sequence into. [Default: 10]
+    --out CHUNKED_FASTA  output filename. [Default: .chunked]
+"""
 
 logger_config = {
     'level': logging.INFO,
@@ -77,7 +78,7 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
 
 
 if __name__ == '__main__':
-    args = docopt(__doc__)
+    args = docopt(docs)
     try:
         args['--in'] = snakemake.input[0]
         args['--chunk'] = int(snakemake.params.chunk)
