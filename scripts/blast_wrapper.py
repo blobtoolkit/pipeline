@@ -180,6 +180,23 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
                 yield {'title': title, 'seq': seq, 'chunks': 1, 'start': 0}
 
 
+def read_fasta(fastafile, ):
+    """Read FASTA file one sequence at a time."""
+    cmd = "cat %s" % fastafile
+    # TODO: read gzipped files if needed
+    # cmd = "pigz -dc %s" % fastafile
+    title = ''
+    seq = ''
+    with Popen(shlex.split(cmd), encoding='utf-8', stdout=PIPE, bufsize=4096) as proc:
+        faiter = (x[1] for x in groupby(proc.stdout, lambda line: line[0] == '>'))
+        for header in faiter:
+            title = header.__next__()[1:].strip().split()[0]
+            seq = ''.join(map(lambda s: s.strip(), faiter.__next__()))
+            seq_length = len(seq)
+            else:
+                yield {'title': title, 'seq': seq, 'chunks': 1, 'start': 0}
+
+
 def run_blast(seqs, cmd, blast_list, index, batches):
     """Run blast on seqs."""
     logger.info("running BLAST on %d sequences in batch %d of %d" % (len(seqs), index, batches))
@@ -241,20 +258,22 @@ if __name__ == '__main__':
     try:
         seqs = []
         names = set()
-        for seq in chunk_fasta(script_params['-query'],
-                               chunk=script_params['-chunk'],
-                               overlap=script_params['-overlap'],
-                               max_chunks=script_params['-max_chunks']):
-            if not re.match('^N+$', seq['seq']):
-                names.add(seq['title'])
-                seqs.append((seq))
         if script_params['-chunks']:
+            for seq in chunk_fasta(script_params['-query'],
+                                   chunk=script_params['-chunk'],
+                                   overlap=script_params['-overlap'],
+                                   max_chunks=script_params['-max_chunks']):
+                if not re.match('^N+$', seq['seq']):
+                    names.add(seq['title'])
+                    seqs.append((seq))
             chunked = ''
             for seq in seqs:
                 chunked += ">%s_-_%d\n" % (seq['title'], seq['start'])
                 chunked += "%s\n" % seq['seq']
             with open(script_params['-chunks'], 'w') as ofh:
                 ofh.writelines(chunked)
+        else:
+
         n_chunks = len(seqs)
         if n_chunks == 0:
             logger.error("no sequences found in query file '%s'" % script_params['-query'])
@@ -338,14 +357,15 @@ if __name__ == '__main__':
         if script_params['-out']:
             logger.info("Writing output to file '%s'" % script_params['-out'])
             parse_raw_output(output, script_params['-out'], script_params['-max_target_seqs'])
-        logger.info("Writing nohit IDs to file '%s'" % script_params['-nohit'])
-        try:
-            with open(script_params['-nohit'], 'w') as ofh:
-                ofh.writelines('\n'.join(names))
-        except Exception as err:
-            logger.error(err)
-            logger.error("Unable to write nohit IDs to %s" % script_params['-nohit'])
-            exit(1)
+        if script_params['-nohit']:
+            logger.info("Writing nohit IDs to file '%s'" % script_params['-nohit'])
+            try:
+                with open(script_params['-nohit'], 'w') as ofh:
+                    ofh.writelines('\n'.join(names))
+            except Exception as err:
+                logger.error(err)
+                logger.error("Unable to write nohit IDs to %s" % script_params['-nohit'])
+                exit(1)
     except Exception as err:
         logger.error(err)
         exit(1)

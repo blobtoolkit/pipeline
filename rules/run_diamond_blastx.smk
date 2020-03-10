@@ -10,7 +10,7 @@ def blastx_inputs(wc):
 def blastx_chunk_inputs(wc):
     if config['similarity']['taxrule'].startswith('each'):
         return [
-            "%s.blastn.%s.root.%s%s.chunks.fasta" % (wc.assembly, blast_db_name(config), wc.root, wc.masked),
+            "%s.chunks.fasta" % wc.assembly,
             "%s.root.%s%s.dmnd" % (wc.name, wc.root, wc.masked)
         ]
     return ['nullfile1', 'nullfile2']
@@ -68,7 +68,6 @@ rule run_diamond_blastx_chunks:
     wildcard_constraints:
         root = r'\d+',
         masked = r'.[fm][ulins\d\.]+',
-        assembly = r'\w+',
         name = 'reference_proteomes'
     params:
         db = lambda wc: "%s.root.%s%s" % (wc.name, wc.root, wc.masked),

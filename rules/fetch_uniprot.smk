@@ -4,9 +4,6 @@ rule fetch_uniprot:
     """
     output:
         temp("%s/full/{name}.tar.gz" % similarity['reference_proteomes']['local'])
-    wildcard_constraints:
-        # NB: the path to the local copy of the file must contain the string 'uniprot'
-        path = '.+uniprot.+'
     params:
         ftp_url = 'ftp.ebi.ac.uk',
         ftp_dir = 'pub/databases/uniprot/current_release/knowledgebase/{name}',

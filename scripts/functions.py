@@ -51,6 +51,20 @@ def check_config():
                     config[section['name']][key] = value
                 else:
                     quit("ERROR: config file section '%s' must contain '%s'" % (section['name'], key))
+    # fill in additional database info
+    for db in config['similarity']['databases']:
+        if 'name' not in db or 'local' not in db:
+            quit("ERROR: 'name' and 'local' must be specified for all databases")
+        if db['name'] == 'nt' or db['name'] == 'nt_v5':
+            db.update({'source': 'ncbi',
+                       'tool': 'blast',
+                       'type': 'nucl'})
+        elif db['name'] == 'reference_proteomes':
+            db.update({'source': 'uniprot',
+                       'tool': 'diamond',
+                       'type': 'prot'})
+        else:
+            print("INFO: only 'nt' and 'reference_proteomes' databases are supported, ignoring '%s'" % db['name'])
     if '--use-singularity' in sys.argv:
         return True
     return False

@@ -1,42 +1,110 @@
 #!/usr/bin/env python3
 
+"""
+Chunk FASTA.
+
+Usage: ./chunk_fasta.py --in FASTA [--chunk INT] [--overlap INT] [--max-chunks INT]
+                                   [--out CHUNKED_FASTA]
+
+Options:
+    --in FASTA           input FASTA file.
+    --chunk INT          sequences greater than CHUNK bp will be split. [Default: 100000]
+    --overlap INT        length of overlap when splitting sequences. [Default: 500]
+    --max-chunks INT     maximum number of chunks to split a sequence into. [Default: 10]
+    --out CHUNKED_FASTA  output filename. [Default: .chunked]
+"""
+
 import math
+import sys
+import time
+import shlex
+import logging
+import re
+import glob
+import os.path
+from collections import defaultdict
+from docopt import docopt
+from random import shuffle
 from itertools import groupby
-from multiprocessing import Pool
-from shlex import split
-from subprocess import Popen, PIPE, run
+from subprocess import Popen, PIPE
 
-FASTAFILE = snakemake.input[0]
-CHUNK = int(snakemake.params.chunk)
-OVERLAP = int(snakemake.params.overlap)
-OUTFILE = snakemake.output[0]
+logger_config = {
+    'level': logging.INFO,
+    'format': '%(asctime)s [%(levelname)s] line %(lineno)d %(message)s',
+    'filemode': 'w'
+}
+try:
+    logger_config.update({'filename': snakemake.log[0]})
+except NameError as err:
+    pass
+logging.basicConfig(**logger_config)
+logger = logging.getLogger()
 
-def chunk_fasta(fastafile,chunk=math.inf,overlap=0):
-    """
-    Read FASTA file one sequence at a time and split long sequences into chunks
-    """
+
+def chunk_size(value):
+    """Calculate nice value for chunk size."""
+    mag = math.floor(math.log10(value))
+    first = int(str(value)[:2]) + 1
+    chunk_size = first * pow(10, mag-1)
+    return chunk_size
+
+
+def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
+    """Read FASTA file one sequence at a time and split long sequences into chunks."""
     cmd = "cat %s" % fastafile
     # TODO: read gzipped files if needed
     # cmd = "pigz -dc %s" % fastafile
     title = ''
     seq = ''
     segment = chunk + overlap
-    with Popen(split(cmd), encoding='utf-8', stdout=PIPE, bufsize=4096) as proc:
+    with Popen(shlex.split(cmd), encoding='utf-8', stdout=PIPE, bufsize=4096) as proc:
         faiter = (x[1] for x in groupby(proc.stdout, lambda line: line[0] == '>'))
         for header in faiter:
             title = header.__next__()[1:].strip().split()[0]
-            seq = ''.join(map(lambda s: s.strip(),faiter.__next__()))
+            seq = ''.join(map(lambda s: s.strip(), faiter.__next__()))
             seq_length = len(seq)
+            my_chunk = chunk
             if seq_length > segment:
                 n = (seq_length + chunk) // chunk
-                for i in range(0, seq_length, chunk):
+                if n > max_chunks:
+                    my_chunk = chunk_size(seq_length / max_chunks)
+                    n = max_chunks
+                for i in range(0, seq_length, my_chunk):
                     subseq = seq[i:i+segment]
-                    yield {'title':title,'seq':subseq,'chunks':n,'start':i}
+                    yield {'title': title, 'seq': subseq, 'chunks': n, 'start': i}
             else:
-                yield {'title':title,'seq':seq,'chunks':1,'start':0}
+                yield {'title': title, 'seq': seq, 'chunks': 1, 'start': 0}
+
 
 if __name__ == '__main__':
-    with open(OUTFILE, 'w') as ofh:
-        for seq in chunk_fasta(FASTAFILE,CHUNK,OVERLAP):
-            ofh.write(">%s_-_%d\n" % (seq['title'],seq['start']))
-            ofh.write("%s\n" % seq['seq'])
+    args = docopt(__doc__)
+    try:
+        args['--in'] = snakemake.input[0]
+        args['--chunk'] = int(snakemake.params.chunk)
+        args['--overlap'] = int(snakemake.params.overlap)
+        args['--max-chunks'] = int(snakemake.params.max_chunks)
+        args['--out'] = snakemake.output[0]
+    except NameError as err:
+        logger.info(err)
+        logger.info('Parsing parameters from command line')
+    logger.info("Spliting %s into chunks" % args['--in'])
+    try:
+        seqs = []
+        for seq in chunk_fasta(args['--in'],
+                               chunk=int(args['--chunk']),
+                               overlap=int(args['--overlap']),
+                               max_chunks=int(args['--max-chunks'])):
+            if not re.match('^N+$', seq['seq']):
+                seqs.append((seq))
+        chunked = ''
+        for seq in seqs:
+            chunked += ">%s_-_%d\n" % (seq['title'], seq['start'])
+            chunked += "%s\n" % seq['seq']
+        outfile = args['--out']
+        if outfile.startswith('.'):
+            outfile = "%s%s" % (args['--in'], args['--out'])
+        with open(outfile, 'w') as ofh:
+            ofh.writelines(chunked)
+    except Exception as err:
+        logger.error(err)
+        exit(1)

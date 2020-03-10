@@ -68,6 +68,7 @@ include: 'rules/make_diamond_db.smk'
 include: 'rules/unchunk_blast.smk'
 # run similarity searches
 include: 'rules/run_windowmasker.smk'
+include: 'rules/chunk_fasta.smk'
 include: 'rules/run_blastn.smk'
 include: 'rules/extract_nohit_sequences.smk'
 include: 'rules/run_diamond_blastx.smk'

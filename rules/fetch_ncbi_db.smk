@@ -5,8 +5,6 @@ rule fetch_ncbi_db:
     output:
         "%s/{name}.{suffix}" % similarity['blastdb']['local']
     wildcard_constraints:
-        # NB: the path to the local copy of the file must contain the string 'ncbi'
-        path = '.+ncbi.+',
         suffix = '[np]al'
     params:
         ftp_url = 'ftp://ftp.ncbi.nlm.nih.gov/blast/db/',
@@ -16,8 +14,6 @@ rule fetch_ncbi_db:
     conda:
         '../envs/fetch.yaml'
     threads: get_threads('fetch_ncbi_db', 1)
-    # log:
-    #     lambda wc: "logs/fetch_ncbi_db/%s.%s.log" % (wc.name, wc.suffix)
     log:
         'logs/fetch_ncbi_db/{name}.{suffix}.log'
     benchmark:
