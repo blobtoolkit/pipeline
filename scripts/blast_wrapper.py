@@ -227,7 +227,7 @@ def read_fasta(fastafile):
             title = header.__next__()[1:].strip().split()[0]
             seq = ''.join(map(lambda s: s.strip(), faiter.__next__()))
             seq_length = len(seq)
-            yield {'title': title, 'seq': seq, 'chunks': 1, 'start': 0}
+            yield {'title': title, 'seq': seq, 'chunks': 0, 'start': 0}
 
 
 def run_blast(seqs, cmd, blast_list, index, batches):
@@ -236,7 +236,10 @@ def run_blast(seqs, cmd, blast_list, index, batches):
     try:
         input = ''
         for seq in seqs:
-            input += ">%s_-_%d\n" % (seq['title'], seq['start'])
+            if seq['chunks'] > 0:
+                input += ">%s\n" % (seq['title'])
+            else:
+                input += ">%s_-_%d\n" % (seq['title'], seq['start'])
             input += "%s\n" % seq['seq']
         cmd += ' -lcase_masking -outfmt "6 qseqid staxids bitscore std"'
         logger.info(shlex.split(cmd)+blast_list)
