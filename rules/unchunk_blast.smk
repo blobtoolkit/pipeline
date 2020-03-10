@@ -21,4 +21,4 @@ rule unchunk_blast:
     benchmark:
         'logs/{assembly}/unchunk_blast/{type}.{name}.root.{root}{masked}.benchmark.txt'
     script:
-        'scripts/unchunk_blast.py'
+        '../scripts/unchunk_blast.py'
