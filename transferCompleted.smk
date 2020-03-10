@@ -1,26 +1,31 @@
 """
 https://github.com/blobtoolkit/insdc-pipeline
 
-Pipeline to run BlobTools on public assemblies
+Pipeline to validate and transfer BlobDir datasets
 ----------------------------------------------
 
 Requirements:
- - BLAST+ (ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/)
  - BlobTools2 (https://github.com/blobtoolkit/blobtools2)
+ - Specification (https://github.com/blobtoolkit/specification)
  - Conda (https://conda.io/docs/commands/conda-install.html)
  - SnakeMake (http://snakemake.readthedocs.io/en/stable/)
 
 Basic usage:
   snakemake -p --use-conda
     --directory path/to/workdir/
-    --configfile path/to/config.yaml
+    --configfile path/to/config.yaml \
+    -s transferCompleted.smk
     -j 8
 
 © 2018-19 Richard Challis (University of Edinburgh), MIT License
+© 2019-20 Richard Challis (Wellcome Sanger Institute), MIT License
 """
 
+singularity: "docker://genomehubs/blobtoolkit:latest"
 
 include: 'scripts/functions.py'
+
+use_singularity = check_config()
 
 reads = get_read_info(config)
 keep = False
@@ -35,10 +40,14 @@ if 'revision' in config:
 
 rule all:
     """
-    Dummy rule to set blobDB as target of pipeline
+    Dummy rule to set target of pipeline
     """
     input:
         "%s%s.complete" % (asm, rev)
 
 
-include: 'rules/transfer_blobdir.smk'
+include: 'rules/validate_dataset.smk'
+include: 'rules/generate_images.smk'
+include: 'rules/generate_summary.smk'
+include: 'rules/checksum_files.smk'
+include: 'rules/transfer_dataset.smk'

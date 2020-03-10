@@ -21,22 +21,23 @@ Run BLAST
 Usage: ./blast_wrapper.py -query FASTA -db BLASTDB
 
 Options:
-    -program blastn         BLAST program to use.
-    -db BLASTDB             BLAST database.
-    -query FASTAFILE        query sequence FASTA file.
-    -taxidlist TAXIDFILE    list of taxids to include (requires v5 BLAST DB).
-    -multiprocessing        use python multiprocessing for num_threads.
-    -chunk 100000           sequences greater than CHUNK bp will be split.
-    -overlap 500            length of overlap when splitting sequences.
-    -max_chunks 10          maximum number of chunks to split a sequence into.
-    -num_threads 16         number of threads.
-    -evalue 1e-25           BLAST evalue.
-    -max_target_seqs 10     BLAST max_target_seqs.
-    -raw FASTAFILE.out.raw  raw output filename.
-    -out FASTAFILE.out      BLAST output filename (processed from raw output).
-    -nohit FASTAFILE.nohit  query sequences with no hit to BLAST DB.
-    -window_masker_db FILE  windowmasker optimized binary format counts file.
-    ...                     any additional blast parameters.
+    -program blastn           BLAST program to use.
+    -db BLASTDB               BLAST database.
+    -query FASTAFILE          query sequence FASTA file.
+    -taxidlist TAXIDFILE      list of taxids to include (requires v5 BLAST DB).
+    -multiprocessing          use python multiprocessing for num_threads.
+    -chunk 100000             sequences greater than CHUNK bp will be split.
+    -overlap 500              length of overlap when splitting sequences.
+    -max-chunks 10            maximum number of chunks to split a sequence into.
+    -chunks FASTAFILE.chunks  chunked sequence filename.
+    -num-threads 16           number of threads.
+    -evalue 1e-25             BLAST evalue.
+    -max-target-seqs 10       BLAST max_target_seqs.
+    -raw FASTAFILE.out.raw    raw output filename.
+    -out FASTAFILE.out        BLAST output filename (processed from raw output).
+    -nohit FASTAFILE.nohit    query sequences with no hit to BLAST DB.
+    -window_masker_db FILE    windowmasker optimized binary format counts file.
+    ...                       any additional blast parameters.
 """
 
 logger_config = {
@@ -65,7 +66,8 @@ def parse_args():
         '-num_threads': 16,
         '-raw': None,
         '-out': '.out',
-        '-nohit': '.nohit'
+        '-nohit': '.nohit',
+        '-chunks': None
     }
     blast_params = {
         '-db': None,
@@ -75,8 +77,9 @@ def parse_args():
         '-max_hsps': '1'
     }
     try:
+        script_params['-chunks'] = snakemake.output.chunks
         script_params['-query'] = snakemake.input.fasta
-        blast_params['-db'] = snakemake.params.db
+        blast_params['-db'] = "%s/%s" % (snakemake.params.dir, snakemake.wildcards.name)
         blast_params['-taxidlist'] = snakemake.input.taxids
         script_params['-multiprocessing'] = str(snakemake.params.multiprocessing)
         script_params['-chunk'] = int(snakemake.params.chunk)
@@ -85,9 +88,43 @@ def parse_args():
         script_params['-num_threads'] = int(snakemake.threads)
         blast_params['-evalue'] = str(snakemake.params.evalue)
         blast_params['-max_target_seqs'] = str(snakemake.params.max_target_seqs)
-        script_params['-raw'] = snakemake.output.raw
-        script_params['-nohit'] = snakemake.output.nohit
-        script_params['-out'] = snakemake.output.out
+        try:
+            script_params['-raw'] = snakemake.output.raw
+        except AttributeError:
+            pass
+        try:
+            script_params['-nohit'] = snakemake.output.nohit
+        except AttributeError:
+            pass
+        try:
+            script_params['-out'] = snakemake.output.out
+        except AttributeError:
+            pass
+        script_params['-max_target_seqs'] = blast_params['-max_target_seqs']
+        if script_params['-multiprocessing'] == 'False':
+            blast_params['-num_threads'] = str(script_params['-num_threads'])
+        blast_list = [item for k in blast_params for item in (k, blast_params[k])]
+        return (script_params, blast_list)
+    except AttributeError:
+        script_params['-query'] = snakemake.input.fasta
+        blast_params['-db'] = "%s/%s" % (snakemake.params.dir, snakemake.wildcards.name)
+        blast_params['-taxidlist'] = snakemake.input.taxids
+        script_params['-multiprocessing'] = str(snakemake.params.multiprocessing)
+        script_params['-num_threads'] = int(snakemake.threads)
+        blast_params['-evalue'] = str(snakemake.params.evalue)
+        blast_params['-max_target_seqs'] = str(snakemake.params.max_target_seqs)
+        try:
+            script_params['-raw'] = snakemake.output.raw
+        except AttributeError:
+            pass
+        try:
+            script_params['-nohit'] = snakemake.output.nohit
+        except AttributeError:
+            pass
+        try:
+            script_params['-out'] = snakemake.output.out
+        except AttributeError:
+            pass
         script_params['-max_target_seqs'] = blast_params['-max_target_seqs']
         if script_params['-multiprocessing'] == 'False':
             blast_params['-num_threads'] = str(script_params['-num_threads'])
@@ -177,6 +214,22 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
                 yield {'title': title, 'seq': seq, 'chunks': 1, 'start': 0}
 
 
+def read_fasta(fastafile):
+    """Read FASTA file one sequence at a time."""
+    cmd = "cat %s" % fastafile
+    # TODO: read gzipped files if needed
+    # cmd = "pigz -dc %s" % fastafile
+    title = ''
+    seq = ''
+    with Popen(shlex.split(cmd), encoding='utf-8', stdout=PIPE, bufsize=4096) as proc:
+        faiter = (x[1] for x in groupby(proc.stdout, lambda line: line[0] == '>'))
+        for header in faiter:
+            title = header.__next__()[1:].strip().split()[0]
+            seq = ''.join(map(lambda s: s.strip(), faiter.__next__()))
+            seq_length = len(seq)
+            yield {'title': title, 'seq': seq, 'chunks': 1, 'start': 0}
+
+
 def run_blast(seqs, cmd, blast_list, index, batches):
     """Run blast on seqs."""
     logger.info("running BLAST on %d sequences in batch %d of %d" % (len(seqs), index, batches))
@@ -186,6 +239,7 @@ def run_blast(seqs, cmd, blast_list, index, batches):
             input += ">%s_-_%d\n" % (seq['title'], seq['start'])
             input += "%s\n" % seq['seq']
         cmd += ' -lcase_masking -outfmt "6 qseqid staxids bitscore std"'
+        logger.info(shlex.split(cmd)+blast_list)
         p = run(shlex.split(cmd)+blast_list, stdout=PIPE, stderr=PIPE, input=input, encoding='ascii')
         return p
     except Exception as err:
@@ -237,13 +291,26 @@ if __name__ == '__main__':
     try:
         seqs = []
         names = set()
-        for seq in chunk_fasta(script_params['-query'],
-                               chunk=script_params['-chunk'],
-                               overlap=script_params['-overlap'],
-                               max_chunks=script_params['-max_chunks']):
-            if not re.match('^N+$',seq['seq']):
-                names.add(seq['title'])
-                seqs.append((seq))
+        if script_params['-chunk']:
+            for seq in chunk_fasta(script_params['-query'],
+                                   chunk=script_params['-chunk'],
+                                   overlap=script_params['-overlap'],
+                                   max_chunks=script_params['-max_chunks']):
+                if not re.match('^N+$', seq['seq']):
+                    names.add(seq['title'])
+                    seqs.append((seq))
+            if script_params['-chunks']:
+                chunked = ''
+                for seq in seqs:
+                    chunked += ">%s_-_%d\n" % (seq['title'], seq['start'])
+                    chunked += "%s\n" % seq['seq']
+                with open(script_params['-chunks'], 'w') as ofh:
+                    ofh.writelines(chunked)
+        else:
+            for seq in read_fasta(script_params['-query']):
+                if not re.match('^N+$', seq['seq']):
+                    names.add(seq['title'])
+                    seqs.append((seq))
         n_chunks = len(seqs)
         if n_chunks == 0:
             logger.error("no sequences found in query file '%s'" % script_params['-query'])
@@ -268,6 +335,7 @@ if __name__ == '__main__':
         def blast_callback(p):
             """Process BLAST chunk."""
             global output
+            logger.info('entering callback')
             try:
                 p.check_returncode()
             except CalledProcessError as err:
@@ -280,7 +348,7 @@ if __name__ == '__main__':
                 logger.info(p.stderr)
             lines = []
             if p.stdout:
-            	lines = p.stdout.strip('\n').split('\n')
+                lines = p.stdout.strip('\n').split('\n')
             logger.info("Finished processing batch with %d BLAST hits" % len(lines))
             for line in lines:
                 fields = line.split('\t')
@@ -291,7 +359,9 @@ if __name__ == '__main__':
         batches = math.ceil(len(seqs) / subset_length)
         try:
             if script_params['-multiprocessing'] == 'False':
+                logger.info('running single BLAST')
                 p = run_blast(seqs, script_params['-program'], blast_list, 1, 1)
+                logger.info('calling callback')
                 blast_callback(p)
             else:
                 for subset in split_list(seqs, subset_length):
@@ -324,14 +394,15 @@ if __name__ == '__main__':
         if script_params['-out']:
             logger.info("Writing output to file '%s'" % script_params['-out'])
             parse_raw_output(output, script_params['-out'], script_params['-max_target_seqs'])
-        logger.info("Writing nohit IDs to file '%s'" % script_params['-nohit'])
-        try:
-            with open(script_params['-nohit'], 'w') as ofh:
-                ofh.writelines('\n'.join(names))
-        except Exception as err:
-            logger.error(err)
-            logger.error("Unable to write nohit IDs to %s" % script_params['-nohit'])
-            exit(1)
+        if script_params['-nohit']:
+            logger.info("Writing nohit IDs to file '%s'" % script_params['-nohit'])
+            try:
+                with open(script_params['-nohit'], 'w') as ofh:
+                    ofh.writelines('\n'.join(names))
+            except Exception as err:
+                logger.error(err)
+                logger.error("Unable to write nohit IDs to %s" % script_params['-nohit'])
+                exit(1)
     except Exception as err:
         logger.error(err)
         exit(1)

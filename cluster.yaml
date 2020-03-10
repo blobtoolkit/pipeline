@@ -14,6 +14,9 @@ blobtoolkit_add_cov:
 blobtoolkit_add_hits:
   threads: 1
   mem: 10000
+blobtoolkit_add_meta:
+  threads: 1
+  mem: 10000
 blobtoolkit_create:
   threads: 1
   mem: 10000
@@ -21,6 +24,11 @@ bwa_index:
   threads: 1
   mem: 10000
   queue: 'normal'
+checksum_files:
+  threads: 1
+chunk_fasta:
+  threads: 1
+  mem: 10000
 extract_nohit_sequences:
   threads: 1
   mem: 500
@@ -45,6 +53,12 @@ fetch_uniprot:
   queue: 'normal'
 generate_metadata:
   threads: 1
+generate_images:
+  threads: 3
+  mem: 32000
+generate_summary:
+  threads: 1
+  mem: 5000
 make_diamond_db:
   threads: 16
   mem: 5000
@@ -81,3 +95,11 @@ subsample_fastq:
   threads: 1
   mem: 5000
   queue: 'normal'
+transfer_dataset:
+  threads: 1
+unchunk_blast:
+  threads: 1
+  mem: 5000
+validate_dataset:
+  threads: 1
+  mem: 5000

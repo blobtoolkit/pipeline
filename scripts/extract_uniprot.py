@@ -9,10 +9,10 @@ import shutil
 
 # Set variables from snakemake params/wildcards
 TMPDIR = snakemake.params.tmpdir
-PATH = snakemake.wildcards.path
+DIR = snakemake.params.dir
 NAME = snakemake.wildcards.name
-TARFILE = "%s/full/%s.tar.gz" % (PATH,NAME)
-OUTDIR = "%s/full/%s" % (PATH,NAME)
+OUTDIR = "%s/full/%s" % (DIR, NAME)
+TARFILE = "%s.tar.gz" % OUTDIR
 
 # create temporary directory to write files into
 if os.path.exists(TMPDIR):

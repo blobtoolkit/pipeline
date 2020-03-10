@@ -24,27 +24,21 @@ settings:
   blobtools2_path: ~/blobtoolkit/blobtools2
   blobtools_viewer_path: ~/blobtoolkit/viewer
   chunk: 1000000
-  taxonomy: ~/databases/taxdump_2019_11
+  taxonomy: ~/databases/taxdump_2020_02
   tmp: /tmp
 similarity:
   databases:
-    - local: ~databases/ncbi_2019_11
-      name: nt_v5
-      source: ncbi
-      tool: blast
-      type: nucl
-    - local: ~databases/uniprot_2019_11
+    - local: ~/databases/ncbi_2020_02
+      name: nt
+    - local: ~/databases/uniprot_2020_02
       max_target_seqs: 1
       name: reference_proteomes
-      source: uniprot
-      tool: diamond
-      type: prot
   defaults:
     evalue: 1e-25
     mask_ids: [7215]
     max_target_seqs: 10
     root: 1
-  taxrule: bestsumorder
+  taxrule: eachsumorder
 taxon:
   genus: 7215
   name: Drosophila albomicans

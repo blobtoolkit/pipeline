@@ -16,9 +16,10 @@ CHUNK = snakemake.params.chunk
 NAME = snakemake.wildcards.name
 TMPDIR = snakemake.params.tmpdir
 THREADS = snakemake.threads
-FASTAFILE = snakemake.input.fa
-MAPFILE = snakemake.input.idmap
-OUTDIR = snakemake.params.outdir
+DIR = snakemake.params.dir
+OUTDIR = "%s/split/%s" % (DIR, NAME)
+FASTAFILE = "%s/full/%s.fa.gz" % (DIR, NAME)
+MAPFILE = "%s/full/%s.taxid_map.gz" % (DIR, NAME)
 
 # CHUNK = 1000000
 # PATH = '/ceph/software/databases/ncbi_2018_02'

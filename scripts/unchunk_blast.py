@@ -32,7 +32,7 @@ if __name__ == '__main__':
             for line in fh.readlines():
                 fields = line.split('\t')
                 if fields[0]:
-                    name,start = re.split('_-_', fields[0])
+                    name, start = re.split('_-_', fields[0])
                     fields[0] = name
                     fields[3] = name
                     fields[9] = str(int(fields[9])+int(start))
@@ -43,8 +43,8 @@ if __name__ == '__main__':
                     lines[name][start].append('\t'.join(fields))
         with open(OUTFILE, 'w') as ofh:
             for name in chunk_counts.keys():
-                l = len(lines[name])
-                n = (COUNT+l-1)// l
+                length = len(lines[name])
+                n = (COUNT + length - 1) // length
                 for start in lines[name].keys():
                     for i in range(n):
                         if i < len(lines[name][start]):
