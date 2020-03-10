@@ -290,11 +290,11 @@ def platform_cov_files(reads, assembly):
 
 def get_threads(rule, default):
     if rule in cluster_config and 'run_threads' in cluster_config[rule]:
-        return int(cluster_config[rule]['run_threads'] * ratio)
+        return int(cluster_config[rule]['run_threads'])
     elif rule in cluster_config and 'threads' in cluster_config[rule]:
-        return int(cluster_config[rule]['threads'] * ratio)
+        return int(cluster_config[rule]['threads'])
     elif '__default__' in cluster_config and 'threads' in cluster_config['__default__']:
-        return int(cluster_config['__default__']['threads'] * ratio)
+        return int(cluster_config['__default__']['threads'])
     return default
 
 
