@@ -4,7 +4,7 @@ rule validate_dataset:
     """
     input:
         cov = expand("%s%s/{sra}_cov.json" % (asm, rev), sra=list_sra_accessions(reads)),
-        tax = "%s%s/%s_phylum_positions.json" % (asm, rev, config['similarity']['taxrule']),
+        tax = "%s%s/%s_phylum_positions.json" % (asm, rev, taxrule_name()),
         busco = expand("%s%s/{lineage}_busco.json" % (asm, rev), lineage=config['busco']['lineages']),
         ids = "%s%s/identifiers.json" % (asm, rev)
     output:

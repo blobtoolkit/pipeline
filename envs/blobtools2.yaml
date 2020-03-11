@@ -12,7 +12,7 @@ dependencies:
   - tqdm>=4.23.4,<5
   - ujson
   - urllib3
-  - nodejs
+  - nodejs=10
   - geckodriver
   - selenium
   - pyvirtualdisplay

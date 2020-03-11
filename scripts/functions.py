@@ -346,3 +346,12 @@ def git_dir(wc):
     else:
         dir = os.path.dirname(os.path.abspath(workflow.snakefile))+'/.git'
     return dir
+
+
+def taxrule_name():
+    if config['similarity']['taxrule'].startswith('each'):
+        taxrule = "%s_aa" % config['similarity']['taxrule'].replace('each', 'best')
+        return taxrule
+    return config['similarity']['taxrule']
+
+

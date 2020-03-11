@@ -12,7 +12,7 @@ def hits_params(config, rev, aa=False):
     if aa:
         files.reverse()
     return {
-        'taxrule': taxrule,
+        'taxrule': taxrule.replace('each', 'best'),
         'taxdump': taxdump_dir,
         'id': lambda wc: "%s%s" % (wc.assembly, rev),
         'dbs': '.raw --hits '.join(files),

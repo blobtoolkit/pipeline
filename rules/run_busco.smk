@@ -50,7 +50,7 @@ rule run_busco_v4:
         lineage = lambda wc: wc.lineage,
         lineage_dir = busco_dir,
         assembly = lambda wc: wc.assembly,
-        outdir = lambda wc: "%s_%s/run_%s" % (wc.assembly, wc.lineage, wc.lineage)
+        outdir = lambda wc: "%s_%s" % (wc.assembly, wc.lineage)
     wildcard_constraints:
         lineage = r'\w+_odb10'
     conda:
@@ -70,7 +70,7 @@ rule run_busco_v4:
             -l {params.lineage_dir}/{params.lineage} \
             -m geno \
             -c {threads} > {log} 2>&1 && \
-        mv {params.outdir}/full_table.tsv {output.full} && \
-        mv {params.outdir}/short_summary.txt {output.short} && \
+        mv {params.outdir}/run_{params.lineage}/full_table.tsv {output.full} && \
+        mv {params.outdir}/run_{params.lineage}/short_summary.txt {output.short} && \
         rm -rf {params.outdir} && exit 0 || \
         rm -rf {params.outdir} && exit 1'
