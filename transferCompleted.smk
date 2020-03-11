@@ -21,7 +21,7 @@ Basic usage:
 © 2019-20 Richard Challis (Wellcome Sanger Institute), MIT License
 """
 
-singularity: "docker://genomehubs/blobtoolkit:latest"
+singularity: "docker://genomehubs/blobtoolkit:1.1"
 
 include: 'scripts/functions.py'
 
