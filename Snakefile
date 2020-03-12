@@ -26,6 +26,8 @@ singularity: "docker://genomehubs/blobtoolkit:1.1"
 
 include: 'scripts/functions.py'
 
+supported_version = check_version()
+
 use_singularity = check_config()
 
 multicore = int(os.getenv('MULTICORE', 16))

@@ -5,6 +5,18 @@ import math
 BWA_INDEX = ['amb', 'ann', 'bwt', 'pac', 'sa']
 
 
+def check_version():
+    """
+    Check snakemake version is 5.9.1.
+    """
+    version = subprocess.run(['snakemake', '--version'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
+    if version != '5.9.1':
+        print("WARNING: Use of Snakemake version %s is not supported" % version, file=sys.stderr)
+        print('         INSDC-Pipeline has been developed using version 5.9.1', file=sys.stderr)
+        return False
+    return True
+
+
 def check_config():
     """
     Check required fields are present in config.
@@ -35,7 +47,7 @@ def check_config():
     for section in sections:
         if section['name'] not in config:
             if section['name'] in optional:
-                print("INFO: optional section '%s' is not present in config file" % section['name'])
+                print("INFO: optional section '%s' is not present in config file" % section['name'], file=sys.stderr)
                 config[section['name']] = {}
             else:
                 quit("ERROR: config file must contain a '%s' section with keys '%s'" % (section['name'],
@@ -46,8 +58,8 @@ def check_config():
                     value = section['defaults'][key]
                     if isinstance(value, str) and value.startswith('=='):
                         value = config[section['name']][value.replace('==', '')]
-                    print("INFO: using default value for '%s.%s'" % (section['name'], key))
-                    print(value)
+                    print("INFO: using default value for '%s.%s'" % (section['name'], key), file=sys.stderr)
+                    print(value, file=sys.stderr)
                     config[section['name']][key] = value
                 else:
                     quit("ERROR: config file section '%s' must contain '%s'" % (section['name'], key))
@@ -64,7 +76,7 @@ def check_config():
                        'tool': 'diamond',
                        'type': 'prot'})
         else:
-            print("INFO: only 'nt' and 'reference_proteomes' databases are supported, ignoring '%s'" % db['name'])
+            print("INFO: only 'nt' and 'reference_proteomes' databases are supported, ignoring '%s'" % db['name'], file=sys.stderr)
     if '--use-singularity' in sys.argv:
         return True
     return False
@@ -353,5 +365,3 @@ def taxrule_name():
         taxrule = "%s_aa" % config['similarity']['taxrule'].replace('each', 'best')
         return taxrule
     return config['similarity']['taxrule']
-
-

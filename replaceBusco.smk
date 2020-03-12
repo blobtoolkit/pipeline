@@ -29,6 +29,8 @@ include: 'scripts/functions.py'
 
 use_singularity = check_config()
 
+supported_version = check_version()
+
 multicore = int(os.getenv('MULTICORE', 16))
 maxcore = int(os.getenv('MAXCORE', 32))
 

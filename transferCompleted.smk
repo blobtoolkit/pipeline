@@ -25,6 +25,8 @@ singularity: "docker://genomehubs/blobtoolkit:1.1"
 
 include: 'scripts/functions.py'
 
+supported_version = check_version()
+
 use_singularity = check_config()
 
 reads = get_read_info(config)
