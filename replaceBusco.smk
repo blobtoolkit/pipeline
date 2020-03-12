@@ -52,9 +52,11 @@ rule all:
     Dummy rule to set blobDB as target of pipeline
     """
     input:
+        "%s.busco.removed" % asm,
         expand("%s/{lineage}_busco.json" % asm,lineage=config['busco']['lineages'])
 
 
 include: 'rules/fetch_busco_lineage.smk'
 include: 'rules/run_busco.smk'
+include: 'rules/blobtoolkit_remove_busco.smk'
 include: 'rules/blobtoolkit_add_busco.smk'

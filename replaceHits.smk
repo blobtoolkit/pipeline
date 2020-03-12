@@ -51,6 +51,7 @@ rule all:
     Dummy rule to set target of pipeline
     """
     input:
+        "%s.hits.removed" % asm,
         hit_fields(asm, rev, config['similarity']['taxrule'])
 
 # fetch database files
@@ -74,4 +75,5 @@ include: 'rules/run_blastn.smk'
 include: 'rules/extract_nohit_sequences.smk'
 include: 'rules/run_diamond_blastx.smk'
 # run blobtools
+include: 'rules/blobtoolkit_remove_hits.smk'
 include: 'rules/blobtoolkit_add_hits.smk'

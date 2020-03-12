@@ -51,6 +51,7 @@ rule all:
     Dummy rule to set blobDB as target of pipeline
     """
     input:
+        "%s.coverage.removed" % asm,
         expand("%s.{sra}.bam.stats" % asm, sra=list_sra_accessions(reads)),
         expand("%s/{sra}_cov.json" % asm, sra=list_sra_accessions(reads)),
         "%s.meta.updated" % asm
@@ -67,5 +68,6 @@ include: 'rules/map_reads.smk'
 include: 'rules/bamtools_stats.smk'
 # run blobtools
 include: 'rules/generate_metadata.smk'
+include: 'rules/blobtoolkit_remove_cov.smk'
 include: 'rules/blobtoolkit_add_cov.smk'
 include: 'rules/blobtoolkit_add_meta.smk'
