@@ -5,9 +5,10 @@ rule blobtoolkit_remove_hits:
     input:
         "{assembly}%s/meta.json" % rev
     output:
-        temp("{assembly}%s.hits.removed" % rev)
+        touch(temp("{assembly}%s.hits.removed" % rev))
     params:
         id = "{assembly}%s" % rev,
+        path = config['settings']['blobtools2_path']
     conda:
         '../envs/blobtools2.yaml'
     threads: get_threads('blobtoolkit_remove_hits', 1)

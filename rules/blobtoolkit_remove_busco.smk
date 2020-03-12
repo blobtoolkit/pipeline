@@ -8,6 +8,7 @@ rule blobtoolkit_remove_busco:
         temp("{assembly}%s.busco.removed" % rev)
     params:
         id = "{assembly}%s" % rev,
+        path = config['settings']['blobtools2_path']
     conda:
         '../envs/blobtools2.yaml'
     threads: get_threads('blobtoolkit_remove_busco', 1)
