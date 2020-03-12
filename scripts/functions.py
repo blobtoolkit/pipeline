@@ -362,6 +362,7 @@ def git_dir(wc):
 
 def taxrule_name():
     if config['similarity']['taxrule'].startswith('each'):
-        taxrule = "%s_aa" % config['similarity']['taxrule'].replace('each', 'best')
-        return taxrule
-    return config['similarity']['taxrule']
+        taxrule = config['similarity']['taxrule'].replace('each', 'best')
+        taxrules = ["%s_aa" % taxrule, "%s_nt" % taxrule]
+        return taxrules
+    return [config['similarity']['taxrule']]

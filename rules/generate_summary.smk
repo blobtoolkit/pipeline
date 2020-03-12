@@ -8,7 +8,7 @@ rule generate_summary:
         '{assembly}/summary.json'
     params:
         assembly = lambda wc: wc.assembly,
-        taxrule = taxrule_name()
+        taxrule = taxrule_name()[0]
     conda:
         '../envs/blobtools2.yaml'
     threads: get_threads('generate_summary', 1)

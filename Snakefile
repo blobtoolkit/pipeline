@@ -52,7 +52,7 @@ rule all:
         "%s.fasta" % asm,
         expand("%s.{sra}.bam.stats" % asm, sra=list_sra_accessions(reads)),
         expand("%s%s/{sra}_cov.json" % (asm, rev), sra=list_sra_accessions(reads)),
-        "%s%s/%s_phylum_positions.json" % (asm, rev, config['similarity']['taxrule']),
+        expand("%s%s/{taxrule}_phylum_positions.json" % (asm, rev), taxrule=taxrule_name()),
         expand("%s.busco.{lineage}.tsv" % asm, lineage=config['busco']['lineages']),
         expand("%s%s/{lineage}_busco.json" % (asm, rev), lineage=config['busco']['lineages']),
         "%s%s/identifiers.json" % (asm, rev)
