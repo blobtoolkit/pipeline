@@ -8,7 +8,7 @@ rule transfer_dataset:
         temp('{assembly}.complete'),
     params:
         assembly = lambda wc: wc.assembly,
-        destdir = config['destdir'],
+        destdir = destination_dir(),
     threads: get_threads('transfer_dataset', 1)
     log:
         'logs/{assembly}/transfer_dataset.log'

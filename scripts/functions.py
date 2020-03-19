@@ -352,6 +352,14 @@ def taxdump_dir(wc):
     return dir
 
 
+def destination_dir(wc):
+    if use_singularity:
+        dir = '/blobtoolkit/output'
+    else:
+        dir = config['destdir']
+    return dir
+
+
 def git_dir(wc):
     if use_singularity:
         dir = '/blobtoolkit/insdc-pipeline/.git'
