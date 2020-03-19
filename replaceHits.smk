@@ -51,7 +51,7 @@ rule all:
     Dummy rule to set target of pipeline
     """
     input:
-        "%s.hits.removed" % asm,
+        "%s%s.hits.removed" % (asm, rev),
         hit_fields(asm, rev, config['similarity']['taxrule'])
 
 # fetch database files
