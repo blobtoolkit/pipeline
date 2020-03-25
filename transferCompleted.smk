@@ -34,7 +34,7 @@ keep = False
 if 'keep_intermediates' in config:
     keep = bool(config['keep_intermediates'])
 asm = config['assembly']['prefix']
-destdir = config['destdir']
+destdir = destination_dir(False)
 rev = ''
 if 'revision' in config:
     if config['revision'] > 0:

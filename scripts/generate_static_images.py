@@ -50,7 +50,10 @@ try:
 
     for cmd in cmds:
         logger.info(cmd)
-        subprocess.run(shlex.split(cmd), encoding='utf-8')
+        try:
+            subprocess.run(shlex.split(cmd), encoding='utf-8')
+        except Exception as err:
+            logger.error(err)
 
     for filename in os.listdir(ASSEMBLY):
         p = Path("%s/%s" % (ASSEMBLY, filename))
