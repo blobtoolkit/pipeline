@@ -1,8 +1,21 @@
 #!/usr/bin/env python3
+"""Update coordinates and remove seq name suffix from chunked blast results."""
 
 import re
 import logging
 from collections import defaultdict
+from docopt import docopt
+
+docs = """
+Unchunk BLAST results.
+
+Usage: ./unchunk_blast.py [--count INT] [--in TSV] [--out TSV]
+
+Options:
+    --in TSV     input filename.
+    --out TSV    output filename.
+    --count INT  number of results to keep per query sequence. [Default: 100]
+"""
 
 logger_config = {
     'level': logging.INFO,
@@ -16,19 +29,20 @@ except NameError as err:
 logging.basicConfig(**logger_config)
 logger = logging.getLogger()
 
-try:
-    INFILE = snakemake.input[0]
-    OUTFILE = snakemake.output[0]
-    COUNT = snakemake.params.max_target_seqs
-except Exception as err:
-    logger.error(err)
-    exit(1)
-
 if __name__ == '__main__':
+    args = docopt(docs)
+    try:
+        args['--in'] = snakemake.input[0]
+        args['--count'] = snakemake.params.max_target_seqs
+        args['--out'] = snakemake.output[0]
+    except NameError as err:
+        logger.info(err)
+        logger.info('Parsing parameters from command line')
+
     try:
         lines = defaultdict(dict)
         chunk_counts = defaultdict(int)
-        with open(INFILE, 'r') as fh:
+        with open(args['--in'], 'r') as fh:
             for line in fh.readlines():
                 fields = line.split('\t')
                 if fields[0]:
@@ -41,10 +55,10 @@ if __name__ == '__main__':
                         lines[name][start] = []
                         chunk_counts[name] += 1
                     lines[name][start].append('\t'.join(fields))
-        with open(OUTFILE, 'w') as ofh:
+        with open(args['--out'], 'w') as ofh:
             for name in chunk_counts.keys():
                 length = len(lines[name])
-                n = (COUNT + length - 1) // length
+                n = (args['--count'] + length - 1) // length
                 for start in lines[name].keys():
                     for i in range(n):
                         if i < len(lines[name][start]):

@@ -71,7 +71,7 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
                     my_chunk = chunk_size(seq_length / max_chunks)
                     n = max_chunks
                 for i in range(0, seq_length, my_chunk):
-                    subseq = seq[i:i+segment]
+                    subseq = seq[i:i+my_chunk+overlap]
                     yield {'title': title, 'seq': subseq, 'chunks': n, 'start': i}
             else:
                 yield {'title': title, 'seq': seq, 'chunks': 1, 'start': 0}
