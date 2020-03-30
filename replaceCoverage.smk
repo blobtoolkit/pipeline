@@ -46,6 +46,18 @@ if 'revision' in config:
         rev = '.'+str(config['revision'])
 
 
+rule all:
+    """
+    Dummy rule to set blobDB as target of pipeline
+    """
+    input:
+        "%s.coverage.removed" % asm,
+        expand("%s.{sra}.bam.stats" % asm, sra=list_sra_accessions(reads)),
+        expand("%s/{sra}_cov.json" % asm, sra=list_sra_accessions(reads)),
+        "%s.meta.updated" % asm,
+        "%s%s.meta.replaceHits" % (asm, rev)
+
+
 rule log_replaceCoverage:
     """
     Log use of replaceCoverage script
@@ -75,18 +87,6 @@ rule log_replaceCoverage:
         PATH={params.path}:$PATH && \
         ./blobtools replace --key settings.updates.replaceCoverage=$COMMIT  \
         {params.id} > {log} 2>&1'
-
-
-rule all:
-    """
-    Dummy rule to set blobDB as target of pipeline
-    """
-    input:
-        "%s.coverage.removed" % asm,
-        expand("%s.{sra}.bam.stats" % asm, sra=list_sra_accessions(reads)),
-        expand("%s/{sra}_cov.json" % asm, sra=list_sra_accessions(reads)),
-        "%s.meta.updated" % asm,
-        "%s%s.meta.replaceHits" % (asm, rev)
 
 
 # fetch database files

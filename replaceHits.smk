@@ -46,6 +46,16 @@ if 'revision' in config:
         rev = '.'+str(config['revision'])
 
 
+rule all:
+    """
+    Dummy rule to set target of pipeline
+    """
+    input:
+        "%s%s.hits.removed" % (asm, rev),
+        "%s%s.meta.replaceHits" % (asm, rev),
+        hit_fields(asm, rev, config['similarity']['taxrule'])
+
+
 rule log_replaceHits:
     """
     Log use of replaceHits script
@@ -75,15 +85,6 @@ rule log_replaceHits:
         ./blobtools replace --key settings.updates.replaceHits=$COMMIT  \
         {params.id} > {log} 2>&1'
 
-
-rule all:
-    """
-    Dummy rule to set target of pipeline
-    """
-    input:
-        "%s%s.hits.removed" % (asm, rev),
-        "%s%s.meta.replaceHits" % (asm, rev),
-        hit_fields(asm, rev, config['similarity']['taxrule'])
 
 # fetch database files
 include: 'rules/fetch_ncbi_db.smk'

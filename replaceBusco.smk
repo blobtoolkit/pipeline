@@ -48,6 +48,16 @@ if 'revision' in config:
         rev = '.'+str(config['revision'])
 
 
+rule all:
+    """
+    Dummy rule to set blobDB as target of pipeline
+    """
+    input:
+        "%s.busco.removed" % asm,
+        expand("%s/{lineage}_busco.json" % asm, lineage=config['busco']['lineages']),
+        "%s%s.meta.replaceBusco" % (asm, rev)
+
+
 rule log_replaceBusco:
     """
     Log use of replaceBusco script
@@ -75,16 +85,6 @@ rule log_replaceBusco:
         PATH={params.path}:$PATH && \
         ./blobtools replace --key settings.updates.replaceBusco=$COMMIT  \
         {params.id} > {log} 2>&1'
-
-
-rule all:
-    """
-    Dummy rule to set blobDB as target of pipeline
-    """
-    input:
-        "%s.busco.removed" % asm,
-        expand("%s/{lineage}_busco.json" % asm, lineage=config['busco']['lineages']),
-        "%s%s.meta.replaceBusco" % (asm, rev)
 
 
 include: 'rules/fetch_busco_lineage.smk'
