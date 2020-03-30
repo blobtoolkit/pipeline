@@ -72,7 +72,7 @@ rule log_replaceBusco:
         path = config['settings']['blobtools2_path'],
         gitdir = git_dir
     conda:
-        '../envs/blobtools2.yaml'
+        './envs/blobtools2.yaml'
     threads: get_threads('log_replaceBusco', 1)
     log:
         'logs/{assembly}/log_replaceBusco.log'

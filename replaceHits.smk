@@ -71,7 +71,7 @@ rule log_replaceHits:
         path = config['settings']['blobtools2_path'],
         gitdir = git_dir
     conda:
-        '../envs/blobtools2.yaml'
+        './envs/blobtools2.yaml'
     threads: get_threads('log_replaceHits', 1)
     log:
         'logs/{assembly}/log_replaceHits.log'

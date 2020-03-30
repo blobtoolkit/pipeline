@@ -55,7 +55,7 @@ rule all:
         expand("%s.{sra}.bam.stats" % asm, sra=list_sra_accessions(reads)),
         expand("%s/{sra}_cov.json" % asm, sra=list_sra_accessions(reads)),
         "%s.meta.updated" % asm,
-        "%s%s.meta.replaceHits" % (asm, rev)
+        "%s%s.meta.replaceHCoverage" % (asm, rev)
 
 
 rule log_replaceCoverage:
@@ -74,7 +74,7 @@ rule log_replaceCoverage:
         path = config['settings']['blobtools2_path'],
         gitdir = git_dir
     conda:
-        '../envs/blobtools2.yaml'
+        './envs/blobtools2.yaml'
     threads: get_threads('log_replaceCoverage', 1)
     log:
         'logs/{assembly}/log_replaceCoverage.log'
