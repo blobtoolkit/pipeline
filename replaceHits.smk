@@ -46,12 +46,43 @@ if 'revision' in config:
         rev = '.'+str(config['revision'])
 
 
+rule log_replaceHits:
+    """
+    Log use of replaceHits script
+    """
+    input:
+        "%s%s.hits.removed" % (asm, rev),
+        "{assembly}%s/meta.json" % rev,
+        hit_fields(asm, rev, config['similarity']['taxrule'])
+    output:
+        touch(temp("{assembly}%s.meta.replaceHits" % rev))
+    params:
+        id = lambda wc: "%s%s" % (wc.assembly, rev),
+        path = config['settings']['blobtools2_path'],
+        gitdir = git_dir
+    conda:
+        '../envs/blobtools2.yaml'
+    threads: get_threads('log_replaceHits', 1)
+    log:
+        'logs/{assembly}/log_replaceHits.log'
+    benchmark:
+        'logs/{assembly}/log_replaceHits.benchmark.txt'
+    resources:
+        btk = 1
+    shell:
+        'COMMIT=$(git --git-dir {params.gitdir} rev-parse --short HEAD) \
+        PATH={params.path}:$PATH && \
+        ./blobtools replace --key settings.updates.replaceHits=$COMMIT  \
+        {params.id} > {log} 2>&1'
+
+
 rule all:
     """
     Dummy rule to set target of pipeline
     """
     input:
         "%s%s.hits.removed" % (asm, rev),
+        "%s%s.meta.replaceHits" % (asm, rev),
         hit_fields(asm, rev, config['similarity']['taxrule'])
 
 # fetch database files

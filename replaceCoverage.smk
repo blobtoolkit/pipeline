@@ -16,7 +16,7 @@ Basic usage:
   snakemake -p --use-conda \
     --directory ~/workdir \
     --configfile example.yaml \
-    -s replaceHits.smk
+    -s replaceCoverage.smk
     -j 8
 
 © 2018-19 Richard Challis (University of Edinburgh), MIT License
@@ -46,6 +46,37 @@ if 'revision' in config:
         rev = '.'+str(config['revision'])
 
 
+rule log_replaceCoverage:
+    """
+    Log use of replaceCoverage script
+    """
+    input:
+        "%s.coverage.removed" % asm,
+        expand("%s.{sra}.bam.stats" % asm, sra=list_sra_accessions(reads)),
+        expand("%s/{sra}_cov.json" % asm, sra=list_sra_accessions(reads)),
+        "%s.meta.updated" % asm
+    output:
+        touch(temp("{assembly}%s.meta.replaceCoverage" % rev))
+    params:
+        id = lambda wc: "%s%s" % (wc.assembly, rev),
+        path = config['settings']['blobtools2_path'],
+        gitdir = git_dir
+    conda:
+        '../envs/blobtools2.yaml'
+    threads: get_threads('log_replaceCoverage', 1)
+    log:
+        'logs/{assembly}/log_replaceCoverage.log'
+    benchmark:
+        'logs/{assembly}/log_replaceCoverage.benchmark.txt'
+    resources:
+        btk = 1
+    shell:
+        'COMMIT=$(git --git-dir {params.gitdir} rev-parse --short HEAD) \
+        PATH={params.path}:$PATH && \
+        ./blobtools replace --key settings.updates.replaceCoverage=$COMMIT  \
+        {params.id} > {log} 2>&1'
+
+
 rule all:
     """
     Dummy rule to set blobDB as target of pipeline
@@ -54,7 +85,8 @@ rule all:
         "%s.coverage.removed" % asm,
         expand("%s.{sra}.bam.stats" % asm, sra=list_sra_accessions(reads)),
         expand("%s/{sra}_cov.json" % asm, sra=list_sra_accessions(reads)),
-        "%s.meta.updated" % asm
+        "%s.meta.updated" % asm,
+        "%s%s.meta.replaceHits" % (asm, rev)
 
 
 # fetch database files

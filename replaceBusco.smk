@@ -47,13 +47,44 @@ if 'revision' in config:
     if config['revision'] > 0:
         rev = '.'+str(config['revision'])
 
+
+rule log_replaceBusco:
+    """
+    Log use of replaceBusco script
+    """
+    input:
+        "%s.busco.removed" % asm,
+        expand("%s/{lineage}_busco.json" % asm,lineage=config['busco']['lineages'])
+    output:
+        touch(temp("{assembly}%s.meta.replaceBusco" % rev))
+    params:
+        id = lambda wc: "%s%s" % (wc.assembly, rev),
+        path = config['settings']['blobtools2_path'],
+        gitdir = git_dir
+    conda:
+        '../envs/blobtools2.yaml'
+    threads: get_threads('log_replaceBusco', 1)
+    log:
+        'logs/{assembly}/log_replaceBusco.log'
+    benchmark:
+        'logs/{assembly}/log_replaceBusco.benchmark.txt'
+    resources:
+        btk = 1
+    shell:
+        'COMMIT=$(git --git-dir {params.gitdir} rev-parse --short HEAD) \
+        PATH={params.path}:$PATH && \
+        ./blobtools replace --key settings.updates.replaceBusco=$COMMIT  \
+        {params.id} > {log} 2>&1'
+
+
 rule all:
     """
     Dummy rule to set blobDB as target of pipeline
     """
     input:
         "%s.busco.removed" % asm,
-        expand("%s/{lineage}_busco.json" % asm,lineage=config['busco']['lineages'])
+        expand("%s/{lineage}_busco.json" % asm, lineage=config['busco']['lineages']),
+        "%s%s.meta.replaceBusco" % (asm, rev)
 
 
 include: 'rules/fetch_busco_lineage.smk'
