@@ -55,7 +55,7 @@ rule all:
         expand("%s.{sra}.bam.stats" % asm, sra=list_sra_accessions(reads)),
         expand("%s/{sra}_cov.json" % asm, sra=list_sra_accessions(reads)),
         "%s.meta.updated" % asm,
-        "%s%s.meta.replaceHCoverage" % (asm, rev)
+        "%s%s.meta.replaceCoverage" % (asm, rev)
 
 
 rule log_replaceCoverage:
