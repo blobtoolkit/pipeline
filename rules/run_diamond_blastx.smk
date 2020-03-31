@@ -80,16 +80,13 @@ rule run_diamond_blastx_chunks:
     benchmark:
         'logs/{assembly}/run_diamond_blastx_chunks/{name}.root.{root}{masked}.benchmark.txt'
     shell:
-        'if ! [ -s {input[0]} ]; then \
-            touch {output} && exit 0; \
-        fi; \
-        diamond blastx \
+        'diamond blastx \
             --query {input[0]} \
             --db {params.db} \
             --outfmt 6 qseqid staxids bitscore qseqid sseqid pident length \
                      mismatch gapopen qstart qend sstart send evalue bitscore \
-            --sensitive \
             --max-target-seqs {params.max_target_seqs} \
+            --max-hsps {params.max_target_seqs} \
             --evalue {params.evalue} \
             --threads {threads} \
             > {output} 2> {log}'

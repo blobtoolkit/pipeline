@@ -236,7 +236,7 @@ def run_blast(seqs, cmd, blast_list, index, batches):
     try:
         input = ''
         for seq in seqs:
-            if seq['chunks'] > 0:
+            if seq['chunks'] == 0:
                 input += ">%s\n" % (seq['title'])
             else:
                 input += ">%s_-_%d\n" % (seq['title'], seq['start'])
@@ -294,7 +294,7 @@ if __name__ == '__main__':
     try:
         seqs = []
         names = set()
-        if script_params['-chunk']:
+        if script_params['-chunk'] > 0:
             for seq in chunk_fasta(script_params['-query'],
                                    chunk=script_params['-chunk'],
                                    overlap=script_params['-overlap'],

@@ -14,7 +14,7 @@ Usage: ./unchunk_blast.py [--count INT] [--in TSV] [--out TSV]
 Options:
     --in TSV     input filename.
     --out TSV    output filename.
-    --count INT  number of results to keep per query sequence. [Default: 100]
+    --count INT  number of results to keep per chunk. [Default: 10]
 """
 
 logger_config = {
@@ -58,7 +58,7 @@ if __name__ == '__main__':
         with open(args['--out'], 'w') as ofh:
             for name in chunk_counts.keys():
                 length = len(lines[name])
-                n = (args['--count'] + length - 1) // length
+                n = int(args['--count'])
                 for start in lines[name].keys():
                     for i in range(n):
                         if i < len(lines[name][start]):
