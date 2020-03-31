@@ -82,7 +82,7 @@ rule log_replaceHits:
     shell:
         'COMMIT=$(git --git-dir {params.gitdir} rev-parse --short HEAD) \
         PATH={params.path}:$PATH && \
-        ./blobtools replace --key settings.updates.replaceHits=$COMMIT  \
+        blobtools replace --key settings.updates.replaceHits=$COMMIT  \
         {params.id} > {log} 2>&1'
 
 

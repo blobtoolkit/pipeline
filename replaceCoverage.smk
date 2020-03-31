@@ -85,7 +85,7 @@ rule log_replaceCoverage:
     shell:
         'COMMIT=$(git --git-dir {params.gitdir} rev-parse --short HEAD) \
         PATH={params.path}:$PATH && \
-        ./blobtools replace --key settings.updates.replaceCoverage=$COMMIT  \
+        blobtools replace --key settings.updates.replaceCoverage=$COMMIT  \
         {params.id} > {log} 2>&1'
 
 

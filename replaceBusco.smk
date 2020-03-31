@@ -83,7 +83,7 @@ rule log_replaceBusco:
     shell:
         'COMMIT=$(git --git-dir {params.gitdir} rev-parse --short HEAD) \
         PATH={params.path}:$PATH && \
-        ./blobtools replace --key settings.updates.replaceBusco=$COMMIT  \
+        blobtools replace --key settings.updates.replaceBusco=$COMMIT  \
         {params.id} > {log} 2>&1'
 
 
