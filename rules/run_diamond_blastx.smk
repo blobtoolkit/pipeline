@@ -51,6 +51,7 @@ rule run_diamond_blastx:
             --db {params.db} \
             --outfmt 6 qseqid staxids bitscore qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore \
             --max-target-seqs {params.max_target_seqs} \
+            --max-hsps 1 \
             --evalue {params.evalue} \
             --threads {threads} \
             > {output} 2> {log}'
@@ -86,7 +87,7 @@ rule run_diamond_blastx_chunks:
             --outfmt 6 qseqid staxids bitscore qseqid sseqid pident length \
                      mismatch gapopen qstart qend sstart send evalue bitscore \
             --max-target-seqs {params.max_target_seqs} \
-            --max-hsps {params.max_target_seqs} \
+            --max-hsps 1 \
             --evalue {params.evalue} \
             --threads {threads} \
             > {output} 2> {log}'
