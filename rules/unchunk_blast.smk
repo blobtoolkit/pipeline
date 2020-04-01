@@ -14,7 +14,7 @@ rule unchunk_blast:
     params:
         max_target_seqs = lambda wc: similarity[wc.name]['max_target_seqs']
     conda:
-        '../envs/py3.yaml'
+        '../envs/blobtools2.yaml'
     threads: get_threads('unchunk_blast', 1)
     log:
         'logs/{assembly}/unchunk_blast/{type}.{name}.root.{root}{masked}.log'
