@@ -59,7 +59,7 @@ def parse_args():
     script_params = {
         '-program': 'blastn',
         '-query': None,
-        '-chunk': 100000,
+        '-chunk': 0,
         '-multiprocessing': 'False',
         '-overlap': 500,
         '-max_chunks': 10,
@@ -294,7 +294,7 @@ if __name__ == '__main__':
     try:
         seqs = []
         names = set()
-        if script_params['-chunk'] > 0:
+        if int(script_params['-chunk']) > 0:
             for seq in chunk_fasta(script_params['-query'],
                                    chunk=script_params['-chunk'],
                                    overlap=script_params['-overlap'],
