@@ -44,6 +44,8 @@ if __name__ == '__main__':
         chunk_counts = defaultdict(int)
         with open(args['--in'], 'r') as fh:
             for line in fh.readlines():
+                if '\n' not in line:
+                    line += '\n'
                 fields = line.split('\t')
                 if fields[0]:
                     name, start = re.split('_-_', fields[0])
