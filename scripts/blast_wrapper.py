@@ -385,7 +385,7 @@ if __name__ == '__main__':
             logger.info("Writing raw output to file '%s'" % script_params['-raw'])
             try:
                 with open(script_params['-raw'], 'w') as ofh:
-                    ofh.writelines('\n'.join(output))
+                    ofh.writelines("%s\n" % '\n'.join(output))
                 for line in output:
                     name = line.split('_-_')[0]
                     if name in names:
@@ -401,7 +401,7 @@ if __name__ == '__main__':
             logger.info("Writing nohit IDs to file '%s'" % script_params['-nohit'])
             try:
                 with open(script_params['-nohit'], 'w') as ofh:
-                    ofh.writelines('\n'.join(names))
+                    ofh.writelines("%s\n" % '\n'.join(names))
             except Exception as err:
                 logger.error(err)
                 logger.error("Unable to write nohit IDs to %s" % script_params['-nohit'])
