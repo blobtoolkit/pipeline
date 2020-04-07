@@ -17,6 +17,10 @@ def check_version():
     return True
 
 
+class ConfigurationError(Exception):
+    """Called when configuration file is not valid."""
+    pass
+
 def check_config():
     """
     Check required fields are present in config.
@@ -50,7 +54,7 @@ def check_config():
                 print("INFO: optional section '%s' is not present in config file" % section['name'], file=sys.stderr)
                 config[section['name']] = {}
             else:
-                quit("ERROR: config file must contain a '%s' section with keys '%s'" % (section['name'],
+                raise ConfigurationError("ERROR: config file must contain a '%s' section with keys '%s'" % (section['name'],
                                                                                         ', '.join(section['keys'])))
         for key in section['keys']:
             if key not in config[section['name']]:
@@ -62,7 +66,7 @@ def check_config():
                     print(value, file=sys.stderr)
                     config[section['name']][key] = value
                 else:
-                    quit("ERROR: config file section '%s' must contain '%s'" % (section['name'], key))
+                    raise ConfigurationError("ERROR: config file section '%s' must contain '%s'" % (section['name'], key))
     # fill in additional database info
     for db in config['similarity']['databases']:
         if 'name' not in db or 'local' not in db:
@@ -77,6 +81,11 @@ def check_config():
                        'type': 'prot'})
         else:
             print("INFO: only 'nt' and 'reference_proteomes' databases are supported, ignoring '%s'" % db['name'], file=sys.stderr)
+    if not re.match(r'^\w+$', config['assembly']['prefix']):
+        raise ConfigurationError("ERROR: assembly prefix '%s' contains non-word characters. Please use only letters, numbers and underscores." % config['assembly']['prefix'])
+    for readset in config['reads']['single'] + config['reads']['paired']:
+        if not re.match(r'^[a-zA-Z0-9]$', readset[0]):
+            raise ConfigurationError("ERROR: read file basename '%s' contains non-word characters. Please use only letters and numbers." % readset[0])
     if '--use-singularity' in sys.argv:
         return True
     return False
