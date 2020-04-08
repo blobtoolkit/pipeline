@@ -78,7 +78,7 @@ $ cd ..
 Create a [Snakemake](http://snakemake.readthedocs.io/en/stable/) environment using Conda.
 
 ```
-$ conda create -n snake_env -c bioconda snakemake=4.5
+$ conda create -n snake_env -c bioconda snakemake=5.9.1
 $ conda activate snake_env
 # optionally install DRMAA Python bindings for cluster execution
 $ conda install -c anaconda drmaa

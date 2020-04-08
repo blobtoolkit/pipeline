@@ -84,7 +84,7 @@ def check_config():
     if not re.match(r'^\w+$', config['assembly']['prefix']):
         raise ConfigurationError("ERROR: assembly prefix '%s' contains non-word characters. Please use only letters, numbers and underscores." % config['assembly']['prefix'])
     for readset in config['reads']['single'] + config['reads']['paired']:
-        if not re.match(r'^[a-zA-Z0-9]$', readset[0]):
+        if not re.match(r'^[a-zA-Z0-9]+$', readset[0]):
             raise ConfigurationError("ERROR: read file basename '%s' contains non-word characters. Please use only letters and numbers." % readset[0])
     if '--use-singularity' in sys.argv:
         return True
