@@ -5,6 +5,7 @@ import re
 import yaml
 import subprocess
 import logging
+import traceback
 from collections import OrderedDict
 
 logger_config = {
@@ -19,6 +20,8 @@ except NameError as err:
 logging.basicConfig(**logger_config)
 logger = logging.getLogger()
 
+logger.info("Starting script: "+__file__)
+
 try:
     CONFIG = snakemake.config
     ASSEMBLY = snakemake.wildcards.assembly
@@ -26,8 +29,8 @@ try:
     OUTFILE = str(snakemake.output)
     GITDIR = snakemake.params.gitdir
 except Exception as err:
-    logger.error(err)
-    exit(1)
+    logger.error(traceback.format_exc())
+    exit(7)
 
 try:
     meta = {}
@@ -47,8 +50,10 @@ try:
                     'platform': arr[1],
                 }
                 if len(arr) == 4:
-                    meta['reads'][arr[0]]['url'] = re.split(',|;', arr[3])
-
+                    if arr[3] != None:
+                        meta['reads'][arr[0]]['url'] = re.split(',|;', arr[3])
+                    else:
+                        meta['reads'][arr[0]]['url'] = ["NOURL"]
     p = subprocess.Popen(['git', '--git-dir', GITDIR, 'rev-parse', '--short', 'HEAD'],
                          stdout=subprocess.PIPE, encoding='utf-8')
     (output, err) = p.communicate()
@@ -59,7 +64,10 @@ try:
                          encoding='utf-8')
     (output, err) = p.communicate()
     p_status = p.wait()
-    meta['settings']['pipeline'] = output.split()[1]
+    try:
+        meta['settings']['pipeline'] = output.split()[1]
+    except IndexError:
+        meta['settings']['pipeline'] = "UNKNOWN"
 
     for file in INFILES:
         accession = re.search(r'\.(.+).bam.stats', file.split(ASSEMBLY)[1]).group(1)
@@ -83,5 +91,5 @@ try:
         fh.write(yaml.dump(meta, indent=1))
 
 except Exception as err:
-    logger.error(err)
-    exit(1)
+    logger.error(traceback.format_exc())
+    exit(13)
