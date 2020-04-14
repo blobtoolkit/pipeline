@@ -333,7 +333,10 @@ if __name__ == '__main__':
             """Close pool on error."""
             if error:
                 logger.error(error)
-                pool.terminate()
+                try:
+                    pool.terminate()
+                except NameError:
+                    pass
 
         def blast_callback(p):
             """Process BLAST chunk."""
