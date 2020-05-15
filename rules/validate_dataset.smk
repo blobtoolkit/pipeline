@@ -8,7 +8,7 @@ rule validate_dataset:
         busco = expand("%s%s/{lineage}_busco.json" % (asm, rev), lineage=config['busco']['lineages']),
         ids = "%s%s/identifiers.json" % (asm, rev)
     output:
-        temp('{assembly}.valid')
+        touch(temp('{assembly}.valid'))
     params:
         assembly = lambda wc: wc.assembly
     conda:
@@ -19,5 +19,4 @@ rule validate_dataset:
     benchmark:
         'logs/{assembly}/validate_dataset.benchmark.txt'
     shell:
-        'validate.py {params.assembly}/meta.json > {log} 2>&1 \
-        && touch {params.assembly}.valid'
+        'validate.py {params.assembly}/meta.json > {log} 2>&1'
