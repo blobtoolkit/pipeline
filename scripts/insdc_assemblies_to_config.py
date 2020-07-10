@@ -21,6 +21,7 @@ import os
 import re
 import requests
 import sys
+import tolkein
 import yaml
 from docopt import docopt
 from pathlib import Path
@@ -30,6 +31,8 @@ from copy import deepcopy
 import taxonomy
 
 STEP = 50  # how many assembly records to request at a time
+
+MIN_SPAN = 10000000
 
 opts = docopt(__doc__)
 
@@ -145,7 +148,7 @@ def find_busco_lineages(taxid, lineage_file):
         ancestors = split_line(line)
         for taxid in ancestors:
             if taxid in BUSCO_SETS:
-                lineages.append("%s_odb9" % BUSCO_SETS[taxid])
+                lineages.append("%s_odb10" % BUSCO_SETS[taxid])
     return lineages
 
 
@@ -338,9 +341,10 @@ def current_versions(string='all'):
     return current
 
 
-def create_outdir(reads, version=1, lineage='all'):
+def create_outdir(span, version=1, _lineage='all'):
     """Create output directory."""
-    name = "%s/v%s/%s/%ssra" % (OUTDIR, str(version), lineage.replace('_odb9', ''), '' if reads else 'no_')
+    span = tolkein.tobin.readable_bin(span)
+    name = "%s/v%s/%s" % (OUTDIR, str(version), span)
     os.makedirs("%s/" % name, exist_ok=True)
     return name
 
@@ -364,6 +368,8 @@ for offset in range(OFFSET, asm_count + 1, step):
     for assembly in assemblies:
         meta = {}
         meta = assembly_meta(assembly, DEFAULT_META)
+        if 'span' not in meta['assembly'] or meta['assembly']['span'] < MIN_SPAN:
+            continue
         if 'prefix' in meta['assembly'] and 'biosample' in meta['assembly'] and meta['assembly']['biosample']:
             if RANK:
                 if str(meta['taxon']['taxid']) in parents:
@@ -382,6 +388,7 @@ for offset in range(OFFSET, asm_count + 1, step):
             version = 1
             if meta['assembly']['prefix'] in versions:
                 version = versions[meta['assembly']['prefix']] + 1
+                continue
             meta['version'] = version
             lineage = 'all'
             if meta['busco']['lineages']:
@@ -437,10 +444,10 @@ for offset in range(OFFSET, asm_count + 1, step):
                             new_reads = meta['reads'][platform][strategy]['single'][:long_n]
                             meta['reads']['single'] = [[acc, platform, base_counts[acc], fastq_ftp[acc]]
                                                        for acc in new_reads]
-                outdir = create_outdir(True, version, lineage)
+                outdir = create_outdir(meta['assembly']['span'], version, lineage)
                 with open("%s/%s.yaml" % (outdir, meta['assembly']['prefix']), 'w') as fh:
                     fh.write(yaml.dump(meta))
             else:
-                outdir = create_outdir(False, version, lineage)
+                outdir = create_outdir(meta['assembly']['span'], version, lineage)
                 with open("%s/%s.yaml" % (outdir, meta['assembly']['prefix']), 'w') as fh:
                     fh.write(yaml.dump(meta))

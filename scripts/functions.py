@@ -43,7 +43,7 @@ def check_config():
                 {'name': 'similarity',
                  'keys': ['databases', 'defaults', 'taxrule'],
                  'defaults': {'defaults': {'evalue': 1e-25, 'max_target_seqs': 10, 'root': 1},
-                              'taxrule': 'bestsumorder'}},
+                              'taxrule': 'eachdistorder'}},
                 {'name': 'taxon',
                  'keys': ['name', 'taxid'],
                  'defaults': {}}]
