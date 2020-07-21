@@ -8,7 +8,7 @@ rule fetch_fastq:
         url = lambda wc: prepare_ebi_sra_url(wc.sra, "%s%s.gz" % (wc.sra, wc.suff))
     wildcard_constraints:
         sra = r'[a-zA-Z0-9]+',
-        suff = r'[\._\d\w]*\.fast[aq]'
+        suff = r'(?!.*\b(?:subsampled)\b)[\._\d\w]*\.fast[aq]'
     conda:
         '../envs/fetch.yaml'
     threads: get_threads('fetch_fastq', 1)
