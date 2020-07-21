@@ -9,7 +9,7 @@ import logging
 import re
 import glob
 import os.path
-from collections import defaultdict
+from collections import defaultdict, Counter
 from docopt import docopt
 from random import shuffle
 from itertools import groupby
@@ -77,6 +77,21 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
                 yield {'title': title, 'seq': seq, 'chunks': 1, 'start': 0}
 
 
+def check_for_unmasked_bases(seq, min_unmasked=12):
+    """Check sequence has a minimum number of unmasked bases."""
+    return bool(re.search(r'[ACGT]{20}', seq))
+    # if re.match
+    # base_dict = Counter(seq)
+    # keys = ['A', 'C', 'G', 'T']
+    # sum_unmasked = 0
+    # for key in keys:
+    #     if key in base_dict:
+    #         sum_unmasked += base_dict[key]
+    # if sum_unmasked >= min_unmasked:
+    #     return True
+    # return False
+
+
 if __name__ == '__main__':
     args = docopt(docs)
     try:
@@ -95,7 +110,7 @@ if __name__ == '__main__':
                                chunk=int(args['--chunk']),
                                overlap=int(args['--overlap']),
                                max_chunks=int(args['--max-chunks'])):
-            if not re.match('^N+$', seq['seq']):
+            if check_for_unmasked_bases(seq['seq']):
                 seqs.append((seq))
         chunked = ''
         for seq in seqs:

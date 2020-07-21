@@ -10,7 +10,7 @@ Usage:
 
 Options:
   --taxdump=<taxdump>    Path to NCBI taxdump directory [default: ../taxdump]
-  --rank=<rank>          Similarity search database masking level
+  --rank=<rank>          Similarity search database masking level [default: genus]
   --root=<root>          Root taxID [default: 2759] (default is all Eukaryota)
   --out=<out>            Path to output directory [default: .]
   --offset=<offset>     Number of records to skip [default: 0]

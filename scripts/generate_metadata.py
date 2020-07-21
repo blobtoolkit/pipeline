@@ -25,7 +25,10 @@ logger.info("Starting script: "+__file__)
 try:
     CONFIG = snakemake.config
     ASSEMBLY = snakemake.wildcards.assembly
-    INFILES = snakemake.input.stats
+    try:
+        INFILES = snakemake.input.stats
+    except AttributeError:
+        INFILES = []
     OUTFILE = str(snakemake.output)
     GITDIR = snakemake.params.gitdir
 except Exception as err:
