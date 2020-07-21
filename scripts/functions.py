@@ -1,4 +1,4 @@
-import re
+import pathlib
 import sys
 import math
 
@@ -7,12 +7,11 @@ BWA_INDEX = ['amb', 'ann', 'bwt', 'pac', 'sa']
 
 def check_version():
     """
-    Check snakemake version is 5.9.1.
+    Check snakemake version is 5.20.1.
     """
     version = subprocess.run(['snakemake', '--version'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
-    if version != '5.9.1':
-        print("WARNING: Use of Snakemake version %s is not supported" % version, file=sys.stderr)
-        print('         INSDC-Pipeline has been developed using version 5.9.1', file=sys.stderr)
+    if version != '5.20.1':
+        print('WARNING: This version of INSDC-Pipeline has been developed using Snakemake version 5.20.1', file=sys.stderr)
         return False
     return True
 
@@ -41,12 +40,39 @@ def check_config():
                               'blast_overlap': 500, 'chunk': 1000000,
                               'tmp': '/tmp'}},
                 {'name': 'similarity',
-                 'keys': ['databases', 'defaults', 'taxrule'],
-                 'defaults': {'defaults': {'evalue': 1e-25, 'max_target_seqs': 10, 'root': 1},
-                              'taxrule': 'eachdistorder'}},
+                 'keys': ['databases', 'taxrule'],
+                 'defaults': {'taxrule': 'eachdistorder'}},
                 {'name': 'taxon',
                  'keys': ['name', 'taxid'],
                  'defaults': {}}]
+    similarity_defaults = {'evalue': 1e-25,
+                           'mask_ids': [],
+                           'max_target_seqs': 10,
+                           'root': 1}
+    container_defaults = {
+        'busco': {'lineage_dir': '/blobtoolkit/databases/busco'},
+        'settings': {'blobtools2_path': '/blobtoolkit/blobtools2',
+                     'blobtools_viewer_path': '/blobtoolkit/viewer',
+                     'taxonomy': '/blobtoolkit/databases/ncbi_taxdump'},
+        'similarity': {
+            'databases': [
+                {'local': '/blobtoolkit/databases/ncbi_db',
+                 'name': 'nt'},
+                {'local': '/blobtoolkit/databases/uniprot_db',
+                 'name': 'reference_proteomes'}
+            ]
+        }
+    }
+    if pathlib.Path('/blobtoolkit/databases/ncbi_db').exists():
+        # set some container specific defaults
+        for section, defaults in container_defaults.items():
+            if section not in config:
+                config[section] = {}
+            for key, value in defaults.items():
+                if key not in config[section]:
+                    config[section].update({key: value})
+
+
     optional = ['busco', 'reads']
     for section in sections:
         if section['name'] not in config:
@@ -68,6 +94,11 @@ def check_config():
                 else:
                     raise ConfigurationError("ERROR: config file section '%s' must contain '%s'" % (section['name'], key))
     # fill in additional database info
+    if not config['similarity']['defaults']:
+        config['similarity']['defaults'] = {}
+    for key, value in similarity_defaults.items():
+        if key not in config['similarity']['defaults']:
+            config['similarity']['defaults'].update({key: value})
     for db in config['similarity']['databases']:
         if 'name' not in db or 'local' not in db:
             quit("ERROR: 'name' and 'local' must be specified for all databases")
