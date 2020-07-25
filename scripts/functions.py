@@ -71,6 +71,10 @@ def check_config():
             for key, value in defaults.items():
                 if key not in config[section]:
                     config[section].update({key: value})
+        container_version = os.environ.get('CONTAINER_VERSION')
+        if container_version:
+            config.update({'container': {}})
+            config['container'].update({'version': container_version})
 
 
     optional = ['busco', 'reads']
