@@ -98,7 +98,7 @@ def check_config():
                 else:
                     raise ConfigurationError("ERROR: config file section '%s' must contain '%s'" % (section['name'], key))
     # fill in additional database info
-    if not config['similarity']['defaults']:
+    if 'defaults' not in config['similarity'] or not config['similarity']['defaults']:
         config['similarity']['defaults'] = {}
     for key, value in similarity_defaults.items():
         if key not in config['similarity']['defaults']:

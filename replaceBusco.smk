@@ -88,6 +88,7 @@ rule log_replaceBusco:
 
 
 include: 'rules/fetch_busco_lineage.smk'
-include: 'rules/run_busco.smk'
+include: 'rules/run_busco3.smk'
+include: 'rules/run_busco4.smk'
 include: 'rules/blobtoolkit_remove_busco.smk'
 include: 'rules/blobtoolkit_add_busco.smk'

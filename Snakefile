@@ -86,7 +86,8 @@ include: 'rules/extract_nohit_sequences.smk'
 include: 'rules/run_diamond_blastx.smk'
 include: 'rules/unchunk_blast.smk'
 # run busco
-include: 'rules/run_busco.smk'
+include: 'rules/run_busco3.smk'
+include: 'rules/run_busco4.smk'
 # run blobtools
 include: 'rules/generate_metadata.smk'
 include: 'rules/blobtoolkit_create.smk'
