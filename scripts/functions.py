@@ -172,8 +172,6 @@ def get_read_info(config):
             if strategy == 'paired':
                 try:
                     url = re.split(',|;', row[3])
-                    if len(reads) > 2:
-                        reads = reads[-2:]
                 except:
                     url = ["%s_1.fastq.gz" % accession, "%s_2.fastq.gz" % accession]
             else:
