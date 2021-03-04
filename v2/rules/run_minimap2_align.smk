@@ -1,0 +1,23 @@
+rule run_minimap2_align:
+    """
+    Run minimap2 read alignment.
+    """
+    input:
+        fasta = config["assembly"]["file"],
+        index = lambda wc: "%s.%s.mmi" % (wc.assembly, minimap_tuning(config, wc.sra)),
+        fastq = lambda wc: read_files(config, wc.sra)
+    output:
+        "{assembly}.{sra}.bam"
+    params:
+        tuning = lambda wc: minimap_tuning(config, wc.sra),
+        assembly = lambda wc: wc.assembly,
+        subsample = lambda wc: seqtk_sample_input(config, wc.sra)
+    threads: 16
+    log:
+        "logs/{assembly}/run_minimap2_align/{sra}.log"
+    benchmark:
+        "logs/{assembly}/run_minimap2_align/{sra}.benchmark.txt"
+    shell:
+        """(minimap2 -x {params.tuning} -d {output} {params.subsample} | \
+        samtools view -h -T {input.fasta} - | \
+        samtools sort -@{threads} -O BAM -o {output} -) &> {log}"""
