@@ -1,0 +1,9 @@
+name: btk_env
+channels:
+  - defaults
+dependencies:
+  - snakemake
+  - busco=5
+  - minimap2
+  - samtools=1.10
+  - seqtk

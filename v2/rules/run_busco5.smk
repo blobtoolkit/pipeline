@@ -12,7 +12,7 @@ rule run_busco_v5:
         lineage = lambda wc: wc.lineage,
         assembly = lambda wc: wc.assembly,
         outdir = lambda wc: "%s_%s" % (wc.assembly, wc.lineage)
-    threads: 16
+    threads: 30
     log:
         "logs/{assembly}/run_busco/{lineage}.log"
     benchmark:

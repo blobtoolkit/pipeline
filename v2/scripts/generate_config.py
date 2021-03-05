@@ -173,6 +173,7 @@ def parse_assembly_meta(accession):
         "assembly": {"accession": accession},
         "busco": {"lineages": []},
         "reads": {"paired": []},
+        "revision": 0,
         "settings": {
             "blast_chunk": 100000,
             "blast_max_chunks": 10,
@@ -191,6 +192,7 @@ def parse_assembly_meta(accession):
             "databases": [],
         },
         "taxon": {},
+        "version": 1,
     }
     xml = fetch_assembly_meta_xml(accession)
     root = ET.fromstring(xml)
@@ -306,24 +308,13 @@ def base_count(x):
         return 0
 
 
-def fetch_subsampled_reads(meta, ratio, readdir):
-    """Fetch sra reads, subsampling if necessary."""
+def fetch_read_files(meta, readdir):
+    """Fetch sra reads."""
     for index, url in enumerate(meta["fastq_ftp"].split(";")):
         url = "ftp://%s" % url
         read_file = "%s/%s_%d.fastq.gz" % (readdir, meta["run_accession"], index + 1)
-        if ratio > 1:
-            LOGGER.info("Fetching read file %s", read_file)
-            tofetch.fetch_ftp(url, read_file)
-        else:
-            LOGGER.info("Fetching read file %s", read_file)
-            tmp_file = read_file.replace(".gz", ".tmp.gz")
-            tofetch.fetch_ftp(url, tmp_file)
-            LOGGER.info("Subsampling reads at ratio %.2f", ratio)
-            cmd = "seqtk sample -s 100 %s %.2f" % (tmp_file, ratio)
-            seqtk = Popen(cmd, stdout=PIPE, shell=True)
-            gzip = Popen("gzip -c > %s" % read_file, stdin=seqtk.stdout, shell=True)
-            gzip.wait()
-            os.remove(tmp_file)
+        LOGGER.info("Fetching read file %s", read_file)
+        tofetch.fetch_ftp(url, read_file)
 
 
 def add_taxon_to_meta(meta, taxon_meta):
@@ -415,14 +406,13 @@ if __name__ == "__main__":
     #   snail plot
     sra = assembly_reads(meta["assembly"]["biosample"])
     if sra:
+        if opts["--coverage"]:
+            meta["reads"].update({"coverage": {"max": int(opts["--coverage"])}})
         readdir = "%s/reads" % outdir
         add_reads_to_meta(meta, sra, readdir)
         os.makedirs(readdir, exist_ok=True)
         for run in sra:
-            ratio = (
-                meta["assembly"]["span"] * int(opts["--coverage"]) / run["base_count"]
-            )
-            # fetch_subsampled_reads(run, ratio, "%s/reads" % outdir)
+            fetch_read_files(run, "%s/reads" % outdir)
     #   map reads
     #   import btk --cov
     #   greyscale blob
@@ -434,133 +424,3 @@ if __name__ == "__main__":
     #   run diamond blastx
     #   import btk --hits
     #   color blob
-
-
-# search_term = "all"
-# with open(NAMES, "r") as fh:
-#     lines = fh.readlines()
-#     for l in lines:
-#         l = l[:-3]
-#         parts = re.split(r"\t\|\t", l)
-#         if parts[0] == str(ROOT) and parts[3] == "scientific name":
-#             search_term = parts[1]
-# versions = current_versions(search_term)
-
-# step = STEP
-# for offset in range(OFFSET, asm_count + 1, step):
-#     count = step if offset + step < asm_count else asm_count - offset + 1
-#     print("%d: %d" % (offset, count))
-#     xml = list_assemblies(ROOT, offset, count)
-#     assemblies = ET.fromstring(xml)
-#     for assembly in assemblies:
-#         meta = {}
-#         meta = assembly_meta(assembly, DEFAULT_META)
-#         if "span" not in meta["assembly"] or meta["assembly"]["span"] < MIN_SPAN:
-#             continue
-#         if (
-#             "prefix" in meta["assembly"]
-#             and "biosample" in meta["assembly"]
-#             and meta["assembly"]["biosample"]
-#         ):
-#             if "similarity" not in meta:
-#                 meta["similarity"] = {}
-#             if "default" not in meta["similarity"]:
-#                 meta["similarity"]["defaults"] = {}
-#             if RANK:
-#                 if str(meta["taxon"]["taxid"]) in parents:
-#                     meta["taxon"][RANK] = int(parents[str(meta["taxon"]["taxid"])])
-#                     meta["similarity"]["defaults"]["mask_ids"] = [meta["taxon"][RANK]]
-#             if "reads" not in meta:
-#                 meta["reads"] = {}
-#             if "busco" not in meta:
-#                 meta["busco"] = {}
-#             meta["busco"]["lineages"] = find_busco_lineages(
-#                 meta["taxon"]["taxid"], LINEAGES
-#             )
-#             sra = assembly_reads(meta["assembly"]["biosample"])
-#             base_counts = {}
-#             fastq_ftp = {}
-#             # if not sra:
-#             #     sra = ncbi_assembly_reads(meta['assembly']['biosample'])
-#             version = 1
-#             if meta["assembly"]["prefix"] in versions:
-#                 version = versions[meta["assembly"]["prefix"]] + 1
-#                 continue
-#             meta["version"] = version
-#             lineage = "all"
-#             if meta["busco"]["lineages"]:
-#                 lineage = meta["busco"]["lineages"][0]
-#             print(meta["assembly"]["prefix"])
-#             if sra:
-#                 sra.sort(key=lambda x: base_count(x), reverse=True)
-#                 platforms = defaultdict(dict)
-#                 for d in sra:
-#                     platforms[d["instrument_platform"]].update({d["run_accession"]: d})
-#                 for platform, data in platforms.items():
-#                     meta["reads"][platform] = {}
-#                     strategies = defaultdict(list)
-#                     for key, value in data.items():
-#                         strategies[value["library_strategy"]].append(key)
-#                     for strategy, accessions in strategies.items():
-#                         paired = []
-#                         single = []
-#                         for acc in accessions:
-#                             if data[acc]["library_layout"] == "PAIRED":
-#                                 paired.append(acc)
-#                             else:
-#                                 single.append(acc)
-#                             base_counts[acc] = int(data[acc]["base_count"] or 0)
-#                             fastq_ftp[acc] = data[acc]["fastq_ftp"]
-#                         if paired or single:
-#                             meta["reads"][platform][strategy] = {}
-#                             if paired:
-#                                 meta["reads"][platform][strategy]["paired"] = paired
-#                             if single:
-#                                 meta["reads"][platform][strategy]["single"] = single
-#                 short_n = 3
-#                 long_n = 10
-#                 strategy = "WGS"
-#                 meta["reads"]["paired"] = []
-#                 meta["reads"]["single"] = []
-#                 for platform in ("ILLUMINA", "LS454"):
-#                     if platform in meta["reads"]:
-#                         if "paired" in meta["reads"][platform][strategy]:
-#                             new_reads = meta["reads"][platform][strategy]["paired"][
-#                                 :short_n
-#                             ]
-#                             meta["reads"]["paired"].extend(
-#                                 [acc, platform, base_counts[acc], fastq_ftp[acc]]
-#                                 for acc in new_reads
-#                             )
-#                             short_n -= len(meta["reads"]["paired"])
-#                         if short_n > 0:
-#                             if "single" in meta["reads"][platform][strategy]:
-#                                 new_reads = meta["reads"][platform][strategy]["single"][
-#                                     :short_n
-#                                 ]
-#                                 meta["reads"]["single"].extend(
-#                                     [acc, platform, base_counts[acc], fastq_ftp[acc]]
-#                                     for acc in new_reads
-#                                 )
-#                                 short_n -= len(meta["reads"]["single"])
-#                 for platform in ("PACBIO_SMRT", "OXFORD_NANOPORE"):
-#                     if platform in meta["reads"]:
-#                         if "single" in meta["reads"][platform][strategy]:
-#                             new_reads = meta["reads"][platform][strategy]["single"][
-#                                 :long_n
-#                             ]
-#                             meta["reads"]["single"] = [
-#                                 [acc, platform, base_counts[acc], fastq_ftp[acc]]
-#                                 for acc in new_reads
-#                             ]
-#                 outdir = create_outdir(meta["assembly"]["span"], version, lineage)
-#                 with open(
-#                     "%s/%s.yaml" % (outdir, meta["assembly"]["prefix"]), "w"
-#                 ) as fh:
-#                     fh.write(yaml.dump(meta))
-#             else:
-#                 outdir = create_outdir(meta["assembly"]["span"], version, lineage)
-#                 with open(
-#                     "%s/%s.yaml" % (outdir, meta["assembly"]["prefix"]), "w"
-#                 ) as fh:
-#                     fh.write(yaml.dump(meta))

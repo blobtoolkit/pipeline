@@ -38,7 +38,7 @@ def seqtk_sample_input(config, prefix):
                 * config["reads"]["coverage"]["max"]
                 / base_count
             )
-    if ratio <= 0.8:
+    if ratio <= 0.95:
         command = " ".join(
             [
                 "<(seqtk sample -s 100 %s %.2f)" % (filename, ratio)

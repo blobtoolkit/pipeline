@@ -1,0 +1,8 @@
+name: btq_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - tolkein=0.2.6
+  - defusedxml
+  - entrez-direct

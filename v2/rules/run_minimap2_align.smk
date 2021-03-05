@@ -12,12 +12,12 @@ rule run_minimap2_align:
         tuning = lambda wc: minimap_tuning(config, wc.sra),
         assembly = lambda wc: wc.assembly,
         subsample = lambda wc: seqtk_sample_input(config, wc.sra)
-    threads: 16
+    threads: 24
     log:
         "logs/{assembly}/run_minimap2_align/{sra}.log"
     benchmark:
         "logs/{assembly}/run_minimap2_align/{sra}.benchmark.txt"
     shell:
-        """(minimap2 -x {params.tuning} -d {output} {params.subsample} | \
+        """(minimap2 -t {threads} -ax {params.tuning} {input.index} {params.subsample} | \
         samtools view -h -T {input.fasta} - | \
-        samtools sort -@{threads} -O BAM -o {output} -) &> {log}"""
+        samtools sort -@4 -O BAM -o {output} -) &> {log}"""
