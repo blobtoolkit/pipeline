@@ -68,8 +68,7 @@ snakemake -p \
           --configfile $DATA_DIR/$ACCESSION/config.yaml \
           --latency-wait 60 \
           --stats $DATA_DIR/$ACCESSION/$TOOL.stats \
-          -s $SNAKE_DIR/$TOOL.smk \
-          -n
+          -s $SNAKE_DIR/$TOOL.smk
 
 if [ $? -ne 0 ];then
   echo "ERROR: failed while running pipeline"
