@@ -22,17 +22,24 @@ conda install defusedxml
 DATA_DIR=/path/to/data
 DATABASE_DIR=/path/to/databases
 
-./scripts/generate_config.py $ACCESSION --out $DATA_DIR --db $DATABASE_DIR
+./scripts/generate_config.py $ACCESSION --out $DATA_DIR --db $DATABASE_DIR --coverage 30
 ```
 
 ### Run pipelines
 
 ```
-conda env create -n btk_env -f envs/btk.yml
-conda activate btk_env
+conda create -n bts_env -c bioconda snakemake
+conda activate bts_env
+conda install --clobber -c conda-forge -c bioconda busco=5
+conda install --clobber -c bioconda samtools=1.10 minimap2 seqtk
+conda activate bts_env
 
-TOOL=minimap
-THREADS=32
+export TOOL=minimap
+export THREADS=32
+export SNAKE_DIR=`pwd`
+export DATA_DIR=/path/to/data
+export ACCESSION=GCA_0000000.0
+export TOOL=busco
 
-snakemake -p --directory $DATA_DIR/$ACCESSION/$TOOL --configfile $DATA_DIR/GCA_903992545.1/config.yaml -s $TOOL.smk -j $THREADS
+bsub < ./scripts/lsf_wrapper.sh
 ```

@@ -27,5 +27,5 @@ rule run_busco_v5:
             -c {threads} > {log} 2>&1 && \
         mv {params.outdir}/run_{params.lineage}/full_table.tsv {output.full} && \
         mv {params.outdir}/run_{params.lineage}/short_summary.txt {output.short} && \
-        rm -rf {params.outdir} && exit 0 || \
+        exit 0 || \
         rm -rf {params.outdir} && exit 1"""
