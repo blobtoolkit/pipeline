@@ -5,7 +5,8 @@ Splits original pipeline into mini-pipelines
 ## Usage
 
 ```
-git clone -b develop https://github.com/insdc-pipeline
+git clone -b develop https://github.com/blobtoolkit/insdc-pipeline
+cd insdc-pipeline/v2
 ```
 
 ### Generate config files
@@ -13,8 +14,10 @@ git clone -b develop https://github.com/insdc-pipeline
 For public assemblies, the script `generate config.py` will fetch copies of assembly and read files and generate a YAML config file.
 
 ```
-conda create -y -n btq_env -f envs/btq.yml
+conda create -n btq_env -c tolkit tolkein
 conda activate btq_env
+conda install --clobber -c bioconda entrez-direct
+conda install defusedxml
 
 DATA_DIR=/path/to/data
 DATABASE_DIR=/path/to/databases
@@ -25,7 +28,7 @@ DATABASE_DIR=/path/to/databases
 ### Run pipelines
 
 ```
-conda create -y -n btk_env -f envs/btk.yml
+conda env create -n btk_env -f envs/btk.yml
 conda activate btk_env
 
 TOOL=minimap

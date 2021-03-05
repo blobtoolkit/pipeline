@@ -11,7 +11,7 @@ Usage:
 Options:
   --rank=<rank>          Similarity search database masking level [default: genus]
   --root=<root>          Root taxID [default: 2759] (default is all Eukaryota)
-  --coverage=INT         Maximum coverage for read mapping [default: 20]
+  --coverage=INT         Maximum coverage for read mapping [default: 30]
   --out=<out>            Path to output directory [default: .]
   --db=<db>              Path to database directory [default: .]
 """

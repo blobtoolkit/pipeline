@@ -2,6 +2,7 @@ name: btq_env
 channels:
   - conda-forge
   - defaults
+  - tolkit
 dependencies:
   - tolkein=0.2.6
   - defusedxml
