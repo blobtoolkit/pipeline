@@ -10,7 +10,7 @@ rule run_diamond_blastx:
     params:
         db = lambda wc: wc.diamond_db,
         evalue = lambda wc: similarity_config(config)["reference_proteomes"]["evalue"],
-        max_target_seqs = lambda wc: similarity_config(config)["reference_proteomes"]["max_target_seqs"]
+        max_target_seqs = lambda wc: similarity_config(config)["reference_proteomes"]["max_target_seqs"],
         taxid = lambda wc: config["taxonomy"]["taxid"]
     threads: 32
     log:
