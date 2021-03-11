@@ -7,7 +7,7 @@ rule run_blobtools_create:
         busco = expand("%s/%s.busco.{lineage}.tsv" % (busco_path, config["assembly"]["prefix"]), lineage=config['busco']['lineages']),
         bam = expand("%s/%s.{sra}.bam" % (minimap_path, config["assembly"]["prefix"]), sra=reads_by_prefix(config).keys()),
         blast = "%s/%s.%s.out" % (diamond_path, config["assembly"]["prefix"], diamond_db_name(config)),
-        taxdump = config["similarity"],
+        taxdump = config["similarity"]["taxdump"],
         yaml = "%s.meta.yaml" % config["assembly"]["prefix"]
     output:
         "%s/meta.json" % blobdir_name(config),
