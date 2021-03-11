@@ -21,15 +21,15 @@ Basic usage:
 © 2021 Richard Challis (Wellcome Sanger Institute), MIT License
 """
 
-include: 'scripts/functions.py'
+include: "scripts/functions.py"
 
 rule all:
     """
     Dummy rule to define all outputs
     """
     input:
-        expand("%s.busco.{lineage}.tsv" % config["assembly"]["prefix"], lineage=config['busco']['lineages'])
+        expand("%s.busco.{lineage}.tsv" % config["assembly"]["prefix"], lineage=config["busco"]["lineages"])
 
 
-include: 'rules/run_busco5.smk'
-include: 'rules/unzip_assembly_fasta.smk'
+include: "rules/run_busco5.smk"
+include: "rules/unzip_assembly_fasta.smk"

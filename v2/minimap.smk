@@ -4,7 +4,7 @@ import os
 https://github.com/blobtoolkit/insdc-pipeline
 https://blobtoolkit.genomehubs.org/pipeline/
 
-Pipeline to run BUSCO
+Pipeline to run Minimap
 --------------------------------------------------
 
 Requirements:
@@ -15,13 +15,13 @@ Basic usage:
   snakemake -p \
     --directory ~/workdir \
     --configfile example.yaml \
-    -s miniap.smk
+    -s minimap.smk
     -j 8
 
 © 2021 Richard Challis (Wellcome Sanger Institute), MIT License
 """
 
-include: 'scripts/functions.py'
+include: "scripts/functions.py"
 
 rule all:
     """
@@ -31,5 +31,5 @@ rule all:
         expand("%s.{sra}.bam" % config["assembly"]["prefix"], sra=reads_by_prefix(config).keys())
 
 
-include: 'rules/run_minimap2_index.smk'
-include: 'rules/run_minimap2_align.smk'
+include: "rules/run_minimap2_index.smk"
+include: "rules/run_minimap2_align.smk"

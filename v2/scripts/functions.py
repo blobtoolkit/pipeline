@@ -48,3 +48,49 @@ def seqtk_sample_input(config, prefix):
     else:
         command = " ".join(filenames)
     return command
+
+
+def similarity_config(config):
+    """Set config values for each simialrity database."""
+    defaults = config["similarity"]["defaults"]
+    opts = {}
+    for obj in config["similarity"]["databases"]:
+        opts[obj["name"]] = {**defaults, **obj}
+        if "root" in opts[obj["name"]]:
+            if not isinstance(opts[obj["name"]]["root"], list):
+                opts[obj["name"]]["root"] = [str(opts[obj["name"]]["root"])]
+            else:
+                opts[obj["name"]]["root"] = [
+                    str(root) for root in opts[obj["name"]]["root"]
+                ]
+        else:
+            opts[obj["name"]]["root"] = ["1"]
+        if "mask_ids" in opts[obj["name"]]:
+            if not isinstance(opts[obj["name"]]["mask_ids"], list):
+                opts[obj["name"]]["mask_ids"] = [str(opts[obj["name"]]["mask_ids"])]
+            else:
+                opts[obj["name"]]["mask_ids"] = [
+                    str(root) for root in opts[obj["name"]]["mask_ids"]
+                ]
+        else:
+            opts[obj["name"]]["mask_ids"] = []
+    opts[obj["name"]]["default_mask_ids"] = ["32630", "111789", "6"]
+    return opts
+
+
+def diamond_db_name(config):
+    """Generate filtered diamond database name."""
+    opts = similarity_config(config)
+    name = "reference_proteomes"
+    parts = ["diamond", name, "root.%s" % ".".join(opts[name]["root"])]
+    if opts[name]["mask_ids"]:
+        parts.append("minus.%s" % ".".join(opts[name]["mask_ids"]))
+    return ".".join(parts)
+
+
+def blobdir_name(config):
+    """Generate blobdir name."""
+    name = config["assembly"]["prefix"]
+    if "revision" in config and config["revision"] > 0:
+        name = "%s.%d" % (name, config["revision"])
+    return name
