@@ -4,7 +4,7 @@ rule chunk_fasta_by_busco:
     """
     input:
         fasta = "{assembly}.fasta",
-        busco = "%s/{assembly}.busco.%s.tsv" % (busco_path, config["busco"]["lineages"])
+        busco = "%s/{assembly}.busco.%s.tsv" % (busco_path, config["busco"]["lineages"][0])
     output:
         "{assembly}.chunks.fasta"
     params:
