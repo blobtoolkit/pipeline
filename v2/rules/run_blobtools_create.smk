@@ -16,8 +16,8 @@ rule run_blobtools_create:
         expand("%s/{sra}_cov.json" % blobdir_name(config), sra=reads_by_prefix(config).keys()),
         expand("%s/{lineage}_busco.json" % blobdir_name(config), lineage=config['busco']['lineages'])
     params:
-        busco = lambda wc: " --busco ".join(input.busco),
-        bam = lambda wc: " --cov ".join(input.bam),
+        busco = lambda wc: " --busco ".join(expand("%s/%s.busco.{lineage}.tsv" % (busco_path, config["assembly"]["prefix"]), lineage=config['busco']['lineages'])),
+        bam = lambda wc: " --cov ".join(expand("%s/%s.{sra}.bam" % (minimap_path, config["assembly"]["prefix"]), sra=reads_by_prefix(config).keys())),
     threads: 30
     log:
         "logs/%s/run_blobtools_create.log" % config["assembly"]["prefix"]
