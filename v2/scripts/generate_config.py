@@ -334,7 +334,7 @@ def add_taxon_to_meta(meta, taxon_meta):
 def add_reads_to_meta(meta, sra, readdir):
     """Add read accessions to metadata."""
     LOGGER.info("Adding read accessions to assembly metadata")
-    for index, run in enumerate(sra):
+    for index, run in enumerate(sra[:3]):
         info = [
             run["run_accession"],
             run["instrument_platform"],
