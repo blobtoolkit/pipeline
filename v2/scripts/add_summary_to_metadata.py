@@ -7,6 +7,7 @@ import subprocess
 import traceback
 from collections import OrderedDict
 
+import git
 import yaml
 
 logger_config = {
@@ -31,7 +32,7 @@ try:
     except AttributeError:
         INFILES = []
     OUTFILE = str(snakemake.output)
-    GITDIR = snakemake.params.gitdir
+    GITDIR = git.Repo(".", search_parent_directories=True).working_tree_dir
 except Exception as err:
     logger.error(traceback.format_exc())
     exit(7)
