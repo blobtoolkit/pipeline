@@ -33,6 +33,7 @@ rule all:
         "%s.diamond.reference_proteomes.out" % config["assembly"]["prefix"]
 
 
+include: "rules/unzip_assembly_fasta.smk"
 include: "rules/chunk_fasta_by_busco.smk"
 include: "rules/run_diamond_blastx.smk"
 include: "rules/unchunk_blast.smk"
