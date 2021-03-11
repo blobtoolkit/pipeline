@@ -3,7 +3,7 @@ rule bamtools_stats:
     Run bamtools stats to generate summary statistics for each BAM file
     """
     input:
-        bam = "{assembly}.{sra}.bam"
+        bam = "%s/{assembly}.{sra}.bam" % minimap_path
     output:
         "{assembly}.{sra}.bam.stats"
     threads: 1

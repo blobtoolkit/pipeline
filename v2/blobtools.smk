@@ -23,6 +23,10 @@ Basic usage:
 
 include: "scripts/functions.py"
 
+busco_path = "../busco"
+minimap_path = "../minimap"
+diamond_path = "../diamond"
+
 rule all:
     """
     Dummy rule to define output
