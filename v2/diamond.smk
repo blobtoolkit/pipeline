@@ -28,12 +28,9 @@ rule all:
     Dummy rule to define output
     """
     input:
-        "%s.%s.out" % (config["assembly"]["prefix"], diamond_db_name(config))
+        "%s.diamond.reference_proteomes.out" % config["assembly"]["prefix"]
 
 
-# include: "rules/make_taxid_list.smk"
-# include: "rules/make_masked_list.smk"
-# include: "rules/make_diamond_db.smk"
-# include: "rules/chunk_fasta.smk"
-# include: "rules/run_diamond_blastx.smk"
-# include: "rules/unchunk_blast.smk"
+include: "rules/chunk_fasta_by_busco.smk"
+include: "rules/run_diamond_blastx.smk"
+include: "rules/unchunk_blast.smk"

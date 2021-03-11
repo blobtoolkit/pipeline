@@ -174,13 +174,7 @@ def parse_assembly_meta(accession):
         "busco": {"lineages": []},
         "reads": {"paired": []},
         "revision": 0,
-        "settings": {
-            "blast_chunk": 100000,
-            "blast_max_chunks": 10,
-            "blast_overlap": 500,
-            "chunk": 1000000,
-            "tmp": "/tmp",
-        },
+        "settings": {"tmp": "/tmp",},
         "similarity": {
             "defaults": {
                 "evalue": 1e-25,
