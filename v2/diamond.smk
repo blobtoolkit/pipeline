@@ -23,6 +23,8 @@ Basic usage:
 
 include: "scripts/functions.py"
 
+busco_path = "../busco"
+
 rule all:
     """
     Dummy rule to define output
