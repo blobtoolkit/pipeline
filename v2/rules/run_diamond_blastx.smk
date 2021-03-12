@@ -11,7 +11,7 @@ rule run_diamond_blastx:
         db = config["similarity"]["path"],
         evalue = config["similarity"]["evalue"],
         max_target_seqs = config["similarity"]["max_target_seqs"],
-        taxid = config["similarity"]["taxid"]
+        taxid = config["taxonomy"]["taxid"]
     threads: 32
     log:
         "logs/{assembly}/run_diamond_blastx.log"
