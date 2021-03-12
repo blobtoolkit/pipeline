@@ -8,7 +8,6 @@ rule run_diamond_blastx:
     output:
         "{assembly}.diamond.reference_proteomes.out.raw"
     params:
-        db = config["similarity"]["path"],
         evalue = config["similarity"]["evalue"],
         max_target_seqs = config["similarity"]["max_target_seqs"],
         taxid = config["taxon"]["taxid"]
