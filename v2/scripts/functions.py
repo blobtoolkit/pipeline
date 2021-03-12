@@ -52,11 +52,8 @@ def seqtk_sample_input(config, prefix):
 
 def diamond_db_name(config):
     """Generate filtered diamond database name."""
-    opts = config["similarity"]
     name = "reference_proteomes"
-    parts = ["diamond", name, "root.%s" % ".".join(opts[name]["root"])]
-    if opts[name]["mask_ids"]:
-        parts.append("minus.%s" % ".".join(opts[name]["mask_ids"]))
+    parts = ["diamond", name]
     return ".".join(parts)
 
 
