@@ -7,7 +7,7 @@ rule unchunk_blast:
     output:
         "{assembly}.diamond.reference_proteomes.out"
     params:
-        max_target_seqs = lambda wc: similarity_config(config)["reference_proteomes"]["max_target_seqs"]
+        max_target_seqs = config["similarity"]["max_target_seqs"]
     threads: 1
     log:
         "logs/{assembly}/unchunk_blast.log"

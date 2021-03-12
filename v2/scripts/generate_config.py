@@ -4,13 +4,10 @@
 Generate config files for BlobToolKit pipeline.
 
 Usage:
-  generate_config.py <ACCESSION>
-    [--rank genus] [--root 2759] [--coverage 20]
+  generate_config.py <ACCESSION> [--coverage 30]
     [--out /path/to/output/directory] [--db /path/to/database/directory]
 
 Options:
-  --rank=<rank>          Similarity search database masking level [default: genus]
-  --root=<root>          Root taxID [default: 2759] (default is all Eukaryota)
   --coverage=INT         Maximum coverage for read mapping [default: 30]
   --out=<out>            Path to output directory [default: .]
   --db=<db>              Path to database directory [default: .]
@@ -176,14 +173,11 @@ def parse_assembly_meta(accession):
         "revision": 0,
         "settings": {"tmp": "/tmp",},
         "similarity": {
-            "defaults": {
-                "evalue": 1e-25,
-                "mask_ids": [],
-                "max_target_seqs": 10,
-                "root": 1,
-            },
+            "evalue": 1e-25,
+            "mask_ids": [],
+            "max_target_seqs": 10,
+            "root": 1,
             "taxrule": "bestdist",
-            "databases": [],
         },
         "taxon": {},
         "version": 1,
@@ -327,8 +321,6 @@ def add_taxon_to_meta(meta, taxon_meta):
     for obj in taxon_meta["lineage"]:
         if obj["taxon_rank"] in ranks:
             meta["taxon"].update({obj["taxon_rank"]: obj["scientific_name"]})
-        if obj["taxon_rank"] == "genus":
-            meta["similarity"]["defaults"].update({"mask_ids": [int(obj["taxon_id"])]})
 
 
 def add_reads_to_meta(meta, sra, readdir):
@@ -411,9 +403,10 @@ if __name__ == "__main__":
     #   import btk --cov
     #   greyscale blob
     #   generate filtered diamond database
-    meta["similarity"]["databases"].append(
-        {"local": uniprotdir, "name": "reference_proteomes",}
-    )
+    meta["similarity"] = {
+        "path": uniprotdir,
+        "name": "reference_proteomes",
+    }
     tofile.write_file("%s/config.yaml" % outdir, meta)
     #   run diamond blastx
     #   import btk --hits

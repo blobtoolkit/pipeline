@@ -50,34 +50,6 @@ def seqtk_sample_input(config, prefix):
     return command
 
 
-def similarity_config(config):
-    """Set config values for each simialrity database."""
-    defaults = config["similarity"]["defaults"]
-    opts = {}
-    for obj in config["similarity"]["databases"]:
-        opts[obj["name"]] = {**defaults, **obj}
-        if "root" in opts[obj["name"]]:
-            if not isinstance(opts[obj["name"]]["root"], list):
-                opts[obj["name"]]["root"] = [str(opts[obj["name"]]["root"])]
-            else:
-                opts[obj["name"]]["root"] = [
-                    str(root) for root in opts[obj["name"]]["root"]
-                ]
-        else:
-            opts[obj["name"]]["root"] = ["1"]
-        if "mask_ids" in opts[obj["name"]]:
-            if not isinstance(opts[obj["name"]]["mask_ids"], list):
-                opts[obj["name"]]["mask_ids"] = [str(opts[obj["name"]]["mask_ids"])]
-            else:
-                opts[obj["name"]]["mask_ids"] = [
-                    str(root) for root in opts[obj["name"]]["mask_ids"]
-                ]
-        else:
-            opts[obj["name"]]["mask_ids"] = []
-    opts[obj["name"]]["default_mask_ids"] = ["32630", "111789", "6"]
-    return opts
-
-
 def diamond_db_name(config):
     """Generate filtered diamond database name."""
     opts = similarity_config(config)

@@ -4,14 +4,14 @@ rule run_diamond_blastx:
     """
     input:
         fasta = "{assembly}.fasta.chunks",
-        dmand = "reference_proteomes.dmnd"
+        dmnd = "%s/%s.dmnd" % (config["similarity"]["path"], config["similarity"]["name"])
     output:
         "{assembly}.diamond.reference_proteomes.out.raw"
     params:
-        db = lambda wc: wc.diamond_db,
-        evalue = lambda wc: similarity_config(config)["reference_proteomes"]["evalue"],
-        max_target_seqs = lambda wc: similarity_config(config)["reference_proteomes"]["max_target_seqs"],
-        taxid = lambda wc: config["taxonomy"]["taxid"]
+        db = config["similarity"]["path"],
+        evalue = config["similarity"]["evalue"],
+        max_target_seqs = config["similarity"]["max_target_seqs"],
+        taxid = config["similarity"]["taxid"]
     threads: 32
     log:
         "logs/{assembly}/run_diamond_blastx.log"
@@ -26,5 +26,5 @@ rule run_diamond_blastx:
             --max-hsps 1 \
             --evalue {params.evalue} \
             --threads {threads} \
-            --taxon-exclude {params.taxon_id} \
+            --taxon-exclude {params.taxid} \
             > {output} 2> {log}"""
