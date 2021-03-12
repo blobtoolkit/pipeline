@@ -19,7 +19,7 @@ rule run_blobtools_create:
         busco = lambda wc: " --busco ".join(expand("%s/%s.busco.{lineage}.tsv" % (busco_path, config["assembly"]["prefix"]), lineage=config['busco']['lineages'])),
         cov = lambda wc: " --cov ".join(expand("%s/%s.{sra}.bam" % (minimap_path, config["assembly"]["prefix"]), sra=reads_by_prefix(config).keys())),
         blobdir = blobdir_name(config)
-    threads: 30
+    threads: 4
     log:
         "logs/%s/run_blobtools_create.log" % config["assembly"]["prefix"]
     benchmark:
@@ -31,5 +31,6 @@ rule run_blobtools_create:
             --taxdump {input.taxdump} \
             --busco {params.busco} \
             --cov {params.cov} \
-            --hits {input.blast}
+            --hits {input.blast} \
+            --threads {threads} \
             {params.blobdir} > {log} 2>&1"""

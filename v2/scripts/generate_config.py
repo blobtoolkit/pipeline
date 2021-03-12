@@ -398,6 +398,6 @@ if __name__ == "__main__":
         "name": "reference_proteomes",
         "evalue": 1e-25,
         "max_target_seqs": 10,
-        "taxrule": "bestdist",
+        "taxrule": "bestdistsum",
     }
     tofile.write_file("%s/config.yaml" % outdir, meta)
