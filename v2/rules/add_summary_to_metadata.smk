@@ -5,8 +5,8 @@ rule add_summary_to_metadata:
         "{assembly}.meta.yaml"
     threads: 1
     log:
-        "logs/{assembly}/generate_metadata.log"
+        "logs/{assembly}/add_summary_to_metadata.log"
     benchmark:
-        "logs/{assembly}/generate_metadata.benchmark.txt"
+        "logs/{assembly}/add_summary_to_metadata.benchmark.txt"
     script:
-        "../scripts/generate_metadata.py"
+        "../scripts/add_summary_to_metadata.py"
