@@ -18,7 +18,7 @@ rule run_blobtools_create:
     params:
         busco = lambda wc: " --busco ".join(expand("%s/%s.busco.{lineage}.tsv" % (busco_path, config["assembly"]["prefix"]), lineage=config['busco']['lineages'])),
         cov = lambda wc: " --cov ".join(expand("%s/%s.{sra}.bam" % (minimap_path, config["assembly"]["prefix"]), sra=reads_by_prefix(config).keys())),
-        blobdir = blobdir_name(config)
+        blobdir = blobdir_name(config),
         taxrule = config["similarity"]["taxrule"]
     threads: 4
     log:
@@ -30,6 +30,7 @@ rule run_blobtools_create:
             --fasta {input.fasta} \
             --meta {input.yaml} \
             --taxdump {input.taxdump} \
+            --taxrule {params.taxrule} \
             --busco {params.busco} \
             --cov {params.cov} \
             --hits {input.blast} \
