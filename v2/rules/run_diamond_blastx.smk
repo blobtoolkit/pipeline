@@ -3,7 +3,7 @@ rule run_diamond_blastx:
     Run Diamond blastx to search protein database with assembly query.
     """
     input:
-        fasta = "{assembly}.chunks.fasta",
+        fasta = "{assembly}.fasta.chunks",
         dmand = "reference_proteomes.dmnd"
     output:
         "{assembly}.diamond.reference_proteomes.out.raw"

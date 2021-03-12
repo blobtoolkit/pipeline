@@ -6,7 +6,7 @@ rule chunk_fasta_by_busco:
         fasta = "{assembly}.fasta",
         busco = "%s/{assembly}.busco.%s.tsv" % (busco_path, config["busco"]["lineages"][0])
     output:
-        "{assembly}.chunks.fasta"
+        "{assembly}.fasta.chunks"
     params:
         chunk = 100000,
         overlap = 500,

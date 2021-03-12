@@ -5,7 +5,7 @@ rule chunk_fasta:
     input:
         fasta = "{assembly}.fasta"
     output:
-        "{assembly}.chunks.fasta"
+        "{assembly}.fasta.chunks"
     params:
         chunk = 100000,
         overlap = 0,
