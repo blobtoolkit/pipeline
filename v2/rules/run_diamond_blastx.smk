@@ -20,7 +20,7 @@ rule run_diamond_blastx:
     shell:
         """diamond blastx \
             --query {input.fasta} \
-            --db {params.db} \
+            --db {input.dmnd} \
             --outfmt 6 qseqid staxids bitscore qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore \
             --max-target-seqs {params.max_target_seqs} \
             --max-hsps 1 \

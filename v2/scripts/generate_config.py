@@ -4,11 +4,12 @@
 Generate config files for BlobToolKit pipeline.
 
 Usage:
-  generate_config.py <ACCESSION> [--coverage 30]
+  generate_config.py <ACCESSION> [--coverage 30] [--download]
     [--out /path/to/output/directory] [--db /path/to/database/directory]
 
 Options:
   --coverage=INT         Maximum coverage for read mapping [default: 30]
+  --download             Flag to download remote files [default: False]
   --out=<out>            Path to output directory [default: .]
   --db=<db>              Path to database directory [default: .]
 """
@@ -172,13 +173,7 @@ def parse_assembly_meta(accession):
         "reads": {"paired": []},
         "revision": 0,
         "settings": {"tmp": "/tmp",},
-        "similarity": {
-            "evalue": 1e-25,
-            "mask_ids": [],
-            "max_target_seqs": 10,
-            "root": 1,
-            "taxrule": "bestdist",
-        },
+        "similarity": {},
         "taxon": {},
         "version": 1,
     }
@@ -333,6 +328,7 @@ def add_reads_to_meta(meta, sra, readdir):
             run["base_count"],
             "%s/%s_1.fastq.gz;%s/%s_2.fastq.gz"
             % (readdir, run["run_accession"], readdir, run["run_accession"]),
+            run["fastq_ftp"],
         ]
         meta["reads"]["paired"].append(info)
         if index == 2:
@@ -369,45 +365,39 @@ if __name__ == "__main__":
     dbdir = opts["--db"]
     buscodir = "%s/busco" % dbdir
     uniprotdir = "%s/uniprot" % dbdir
-    os.makedirs(buscodir, exist_ok=True)
     if not outdir.endswith(accession):
         outdir += "/%s" % accession
-    os.makedirs(outdir, exist_ok=True)
     assembly_url = fetch_assembly_url(accession)
-    os.makedirs("%s/assembly" % outdir, exist_ok=True)
     assembly_file = "%s/assembly/%s.fasta.gz" % (outdir, accession)
-    fetch_assembly_fasta(assembly_url, assembly_file)
+    if opts["--download"]:
+        os.makedirs(buscodir, exist_ok=True)
+        os.makedirs(outdir, exist_ok=True)
+        os.makedirs("%s/assembly" % outdir, exist_ok=True)
+        fetch_assembly_fasta(assembly_url, assembly_file)
     meta = parse_assembly_meta(accession)
-    meta["assembly"].update({"file": assembly_file})
+    meta["assembly"].update({"file": assembly_file, "url": assembly_url})
     taxon_meta = fetch_goat_data(meta["taxon"]["taxid"])
     add_taxon_to_meta(meta, taxon_meta)
-    #   import btk --fasta
-    #   cumulative plot
     busco_sets = find_busco_lineages(taxon_meta["lineage"])
     if busco_sets:
         meta["busco"].update({"lineage_dir": buscodir, "lineages": busco_sets})
-    fetch_busco_lineages(busco_sets, buscodir)
-    #   run busco
-    #   import btk --busco
-    #   snail plot
+    if opts["--download"]:
+        fetch_busco_lineages(busco_sets, buscodir)
     sra = assembly_reads(meta["assembly"]["biosample"])
     if sra:
         if opts["--coverage"]:
             meta["reads"].update({"coverage": {"max": int(opts["--coverage"])}})
         readdir = "%s/reads" % outdir
         add_reads_to_meta(meta, sra, readdir)
-        os.makedirs(readdir, exist_ok=True)
-        for run in sra:
-            fetch_read_files(run, "%s/reads" % outdir)
-    #   map reads
-    #   import btk --cov
-    #   greyscale blob
-    #   generate filtered diamond database
+        if opts["--download"]:
+            os.makedirs(readdir, exist_ok=True)
+            for run in sra:
+                fetch_read_files(run, "%s/reads" % outdir)
     meta["similarity"] = {
         "path": uniprotdir,
         "name": "reference_proteomes",
+        "evalue": 1e-25,
+        "max_target_seqs": 10,
+        "taxrule": "bestdist",
     }
     tofile.write_file("%s/config.yaml" % outdir, meta)
-    #   run diamond blastx
-    #   import btk --hits
-    #   color blob

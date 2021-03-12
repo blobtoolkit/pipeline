@@ -9,7 +9,7 @@ rule chunk_fasta_by_busco:
         "{assembly}.fasta.chunks"
     params:
         chunk = 100000,
-        overlap = 500,
+        overlap = 0,
         max_chunks = 10
     threads: 1
     log:
