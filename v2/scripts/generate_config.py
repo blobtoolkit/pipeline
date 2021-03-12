@@ -6,12 +6,14 @@ Generate config files for BlobToolKit pipeline.
 Usage:
   generate_config.py <ACCESSION> [--coverage 30] [--download]
     [--out /path/to/output/directory] [--db /path/to/database/directory]
+    [--db-suffix STRING]
 
 Options:
   --coverage=INT         Maximum coverage for read mapping [default: 30]
   --download             Flag to download remote files [default: False]
-  --out=<out>            Path to output directory [default: .]
-  --db=<db>              Path to database directory [default: .]
+  --out PATH             Path to output directory [default: .]
+  --db PATH              Path to database directory [default: .]
+  --db-suffix STRING     Database version suffix (e.g. 2021_03)
 """
 
 import os
@@ -365,6 +367,11 @@ if __name__ == "__main__":
     dbdir = opts["--db"]
     buscodir = "%s/busco" % dbdir
     uniprotdir = "%s/uniprot" % dbdir
+    taxdumpdir = "%s/taxdump" % dbdir
+    if opts["--db-suffix"]:
+        buscodir += "_%s" % opts["--db-suffix"]
+        uniprotdir += "_%s" % opts["--db-suffix"]
+        taxdumpdir += "_%s" % opts["--db-suffix"]
     if not outdir.endswith(accession):
         outdir += "/%s" % accession
     assembly_url = fetch_assembly_url(accession)
@@ -400,4 +407,5 @@ if __name__ == "__main__":
         "max_target_seqs": 10,
         "taxrule": "bestdistsum",
     }
+    meta["settings"]["taxdump"] = taxdumpdir
     tofile.write_file("%s/config.yaml" % outdir, meta)
