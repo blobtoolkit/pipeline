@@ -32,7 +32,12 @@ try:
     except AttributeError:
         INFILES = []
     OUTFILE = str(snakemake.output)
-    GITDIR = git.Repo(".", search_parent_directories=True).working_tree_dir
+    GITDIR = (
+        git.Repo(
+            os.path.dirname(os.path.abspath(__file__)), search_parent_directories=True
+        ).working_tree_dir
+        + "/.git"
+    )
 except Exception as err:
     logger.error(traceback.format_exc())
     exit(7)
@@ -48,6 +53,8 @@ try:
     meta["reads"] = {}
     strategies = ["paired", "single"]
     for strategy in strategies:
+        if strategy not in config["reads"]:
+            continue
         for arr in config["reads"][strategy]:
             if arr:
                 meta["reads"][arr[0]] = {
