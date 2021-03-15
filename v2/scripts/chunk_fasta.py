@@ -164,7 +164,8 @@ if __name__ == "__main__":
                         break
                 if not has_busco:
                     offset = int((seq["length"] - int(args["--chunk"])) / 2)
-                    seq["seq"] = seq["seq"][offset:-offset]
+                    if offset > 0:
+                        seq["seq"] = seq["seq"][offset:-offset]
             if check_for_unmasked_bases(seq["seq"]):
                 seqs.append((seq))
         chunked = ""
