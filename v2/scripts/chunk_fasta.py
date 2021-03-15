@@ -155,13 +155,14 @@ if __name__ == "__main__":
                 and seq["length"] > int(args["--chunk"]) + int(args["--overlap"])
             ):
                 has_busco = False
-                for window in busco_windows[seq["title"]]:
-                    if seq["start"] <= window[0] and seq["end"] >= window[1]:
-                        has_busco = True
-                        seq["seq"] = seq["seq"][
-                            window[0] - seq["start"] : window[1] - seq["start"]
-                        ]
-                        break
+                if seq["title"] in busco_windows:
+                    for window in busco_windows[seq["title"]]:
+                        if seq["start"] <= window[0] and seq["end"] >= window[1]:
+                            has_busco = True
+                            seq["seq"] = seq["seq"][
+                                window[0] - seq["start"] : window[1] - seq["start"]
+                            ]
+                            break
                 if not has_busco:
                     offset = int((seq["length"] - int(args["--chunk"])) / 2)
                     if offset > 0:
