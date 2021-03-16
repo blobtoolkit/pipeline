@@ -4,9 +4,9 @@ rule validate_dataset:
     """
     input:
         cov = expand("{{blobdir}}/{sra}_cov.json", sra=reads_by_prefix(config).keys()),
-        tax = expand("{{blobdir}}/{taxrule}_phylum_positions.json" % (asm, rev), taxrule=config["similarity"]["taxrule"]),
-        busco = expand("{{blobdir}}/{lineage}_busco.json" % (asm, rev), lineage=config["busco"]["lineages"]),
-        ids = "{{blobdir}}/identifiers.json" % (asm, rev)
+        tax = expand("{{blobdir}}/{taxrule}_phylum_positions.json", taxrule=config["similarity"]["taxrule"]),
+        busco = expand("{{blobdir}}/{lineage}_busco.json", lineage=config["busco"]["lineages"]),
+        ids = "{{blobdir}}/identifiers.json"
     output:
         touch(temp("{blobdir}.valid"))
     params:
