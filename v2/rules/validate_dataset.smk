@@ -3,8 +3,8 @@ rule validate_dataset:
     Run BlobToolKit validator on a dataset to check all expected fields are present.
     """
     input:
-        cov = expand("{{blobdir}}/{sra}_cov.json", sra=list_sra_accessions(reads)),
-        tax = expand("{{blobdir}}/{taxrule}_phylum_positions.json" % (asm, rev), taxrule=taxrule_name()),
+        cov = expand("{{blobdir}}/{sra}_cov.json", sra=reads_by_prefix(config).keys()),
+        tax = expand("{{blobdir}}/{taxrule}_phylum_positions.json" % (asm, rev), taxrule=config["similarity"]["taxrule"]),
         busco = expand("{{blobdir}}/{lineage}_busco.json" % (asm, rev), lineage=config["busco"]["lineages"]),
         ids = "{{blobdir}}/identifiers.json" % (asm, rev)
     output:

@@ -4,7 +4,7 @@ rule generate_images:
     """
     input:
         valid = "{blobdir}.valid",
-        cov = expand("{{blobdir}}/{sra}_cov.json", sra=list_sra_accessions(reads))
+        cov = expand("{{blobdir}}/{sra}_cov.json", sra=reads_by_prefix(config).keys())
     output:
         "{blobdir}/cumulative.png"
     params:
