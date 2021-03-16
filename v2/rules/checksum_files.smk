@@ -14,6 +14,6 @@ rule checksum_files:
     benchmark:
         "logs/{blobdir}/checksum_files.benchmark.txt"
     shell:
-        """(find {params.assembly}/ -type f -exec sha1sum {{}} ';' \
+        """(find {params.blobdir}/ -type f -exec sha1sum {{}} ';' \
         | sort -k 2 \
-        | sed 's:{params.assembly}/::' > {params.assembly}/CHECKSUM) 2> {log}"""
+        | sed 's:{params.blobdir}/::' > {params.blobdir}/CHECKSUM) 2> {log}"""
