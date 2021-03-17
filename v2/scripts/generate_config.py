@@ -134,8 +134,9 @@ def fetch_assembly_url(accession):
     )
     xtract_stdout = xtract.communicate()[0].decode("utf-8").strip()
     for url in xtract_stdout.split("\n"):
-        basename = re.findall(GCA_NAME, url)[0]
-        return "%s/%s_genomic.fna.gz" % (url, basename)
+        basename = re.findall(GCA_NAME, url)
+        if basename:
+            return "%s/%s_genomic.fna.gz" % (url, basename[0])
     return None
 
 
@@ -381,6 +382,9 @@ if __name__ == "__main__":
         outdir += "/%s" % accession
     os.makedirs(outdir, exist_ok=True)
     assembly_url = fetch_assembly_url(accession)
+    if assembly_url is None:
+        LOGGER.error("Unable to find assembly URL")
+        sys.exit(1)
     assembly_file = "%s/assembly/%s.fasta.gz" % (outdir, accession)
     if opts["--download"]:
         os.makedirs(buscodir, exist_ok=True)
