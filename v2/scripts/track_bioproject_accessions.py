@@ -38,12 +38,8 @@ def fetch_bioproject_children(
         bioproject,
     )
     result = tofetch.fetch_url(url)
-    ctr = 0
     if result and result is not None:
         for line in result.split("\n")[1:]:
-            ctr += 1
-            if ctr == 5:
-                break
             if line and "\t" in line:
                 child_accession, description = line.split("\t")
                 if child_accession in projects:
@@ -97,7 +93,7 @@ def fetch_bioproject_accessions(bioproject, *, projects=None):
         accession = fetch_accession(child_bioproject)
         if accession is not None:
             accessions.append(accession)
-            project_list.add(child_bioproject)
+            # project_list.add(child_bioproject)
             project_list.add(new_projects[child_bioproject])
     return accessions, project_list
 
@@ -116,8 +112,9 @@ if __name__ == "__main__":
     accessions, new_projects = fetch_bioproject_accessions(
         bioproject, projects=projects
     )
-    print(accessions)
-    print(new_projects)
-    # TODO: write accessions and bioprojects to file
-    # TODO: remove limit on number of accessions
+    with open(targets_file, "a+") as tfh:
+        tfh.writelines([accession + "\n" for accession in accessions])
+    with open(projects_file, "a+") as pfh:
+        pfh.writelines([bioproject + "\n" for bioproject in new_projects])
+
     # TODO: introduce page numbering for when list gets long
