@@ -5,7 +5,7 @@ rule unzip_assembly_fasta:
     input:
         config["assembly"]["file"]
     output:
-        "{assembly}.fasta"
+        temp("{assembly}.fasta")
     threads: 1
     log:
         "logs/{assembly}/unzip_assembly_fasta.log"
