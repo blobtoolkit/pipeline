@@ -284,7 +284,7 @@ def assembly_reads(biosample):
                 values["base_count"] = 0
             sra.append(values)
     if sra:
-        return sorted(sra, key=itemgetter("base_count"), reverse=True)
+        return sorted(sra, key=itemgetter("base_count"), reverse=True)[:3]
     return None
 
 
@@ -326,7 +326,7 @@ def add_taxon_to_meta(meta, taxon_meta):
 def add_reads_to_meta(meta, sra, readdir):
     """Add read accessions to metadata."""
     LOGGER.info("Adding read accessions to assembly metadata")
-    for index, run in enumerate(sra[:3]):
+    for index, run in enumerate(sra):
         info = [
             run["run_accession"],
             run["instrument_platform"],
