@@ -23,7 +23,9 @@ import sys
 from operator import itemgetter
 from subprocess import PIPE, Popen
 
+import requests
 import ujson
+import yaml
 from defusedxml import ElementTree as ET
 from docopt import docopt
 from tolkein import tofetch, tofile, tolog
@@ -174,7 +176,7 @@ def parse_assembly_meta(accession):
         "busco": {"lineages": []},
         "reads": {"paired": []},
         "revision": 0,
-        "settings": {"tmp": "/tmp",},
+        "settings": {"tmp": "/tmp", "blast_chunk": 100000, "blast_max_chunks": 10},
         "similarity": {},
         "taxon": {},
         "version": 1,
@@ -337,19 +339,22 @@ def add_reads_to_meta(meta, sra, readdir):
             return
 
 
-# def current_versions(string="all"):
-#     """Get curent versions of hosted datasets from BTK API."""
-#     btk = "https://blobtoolkit.genomehubs.org/api/v1/search/%s" % string
-#     response = requests.get(btk)
-#     current = {}
-#     if response.ok:
-#         data = yaml.full_load(response.text)
-#         for asm in data:
-#             if "version" in asm:
-#                 current.update({asm["prefix"]: asm["version"]})
-#             else:
-#                 current.update({asm["prefix"]: 1})
-#     return current
+def set_btk_version(meta):
+    """Get curent version of hosted datasets from BTK API."""
+    LOGGER.info("Checking current version on BTK public viewer")
+    string = meta["assembly"]["prefix"]
+    btk = "https://blobtoolkit.genomehubs.org/api/v1/search/%s" % string
+    response = requests.get(btk)
+    current = 0
+    if response.ok:
+        data = yaml.full_load(response.text)
+        for asm in data:
+            if "version" in asm:
+                current = asm["version"]
+            else:
+                current = 1
+    meta["revision"] = current
+    meta["version"] = current + 1
 
 
 # def create_outdir(span, version=1, _lineage="all"):
@@ -374,17 +379,18 @@ if __name__ == "__main__":
         taxdumpdir += "_%s" % opts["--db-suffix"]
     if not outdir.endswith(accession):
         outdir += "/%s" % accession
+    os.makedirs(outdir, exist_ok=True)
     assembly_url = fetch_assembly_url(accession)
     assembly_file = "%s/assembly/%s.fasta.gz" % (outdir, accession)
     if opts["--download"]:
         os.makedirs(buscodir, exist_ok=True)
-        os.makedirs(outdir, exist_ok=True)
         os.makedirs("%s/assembly" % outdir, exist_ok=True)
         fetch_assembly_fasta(assembly_url, assembly_file)
     meta = parse_assembly_meta(accession)
     meta["assembly"].update({"file": assembly_file, "url": assembly_url})
     taxon_meta = fetch_goat_data(meta["taxon"]["taxid"])
     add_taxon_to_meta(meta, taxon_meta)
+    set_btk_version(meta)
     busco_sets = find_busco_lineages(taxon_meta["lineage"])
     if busco_sets:
         meta["busco"].update({"lineage_dir": buscodir, "lineages": busco_sets})
