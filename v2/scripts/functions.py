@@ -1,3 +1,6 @@
+import pathlib
+
+
 def reads_by_prefix(config):
     """Return read meta by prefix"""
     reads = {}
