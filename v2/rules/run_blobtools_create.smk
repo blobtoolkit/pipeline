@@ -17,7 +17,7 @@ rule run_blobtools_create:
         expand("%s/{lineage}_busco.json" % blobdir_name(config), lineage=config['busco']['lineages'])
     params:
         busco = lambda wc: " --busco ".join(expand("%s/%s.busco.{lineage}.tsv" % (busco_path, config["assembly"]["prefix"]), lineage=config['busco']['lineages'])),
-        cov = lambda wc: " --cov ".join(expand("%s/%s.{sra}.bam={sra}" % (minimap_path, config["assembly"]["prefix"]), sra=reads_by_prefix(config).keys())),
+        cov = blobtools_cov_flag(config),
         blobdir = blobdir_name(config),
         taxrule = config["similarity"]["taxrule"]
     threads: 4
@@ -32,7 +32,7 @@ rule run_blobtools_create:
             --taxdump {input.taxdump} \
             --taxrule {params.taxrule} \
             --busco {params.busco} \
-            --cov {params.cov} \
+            {params.cov} \
             --hits {input.blast} \
             --threads {threads} \
             {params.blobdir} > {log} 2>&1"""

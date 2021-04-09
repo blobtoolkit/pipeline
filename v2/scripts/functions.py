@@ -66,3 +66,11 @@ def blobdir_name(config):
     if "revision" in config and config["revision"] > 0:
         name = "%s.%d" % (name, config["revision"])
     return name
+
+
+def blobtools_cov_flag(config):
+    """Generate --cov flag for blobtools add."""
+    keys = reads_by_prefix(config).keys()
+    if keys:
+        return "--cov " + " --cov ".join(["%s/%s.%s.bam=%s" % (minimap_path, config["assembly"]["prefix"], key, key) for key in keys])
+    return ""
