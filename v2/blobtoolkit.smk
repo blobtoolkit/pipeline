@@ -42,6 +42,7 @@ rule all:
         "%s/minimap.stats" % parent_dir,
         "%s/windowmasker.stats" % parent_dir,
         "%s/diamond.stats" % parent_dir,
+        "%s/diamond_blastp.stats" % parent_dir,
         "%s/blobtools.stats" % parent_dir,
         "%s/view.stats" % parent_dir
 
