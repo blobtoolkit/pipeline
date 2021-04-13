@@ -2,7 +2,7 @@ def input_config(wc):
     """Set sub pipeline inputs."""
     sub_config = {
         "blobtools": ["%s/%s.stats" % (parent_dir, tool) for tool in ["busco", "diamond", "minimap"]],
-        "diamond": ["%s/busco.stats" % parent_dir],
+        "diamond": ["%s/%s.stats" % (parent_dir, tool) for tool in ["busco", "windowmasker"]],
         "view": ["%s/blobtools.stats" % parent_dir],
     }
     if wc.tool in sub_config:
@@ -16,6 +16,7 @@ def thread_config(wc):
         "busco": 30,
         "diamond": 30,
         "minimap": 30,
+        "windowmasker": 1,
     }
     if wc.tool in sub_config:
         return sub_config[wc.tool]

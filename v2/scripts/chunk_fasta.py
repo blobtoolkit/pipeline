@@ -15,12 +15,13 @@ from random import shuffle
 from subprocess import PIPE, Popen
 
 from docopt import docopt
+from tolkein import tofile
 
 docs = """
 Chunk FASTA.
 
 Usage: ./chunk_fasta.py [--in FASTA] [--chunk INT] [--overlap INT] [--max-chunks INT]
-                        [--busco TSV] [--out CHUNKED_FASTA]
+                        [--busco TSV] [--min-length INT] [--out CHUNKED_FASTA]
 
 Options:
     --in FASTA           input FASTA file.
@@ -28,6 +29,7 @@ Options:
     --chunk INT          sequences greater than CHUNK bp will be split. [Default: 100000]
     --overlap INT        length of overlap when splitting sequences. [Default: 500]
     --max-chunks INT     maximum number of chunks to split a sequence into. [Default: 10]
+    --min-length INT     minimum sequence length. [Default: 1000]
     --out CHUNKED_FASTA  output filename. [Default: .chunked]
 """
 
@@ -52,7 +54,9 @@ def chunk_size(value):
     return chunk_size
 
 
-def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
+def chunk_fasta(
+    fastafile, *, chunk=math.inf, overlap=0, max_chunks=math.inf, min_length=1000
+):
     """Read FASTA file one sequence at a time and split long sequences into chunks."""
     cmd = "cat %s" % fastafile
     # TODO: read gzipped files if needed
@@ -82,7 +86,7 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
                         "end": i + my_chunk + overlap,
                         "length": my_chunk + overlap,
                     }
-            else:
+            elif seq_length > min_length:
                 yield {
                     "title": title,
                     "seq": seq,
@@ -93,16 +97,21 @@ def chunk_fasta(fastafile, chunk=math.inf, overlap=0, max_chunks=math.inf):
                 }
 
 
-def check_for_unmasked_bases(seq, min_unmasked=12):
-    """Check sequence has a minimum number of unmasked bases."""
-    return bool(re.search(r"[ACGT]{20}", seq))
+def check_for_unmasked_bases(seq, min_unmasked=20):
+    """Check sequence has runs of unmasked bases."""
+    return bool(re.search(r"[ACGT]{" + str(min_unmasked) + "}", seq))
+
+
+def check_for_masked_bases(seq, max_masked=20):
+    """Check sequence has runs of masked bases."""
+    return bool(re.search(r"[acgtnN]{" + str(max_masked) + "}", seq))
 
 
 def parse_busco_full_summary(busco_file, chunk=100000):
     """Parse a busco full summary file."""
     logger.info("Parsing BUSCO full summary file")
     locations = defaultdict(list)
-    with open(busco_file) as fh:
+    with tofile.open_file_handle(busco_file) as fh:
         for line in fh:
             if line.startswith("#"):
                 continue
@@ -122,6 +131,10 @@ def parse_busco_full_summary(busco_file, chunk=100000):
                 else:
                     start_index += 1
         windows[title].sort(key=lambda window: window[2], reverse=True)
+    # with open("/tmp/data.tsv", "w") as fh:
+    #     for tup in windows["LR862382.1"]:
+    #         fh.write("\t".join([str(tup[0]), str(tup[2])]) + "\n")
+    # quit()
     return windows
 
 
@@ -133,6 +146,7 @@ if __name__ == "__main__":
         args["--chunk"] = int(snakemake.params.chunk)
         args["--overlap"] = int(snakemake.params.overlap)
         args["--max-chunks"] = int(snakemake.params.max_chunks)
+        args["--min-length"] = int(snakemake.params.min_length)
         args["--out"] = snakemake.output[0]
     except NameError as err:
         logger.info(err)
@@ -148,29 +162,61 @@ if __name__ == "__main__":
             chunk=int(args["--chunk"]),
             overlap=int(args["--overlap"]),
             max_chunks=int(args["--max-chunks"]),
+            min_length=int(args["--min-length"]),
         ):
             if (
                 busco_windows
                 and seq["chunks"] == int(args["--max-chunks"])
                 and seq["length"] > int(args["--chunk"]) + int(args["--overlap"])
             ):
+                subseq_found = False
                 has_busco = False
                 if seq["title"] in busco_windows:
                     for window in busco_windows[seq["title"]]:
                         if seq["start"] <= window[0] and seq["end"] >= window[1]:
                             has_busco = True
-                            seq["seq"] = seq["seq"][
+                            subseq = seq["seq"][
                                 window[0] - seq["start"] : window[1] - seq["start"]
                             ]
-                            seq["start"] = window[0]
-                            break
+                            # check there are runs of unmasked bases
+                            if check_for_masked_bases(subseq, 1000):
+                                seq["seq"] = subseq
+                                seq["start"] = window[0]
+                                subseq_found = True
+                                break
                 if not has_busco:
-                    offset = int((seq["length"] - int(args["--chunk"])) / 2)
+                    # extract subseq from middle of chunk
+                    chunk = int(args["--chunk"])
+                    offset = int((seq["length"] - chunk) / 2)
                     if offset > 0:
-                        seq["seq"] = seq["seq"][offset:-offset]
-                        seq["start"] += offset
-                        seq["end"] -= offset
-            if check_for_unmasked_bases(seq["seq"]):
+                        midseq = seq["seq"][offset:-offset]
+                        # check there are runs of unmasked bases
+                        if check_for_masked_bases(midseq, 1000):
+                            seq["seq"] = subseq
+                            seq["start"] += offset
+                            seq["end"] -= offset
+                            subseq_found = True
+                        else:
+                            # walk along sequence to find a chunk with fewer masked bases
+                            while offset > chunk:
+                                offset -= chunk
+                                lseq = seq["seq"][offset : offset + chunk]
+                                if check_for_masked_bases(lseq, 1000):
+                                    seq["seq"] = lseq
+                                    seq["start"] += offset
+                                    seq["end"] = seq["start"] + chunk
+                                    subseq_found = True
+                                    break
+                                rseq = seq["seq"][-offset - chunk : -offset]
+                                if check_for_masked_bases(rseq, 1000):
+                                    seq["seq"] = rseq
+                                    seq["start"] = seq["end"] - offset - chunk
+                                    seq["end"] -= offset
+                                    subseq_found = True
+                                    break
+                if subseq_found:
+                    seqs.append((seq))
+            elif check_for_unmasked_bases(seq["seq"]):
                 seqs.append((seq))
         chunked = ""
         for seq in seqs:

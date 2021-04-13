@@ -16,7 +16,14 @@ Basic usage:
     -s blobtoolkit.smk
     -j 60
 
-© 2021 Richard Challis (Wellcome Sanger Institute), MIT License
+Author:
+  Richard Challis
+
+Contact:
+  blobtoolkit@genomehubs.org
+
+License:
+  © 2021 Genome Research Limited, MIT License
 """
 
 import os
@@ -33,6 +40,7 @@ rule all:
     input:
         "%s/busco.stats" % parent_dir,
         "%s/minimap.stats" % parent_dir,
+        "%s/windowmasker.stats" % parent_dir,
         "%s/diamond.stats" % parent_dir,
         "%s/blobtools.stats" % parent_dir,
         "%s/view.stats" % parent_dir

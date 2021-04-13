@@ -18,12 +18,20 @@ Basic usage:
     -s diamond.smk
     -j 8
 
-© 2021 Richard Challis (Wellcome Sanger Institute), MIT License
+Author:
+  Richard Challis
+
+Contact:
+  blobtoolkit@genomehubs.org
+
+License:
+  © 2021 Genome Research Limited, MIT License
 """
 
 include: "scripts/functions.py"
 
 busco_path = "../busco"
+windowmasker_path = "../windowmasker"
 
 rule all:
     """
