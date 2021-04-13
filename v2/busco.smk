@@ -28,7 +28,7 @@ rule all:
     Dummy rule to define all outputs
     """
     input:
-        expand("%s.busco.{lineage}.tsv" % config["assembly"]["prefix"], lineage=config["busco"]["lineages"])
+        expand("%s.busco.{lineage}/full_table.tsv.gz" % config["assembly"]["prefix"], lineage=config["busco"]["lineages"])
 
 
 include: "rules/run_busco5.smk"
