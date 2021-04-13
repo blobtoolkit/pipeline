@@ -35,7 +35,7 @@ rule all:
     Dummy rule to define all outputs
     """
     input:
-        "%s.windowmasker.fasta" % config["assembly"]["prefix"], lineage=config["busco"]["lineages"])
+        "%s.windowmasker.fasta" % config["assembly"]["prefix"]
 
 
 include: "rules/run_windowmasker.smk"
