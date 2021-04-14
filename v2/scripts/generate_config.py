@@ -115,6 +115,8 @@ def find_busco_lineages(ancestors):
     for obj in ancestors:
         if obj["taxon_id"] in BUSCO_SETS:
             lineages.append("%s_odb10" % BUSCO_SETS[obj["taxon_id"]])
+    lineages.append("bacteria_odb10")
+    lineages.append("archaea_odb10")
     return lineages
 
 

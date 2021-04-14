@@ -16,6 +16,12 @@ rule extract_busco_genes:
     benchmark:
         "logs/{assembly}/extract_busco_genes.benchmark.txt"
     shell:
-        """(for file in {input.busco}; do \
-            echo $file; \
-        done) &> {log} && exit 1"""
+        """(> {output}; \
+        for TABLE in {input.busco}; do \
+            if [ -s $TABLE ]; then \
+                SEQS=${{TABLE/full_table.tsv.gz/busco_sequences.tar.gz}};
+                tar xf $SEQS \
+                    --to-command='FILE=$(basename $TAR_FILENAME); \
+                                  awk -v busco=${{FILE%.faa}} '"'"'{{if($1 ~ /^>/){{print $1 "=" busco}} else {{print $1}}}}'"'"''; \
+            fi; \
+        done) >> {output} 2> {log}"""

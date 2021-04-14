@@ -21,7 +21,7 @@ docs = """
 Chunk FASTA.
 
 Usage: ./chunk_fasta.py [--in FASTA] [--chunk INT] [--overlap INT] [--max-chunks INT]
-                        [--busco TSV] [--min-length INT] [--out CHUNKED_FASTA]
+                        [--busco TSV] [--min-length INT] [--out FASTA] [--bed BEDFILE]
 
 Options:
     --in FASTA           input FASTA file.
@@ -30,7 +30,8 @@ Options:
     --overlap INT        length of overlap when splitting sequences. [Default: 500]
     --max-chunks INT     maximum number of chunks to split a sequence into. [Default: 10]
     --min-length INT     minimum sequence length. [Default: 1000]
-    --out CHUNKED_FASTA  output filename. [Default: .chunked]
+    --out FASTA          output FASTA filename or suffix. [Default: .chunked]
+    --bed BEDFILE        output BED filename or suffix. [Default: .bed]
 """
 
 logger_config = {
