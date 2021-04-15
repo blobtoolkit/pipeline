@@ -72,5 +72,31 @@ def blobtools_cov_flag(config):
     """Generate --cov flag for blobtools add."""
     keys = reads_by_prefix(config).keys()
     if keys:
-        return "--cov " + " --cov ".join(["%s/%s.%s.bam=%s" % (minimap_path, config["assembly"]["prefix"], key, key) for key in keys])
+        return "--cov " + " --cov ".join(
+            [
+                "%s/%s.%s.bam=%s"
+                % (minimap_path, config["assembly"]["prefix"], key, key)
+                for key in keys
+            ]
+        )
     return ""
+
+
+def set_blast_chunk(config):
+    """Set minimum chunk size for splitting long sequences."""
+    return config["settings"].get("blast_chunk", 100000)
+
+
+def set_blast_chunk_overlap(config):
+    """Set overlap length for splitting long sequences."""
+    return config["settings"].get("blast_overlap", 0)
+
+
+def set_blast_max_chunks(config):
+    """Set minimum chunk size for splitting long sequences."""
+    return config["settings"].get("blast_max_chunks", 10)
+
+
+def set_blast_min_length(config):
+    """Set minimum sequence length for running blast searches."""
+    return config["settings"].get("blast_min_length", 1000)

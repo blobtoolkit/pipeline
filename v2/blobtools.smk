@@ -32,6 +32,7 @@ include: "scripts/functions.py"
 
 busco_path = "../busco"
 minimap_path = "../minimap"
+stats_path = "../stats"
 diamond_path = "../diamond"
 
 rule all:
@@ -47,10 +48,4 @@ rule all:
         
 
 include: "rules/run_blobtools_create.smk"
-include: "rules/unzip_assembly_fasta.smk"
-include: "rules/run_bamtools_stats.smk"
 include: "rules/add_summary_to_metadata.smk"
-# include: "rules/make_diamond_db.smk"
-# include: "rules/chunk_fasta.smk"
-# include: "rules/run_diamond_blastx.smk"
-# include: "rules/unchunk_blast.smk"

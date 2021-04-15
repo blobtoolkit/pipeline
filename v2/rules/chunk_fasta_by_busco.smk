@@ -8,10 +8,11 @@ rule chunk_fasta_by_busco:
     output:
         "{assembly}.fasta.chunks"
     params:
-        chunk = 100000,
-        overlap = 0,
-        max_chunks = 10,
-        min_length = 1000
+        chunk = set_blast_chunk(config),
+        overlap = set_blast_chunk_overlap(config),
+        max_chunks = set_blast_max_chunks(config),
+        min_length = set_blast_min_length(config),
+        fasta = lambda wc: "%s.fasta.bed" % wc.assembly
     threads: 1
     log:
         "logs/{assembly}/chunk_fasta_by_busco.log"

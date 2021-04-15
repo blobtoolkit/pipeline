@@ -35,7 +35,9 @@ rule all:
     Dummy rule to define all outputs
     """
     input:
-        expand("%s.{sra}.bam" % config["assembly"]["prefix"], sra=reads_by_prefix(config).keys())
+        expand("%s.{sra}.bam" % config["assembly"]["prefix"], sra=reads_by_prefix(config).keys()),
+        expand("%s.{sra}.bam.csi" % config["assembly"]["prefix"], sra=reads_by_prefix(config).keys())
+
 
 
 include: "rules/run_minimap2_index.smk"

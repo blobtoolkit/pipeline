@@ -7,7 +7,8 @@ rule run_minimap2_align:
         index = lambda wc: "%s.%s.mmi" % (wc.assembly, minimap_tuning(config, wc.sra)),
         fastq = lambda wc: read_files(config, wc.sra)
     output:
-        "{assembly}.{sra}.bam"
+        bam = "{assembly}.{sra}.bam",
+        csi = "{assembly}.{sra}.bam.csi"
     params:
         tuning = lambda wc: minimap_tuning(config, wc.sra),
         assembly = lambda wc: wc.assembly,
@@ -20,4 +21,5 @@ rule run_minimap2_align:
     shell:
         """(minimap2 -t {threads} -ax {params.tuning} {input.index} {params.subsample} | \
         samtools view -h -T {input.fasta} - | \
-        samtools sort -@4 -O BAM -o {output} -) &> {log}"""
+        samtools sort -@4 -O BAM -o {output.bam} - &&
+        samtools index -c {output.bam} {output.csi}) &> {log}"""

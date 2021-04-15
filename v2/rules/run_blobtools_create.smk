@@ -3,9 +3,9 @@ rule run_blobtools_create:
     Run blobtools create.
     """
     input:
-        fasta = "%s.fasta" % config["assembly"]["prefix"],
+        length = "%s/%s.stats.length.bed" % (busco_path, config["assembly"]["prefix"]),
+        gc = "%s/%s.stats.gc.bed" % (busco_path, config["assembly"]["prefix"]),
         busco = expand("%s/%s.busco.{lineage}.tsv" % (busco_path, config["assembly"]["prefix"]), lineage=config['busco']['lineages']),
-        bam = expand("%s/%s.{sra}.bam" % (minimap_path, config["assembly"]["prefix"]), sra=reads_by_prefix(config).keys()),
         blast = "%s/%s.diamond.reference_proteomes.out" % (diamond_path, config["assembly"]["prefix"]),
         taxdump = config["settings"]["taxdump"],
         yaml = "%s.meta.yaml" % config["assembly"]["prefix"]
@@ -16,6 +16,7 @@ rule run_blobtools_create:
         expand("%s/{sra}_cov.json" % blobdir_name(config), sra=reads_by_prefix(config).keys()),
         expand("%s/{lineage}_busco.json" % blobdir_name(config), lineage=config['busco']['lineages'])
     params:
+        statsdir = stats_path,
         busco = lambda wc: " --busco ".join(expand("%s/%s.busco.{lineage}.tsv" % (busco_path, config["assembly"]["prefix"]), lineage=config['busco']['lineages'])),
         cov = blobtools_cov_flag(config),
         blobdir = blobdir_name(config),
@@ -27,12 +28,11 @@ rule run_blobtools_create:
         "logs/%s/run_blobtools_create.benchmark.txt" % config["assembly"]["prefix"]
     shell:
         """blobtools replace \
-            --fasta {input.fasta} \
+            --bed {params.statsdir} \
             --meta {input.yaml} \
             --taxdump {input.taxdump} \
             --taxrule {params.taxrule} \
             --busco {params.busco} \
-            {params.cov} \
             --hits {input.blast} \
             --threads {threads} \
             {params.blobdir} > {log} 2>&1"""

@@ -27,10 +27,6 @@ logger.info("Starting script: " + __file__)
 try:
     CONFIG = snakemake.config
     ASSEMBLY = snakemake.wildcards.assembly
-    try:
-        INFILES = snakemake.input.stats
-    except AttributeError:
-        INFILES = []
     OUTFILE = str(snakemake.output)
     GITDIR = (
         git.Repo(
@@ -85,25 +81,6 @@ try:
         meta["settings"]["pipeline"] = output.split()[1]
     except IndexError:
         meta["settings"]["pipeline"] = "UNKNOWN"
-
-    for file in INFILES:
-        accession = re.search(r"\.(.+).bam.stats", file.split(ASSEMBLY)[1]).group(1)
-        sections = (
-            "Total reads",
-            "Mapped reads",
-            "Proper-pairs",
-            "Both pairs mapped",
-            "Average insert size",
-            "Median insert size",
-        )
-        with open(file, "r") as fh:
-            for line in fh:
-                line = line.rstrip("\n")
-                for section in sections:
-                    if line.startswith(section):
-                        meta["reads"][accession][section] = int(
-                            float(re.search(r"([\d\.]+)", line).group(1))
-                        )
 
     yaml.add_representer(
         OrderedDict,
