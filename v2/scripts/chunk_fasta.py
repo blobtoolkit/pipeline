@@ -209,10 +209,10 @@ def seq_stats(seq):
             masked += counter[base]
     atgc = at + gc
     if atgc > 0:
-        gc = gc / atgc * 100
+        gc = gc / atgc
     else:
         gc = 0
-    return {"gc": gc, "n": n / len(seq) * 100, "masked": masked / len(seq) * 100}
+    return {"gc": gc, "n": n / len(seq), "ncount": n, "masked": masked / len(seq)}
 
 
 def write_bedfiles(bed_data, args):
@@ -227,10 +227,9 @@ def write_bedfiles(bed_data, args):
         for obj in arr:
             location = "%s\t%d\t%d" % (title, obj["start"], obj["end"])
             for key, value in obj["stats"].items():
-                if len(arr) > 1:
-                    start = min(obj["start"], start)
-                    end = max(obj["end"], end)
-                    sums[key] += value * (obj["end"] - obj["start"])
+                start = min(obj["start"], start)
+                end = max(obj["end"], end)
+                sums[key] += value * (obj["end"] - obj["start"])
                 lines["%s_windows" % key].append("%s\t.\t%.4f\n" % (location, value))
                 if key == "gc":
                     lines["mask"].append("%s\twindow\n" % location)
