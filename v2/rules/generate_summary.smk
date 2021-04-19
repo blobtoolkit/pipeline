@@ -8,7 +8,7 @@ rule generate_summary:
         "{blobdir}/summary.json"
     params:
         blobdir = lambda wc: wc.blobdir,
-        taxrule = config["similarity"]["taxrule"]
+        taxrule = similarity_setting(config, "diamond_blastx", "taxrule")
     threads: 1
     log:
         "logs/{blobdir}/generate_summary.log"

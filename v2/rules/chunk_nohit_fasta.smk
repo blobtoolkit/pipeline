@@ -1,11 +1,11 @@
-rule chunk_fasta:
+rule chunk_nohit_fasta:
     """
     Split long contigs into chunks.
     """
     input:
-        fasta = "%s/{assembly}.windowmasker.fasta" % windowmasker_path,
+        fasta = "{assembly}.nohit.fasta",
     output:
-        bed = "{assembly}.fasta.bed"
+        fasta = "{assembly}.nohit.fasta.chunks"
     params:
         chunk = set_blast_chunk(config),
         overlap = set_blast_chunk_overlap(config),

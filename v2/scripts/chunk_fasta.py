@@ -258,15 +258,15 @@ def parse_args(args):
         args["--max-chunks"] = int(snakemake.params.max_chunks)
         args["--min-length"] = int(snakemake.params.min_length)
         try:
-            args["--busco"] = snakemake.params.fasta
+            args["--busco"] = snakemake.input.busco
         except AttributeError:
             args["--busco"] = None
         try:
-            args["--out"] = snakemake.params.fasta
+            args["--out"] = snakemake.output.fasta
         except AttributeError:
             args["--out"] = None
         try:
-            args["--bed"] = snakemake.params.bed
+            args["--bed"] = snakemake.output.bed
         except AttributeError:
             args["--bed"] = None
     except NameError as err:

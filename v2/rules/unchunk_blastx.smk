@@ -1,13 +1,13 @@
-rule unchunk_blast:
+rule unchunk_blastx:
     """
-    Unchunk chunked blast results.
+    Unchunk chunked blastx results.
     """
     input:
         "{assembly}.diamond.reference_proteomes.out.raw"
     output:
         "{assembly}.diamond.reference_proteomes.out"
     params:
-        max_target_seqs = config["similarity"]["max_target_seqs"]
+        max_target_seqs = similarity_setting(config, "diamond_blastx", "max_target_seqs")
     threads: 1
     log:
         "logs/{assembly}/unchunk_blast.log"

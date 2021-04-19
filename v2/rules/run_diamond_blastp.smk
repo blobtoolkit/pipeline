@@ -4,12 +4,12 @@ rule run_diamond_blastp:
     """
     input:
         fasta = "{assembly}.busco_genes.fasta",
-        dmnd = "%s/%s.dmnd" % (config["similarity"]["path"], config["similarity"]["name"])
+        dmnd = "%s/%s.dmnd" % (similarity_setting(config, "diamond_blastp", "path"), similarity_setting(config, "diamond_blastx", "name"))
     output:
         "{assembly}.diamond.busco_genes.out"
     params:
-        evalue = config["similarity"]["evalue"],
-        max_target_seqs = config["similarity"]["max_target_seqs"],
+        evalue = similarity_setting(config, "diamond_blastp", "evalue"),
+        max_target_seqs = similarity_setting(config, "diamond_blastp", "max_target_seqs"),
         taxid = config["taxon"]["taxid"]
     threads: 32
     log:

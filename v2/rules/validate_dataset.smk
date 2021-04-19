@@ -5,7 +5,7 @@ rule validate_dataset:
     input:
         copied = "{blobdir}.copied",
         cov = expand("{{blobdir}}/{sra}_cov.json", sra=reads_by_prefix(config).keys()),
-        tax = expand("{{blobdir}}/{taxrule}_phylum_positions.json", taxrule=config["similarity"]["taxrule"]),
+        tax = "{blobdir}/%s_phylum_positions.json" % similarity_setting(config, "diamond_blastx", "taxrule"),
         busco = expand("{{blobdir}}/{lineage}_busco.json", lineage=config["busco"]["lineages"]),
         ids = "{blobdir}/identifiers.json"
     output:

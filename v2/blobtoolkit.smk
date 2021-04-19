@@ -38,6 +38,7 @@ rule all:
     Dummy rule to define output
     """
     input:
+        "%s/blastn.stats" % parent_dir,
         "%s/busco.stats" % parent_dir,
         "%s/minimap.stats" % parent_dir,
         "%s/windowmasker.stats" % parent_dir,

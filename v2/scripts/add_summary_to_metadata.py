@@ -10,6 +10,8 @@ from collections import OrderedDict
 import git
 import yaml
 
+from functions import read_similarity_settings, reads_by_prefix
+
 logger_config = {
     "level": logging.INFO,
     "format": "%(asctime)s [%(levelname)s] line %(lineno)d %(message)s",
@@ -44,24 +46,16 @@ try:
     meta["assembly"] = config["assembly"]
     meta["taxon"] = config["taxon"]
     meta["settings"] = config["settings"]
-    meta["similarity"] = config["similarity"]
-
-    meta["reads"] = {}
-    strategies = ["paired", "single"]
-    for strategy in strategies:
-        if strategy not in config["reads"]:
-            continue
-        for arr in config["reads"][strategy]:
-            if arr:
-                meta["reads"][arr[0]] = {
-                    "strategy": strategy,
-                    "platform": arr[1],
-                }
-                if len(arr) == 4:
-                    if arr[3] != None:
-                        meta["reads"][arr[0]]["url"] = re.split(",|;", arr[3])
-                    else:
-                        meta["reads"][arr[0]]["url"] = ["NOURL"]
+    meta["similarity"] = {
+        "diamond_blastx": read_similarity_settings(config, "diamond_blastx"),
+        "diamond_blastp": read_similarity_settings(config, "diamond_blastp"),
+    }
+    meta["reads"] = reads_by_prefix(config)
+    for key, value in meta["reads"].items():
+        if "url" in value and not isinstance(value["url"], list):
+            value["url"] = value["url"].split(";")
+        elif "url" not in value:
+            value["url"] = []
     p = subprocess.Popen(
         ["git", "--git-dir", GITDIR, "rev-parse", "--short", "HEAD"],
         stdout=subprocess.PIPE,

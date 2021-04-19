@@ -10,7 +10,20 @@ def reads_by_prefix(config):
     for strategy in ("paired", "single"):
         if not strategy in config["reads"] or not config["reads"][strategy]:
             continue
-        reads.update({entry[0]: entry for entry in config["reads"][strategy]})
+        for entry in config["reads"][strategy]:
+            if isinstance(entry, list):
+                meta = {
+                    "prefix": entry[0],
+                    "platform": entry[1],
+                    "strategy": strategy,
+                    "base_count": entry[2],
+                    "file": entry[3],
+                }
+                if len(entry) == 5:
+                    meta["url"] = entry[4].split(";")
+            else:
+                meta = entry
+        reads.update({meta["prefix"]: meta})
 
     return reads
 
@@ -19,22 +32,22 @@ def minimap_tuning(config, prefix):
     """Set minimap2 mapping parameter."""
     reads = reads_by_prefix(config)
     tunings = {"ILLUMINA": "sr", "OXFORD_NANOPORE": "map-ont", "PACBIO_SMRT": "map-pb"}
-    return tunings[reads[prefix][1]]
+    return tunings[reads[prefix]["platform"]]
 
 
 def read_files(config, prefix):
     """Set minimap2 mapping parameter."""
     reads = reads_by_prefix(config)
-    return reads[prefix][3].split(";")
+    return reads[prefix]["file"].split(";")
 
 
 def seqtk_sample_input(config, prefix):
     """Generate seqtk command to subsamplereads if required."""
     meta = reads_by_prefix(config)[prefix]
-    filenames = meta[3].split(";")
+    filenames = meta["file"].split(";")
     ratio = 1
     if "coverage" in config["reads"] and "max" in config["reads"]["coverage"]:
-        base_count = meta[2]
+        base_count = meta["base_count"]
         if isinstance(base_count, int):
             ratio = (
                 config["assembly"]["span"]
@@ -100,3 +113,49 @@ def set_blast_max_chunks(config):
 def set_blast_min_length(config):
     """Set minimum sequence length for running blast searches."""
     return config["settings"].get("blast_min_length", 1000)
+
+
+def read_similarity_settings(config, group):
+    """Read similarity settings for blast rules and outputs."""
+    settings = {
+        "evalue": 1.0e-10,
+        "import_evalue": 1.0e-25,
+        "max_target_seqs": 10,
+        "name": "reference_proteomes",
+        "taxrule": "bestdistorder",
+    }
+    if "defaults" in config["similarity"]:
+        settings.update({**config["similarity"]["defaults"]})
+    if group in config["similarity"]:
+        settings.update({**config["similarity"][group]})
+    return settings
+
+
+def similarity_setting(config, group, value):
+    """Get a single similarity setting value."""
+    settings = read_similarity_settings(config, group)
+    setting = settings.get(value, None)
+    if setting is not None:
+        return setting
+    settings = {
+        "evalue": 1.0e-25,
+        "max_target_seqs": 10,
+        "taxrule": "bestdistorder",
+        **settings,
+    }
+    if value.startswith("import_"):
+        value = value.replace("import_", "")
+    return settings[value]
+
+
+def get_basal_lineages(config):
+    """Get basal BUSCO lineages from config."""
+    if "basal_lineages" in config["busco"]:
+        return config["busco"]["basal_lineages"]
+    basal = {"archaea_odb10", "bacteria_odb10", "eukaryota_odb10"}
+    lineages = []
+    if "lineages" in config["busco"]:
+        for lineage in config["busco"]["lineages"]:
+            if lineage in basal:
+                lineages.push(lineage)
+    return lineages

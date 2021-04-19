@@ -4,7 +4,7 @@ import os
 https://github.com/blobtoolkit/insdc-pipeline
 https://blobtoolkit.genomehubs.org/pipeline/
 
-Pipeline to run Diamond blastx
+Pipeline to run blastn
 --------------------------------------------------
 
 Requirements:
@@ -15,7 +15,7 @@ Basic usage:
   snakemake -p \
     --directory ~/workdir \
     --configfile example.yaml \
-    -s diamond.smk
+    -s blastn.smk
     -j 8
 
 Author:
@@ -30,7 +30,7 @@ License:
 
 include: "scripts/functions.py"
 
-busco_path = "../busco"
+diamond_path = "../diamond"
 windowmasker_path = "../windowmasker"
 
 rule all:
@@ -38,9 +38,9 @@ rule all:
     Dummy rule to define output
     """
     input:
-        "%s.diamond.reference_proteomes.out" % config["assembly"]["prefix"]
+        "%s.blastn.nt.out" % config["assembly"]["prefix"]
 
-
-include: "rules/chunk_fasta_by_busco.smk"
-include: "rules/run_diamond_blastx.smk"
-include: "rules/unchunk_blastx.smk"
+include: "rules/extract_nohit_fasta.smk"
+include: "rules/chunk_nohit_fasta.smk"
+include: "rules/run_blastn.smk"
+include: "rules/unchunk_blastn.smk"

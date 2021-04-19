@@ -1,7 +1,8 @@
 def input_config(wc):
     """Set sub pipeline inputs."""
     sub_config = {
-        "blobtools": ["%s/%s.stats" % (parent_dir, tool) for tool in ["busco", "diamond", "diamond_blastp", "minimap", "stats"]],
+        "blastn": ["%s/%s.stats" % (parent_dir, tool) for tool in ["diamond", "windowmasker"]],
+        "blobtools": ["%s/%s.stats" % (parent_dir, tool) for tool in ["blastn", "busco", "diamond", "diamond_blastp", "minimap", "stats"]],
         "diamond": ["%s/%s.stats" % (parent_dir, tool) for tool in ["busco", "windowmasker"]],
         "diamond_blastp": ["%s/busco.stats" % parent_dir],
         "stats": ["%s/%s.stats" % (parent_dir, tool) for tool in ["minimap", "windowmasker"]],
@@ -14,16 +15,18 @@ def input_config(wc):
 
 def thread_config(wc):
     """Set sub pipeline thread counts."""
-    sub_config = {
+    sub_config = {}
+    threads = config["settings"].get("threads", {})
+    thread_defaults = {
+        "blastn": 30,
+        "blobtools": 4,
         "busco": 30,
         "diamond": 30,
         "diamond_blastp": 30,
         "minimap": 30,
         "windowmasker": 1,
     }
-    if wc.tool in sub_config:
-        return sub_config[wc.tool]
-    return 4
+    return threads.get(wc.tool, thread_defaults.get(wc.tool, 4))
 
 
 rule run_sub_pipeline:
