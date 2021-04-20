@@ -1,6 +1,6 @@
 # BTK Pipeline v2
 
-Splits original pipeline into sub-pipelines that can be run independently or using the `blobtoolkit.smk` sub-pipeline runner.
+Splits original pipeline into sub-pipelines that can be run independently or using the `blobtoolkit.smk` meta pipeline.
 
 The previous pipeline is available inside the v1 directory.
 
@@ -8,15 +8,15 @@ The previous pipeline is available inside the v1 directory.
 
 1. `minimap.smk` - align reads to the genome assembly using minimap2.
 
+1. `windowmasker.smk` - identify and mask repetitive regions using Windowmasker. Masked sequences are used in all blast searches.
+
 1. `stats.smk` - calculate sequence statistics for each contif and for chunks (default up to 10) of long contigs (>100 kb). Calculate coverage stats using mosdepth.
 
 1. `busco.smk` - run BUSCO using specific and basal lineages.
 
-1. `windowmasker.smk` - identify and mask repetitive regions using Windowmasker. Masked sequences are used in all blast searches.
+1. `diamond_blastp.smk` - Diamond blastp search of busco gene models for basal lineages (`archaea_odb10`, `bacteria_odb10` and `eukaryota_odb10`) against the UniProt reference proteomes.
 
 1. `diamond.smk` - Diamond blastx search of assembly contigs against the UniProt reference proteomes. Contigs are split into chunks to allow distribution-based taxrules. Contigs over 1Mb are subsampled by retaining only the most BUSCO-dense 100 kb region from each chunk. 
-
-1. `diamond_blastp.smk` - Diamond blastp search of busco gene models for basal lineages (`archaea_odb10`, `bacteria_odb10` and `eukaryota_odb10`) against the UniProt reference proteomes.
 
 1. `blastn.smk` - NCBI blastn search of assembly contigs with no Diamond blastx match against the NCBI nt database
 
@@ -68,6 +68,46 @@ npm install
 Commands below assume that BLobToolKit executables and scripts are available in you PATH:
 ```
 export PATH=~/blobtoolkit/blobtools2:~/blobtoolkit/specification:~/blobtoolkit/insdc-pipeline/scripts:$PATH
+```
+
+### Databases
+Download the NCBI taxdump
+```bash
+TAXDUMP=/volumes/databases/taxdump_2021_03
+mkdir -p $TAXDUMP;
+cd $TAXDUMP;
+curl -L ftp://ftp.ncbi.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz | tar xzf -;
+cd -;
+```
+
+Download and extract UniProt reference proteomes
+```bash
+UNIPROT=/volumes/databases/uniprot_2021_03
+mkdir -p $UNIPROT
+wget -q -O $UNIPROT/reference_proteomes.tar.gz \
+ ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/$(curl \
+     -vs ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/ 2>&1 | \
+     awk '/tar.gz/ {print $9}')
+cd $UNIPROT
+tar xf reference_proteomes.tar.gz
+
+touch reference_proteomes.fasta.gz
+find . -mindepth 2 | grep "fasta.gz" | grep -v 'DNA' | grep -v 'additional' | xargs cat >> reference_proteomes.fasta.gz
+
+printf "accession\taccession.version\ttaxid\tgi\n" > reference_proteomes.taxid_map
+zcat */*/*.idmapping.gz | grep "NCBI_TaxID" | awk '{print $1 "\t" $1 "\t" $3 "\t" 0}' >> reference_proteomes.taxid_map
+
+diamond makedb -p 16 --in reference_proteomes.fasta.gz --taxonmap reference_proteomes.taxid_map --taxonnodes $TAXDUMP/nodes.dmp --taxonnames $TAXDUMP/names.dmp -d reference_proteomes.dmnd
+cd -
+```
+
+Download NCBI nt database:
+```bash
+NT=/volumes/databases/nt_2021_03
+wget "ftp://ftp.ncbi.nlm.nih.gov/blast/db/nt.??.tar.gz" -P $NT/ &&
+for file in $NT/*.tar.gz; do
+    tar xf $file -C $NT && rm $file;
+done
 ```
 
 ## Configuration
@@ -152,37 +192,18 @@ taxon:
 version: 1
 ```
 
+In this example, `url:` definitions are optional and used to show the source for publicly available files. The `file:` keys give locations of the files locally and must be completed.
 
+The assembly `span:` and reads `base_count:` need only be specified if reads coverage `max:` is to be used for the purposes of subsampling read files when mapping.
 
-For public assemblies, the script `generate config.py` will fetch copies of assembly and read files and generate a YAML config file.
+BUSCO will be run for all `lineages:` in the busco section. Any lineages also specified in `basal_lineages:` will be used as sources of BUSCO genes for the diamond_blastp step. 
 
-```
-conda create -n btq_env -c tolkit tolkein
-conda activate btq_env
-conda install --clobber -c bioconda entrez-direct
-conda install defusedxml
+## Running the pipeline
 
-DATA_DIR=/path/to/data
-DATABASE_DIR=/path/to/databases
-
-./scripts/generate_config.py $ACCESSION --out $DATA_DIR --db $DATABASE_DIR --coverage 30
-```
-
-### Run pipelines
+For public assemblies, the script `scripts/generate_config.py` will fetch copies of assembly and read files and generate a YAML config file. There is also a `run_btk_pipeline.sh` wrapper script that will call `generate_config.py` and run the full meta pipeline when called with a public assembly accession:
 
 ```
-conda create -n bts_env -c bioconda snakemake
-conda activate bts_env
-conda install --clobber -c conda-forge -c bioconda busco=5
-conda install --clobber -c bioconda samtools=1.10 minimap2 seqtk
-conda activate bts_env
-
-export TOOL=minimap
-export THREADS=32
-export SNAKE_DIR=`pwd`
-export DATA_DIR=/path/to/data
-export ACCESSION=GCA_0000000.0
-export TOOL=busco
-
-bsub < ./scripts/lsf_wrapper.sh
+run_btk_pipeline.sh GCA_902806685.1
 ```
+
+The snakemake command in this script may be used as an example for running the pipeline on local assemblies.
