@@ -266,7 +266,7 @@ def parse_args(args):
         except AttributeError:
             args["--out"] = None
         try:
-            args["--bed"] = snakemake.output.bed
+            args["--bed"] = snakemake.params.bed
         except AttributeError:
             args["--bed"] = None
     except NameError as err:
@@ -276,13 +276,13 @@ def parse_args(args):
 
 
 if __name__ == "__main__":
-    args = parse_args(docopt(docs))
-    busco_windows = {}
-    if "--busco" in args and args["--busco"] is not None:
-        busco_windows = parse_busco_full_summary(args["--busco"])
-    logger.info("Splitting %s into chunks" % args["--in"])
-    bed_data = defaultdict(list)
     try:
+        args = parse_args(docopt(docs))
+        busco_windows = {}
+        if "--busco" in args and args["--busco"] is not None:
+            busco_windows = parse_busco_full_summary(args["--busco"])
+        logger.info("Splitting %s into chunks" % args["--in"])
+        bed_data = defaultdict(list)
         seqs = []
         for seq in chunk_fasta(
             args["--in"],
