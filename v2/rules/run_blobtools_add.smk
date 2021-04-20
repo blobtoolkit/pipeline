@@ -7,7 +7,7 @@ rule run_blobtools_add:
         blastp = "%s/%s.diamond.busco_genes.out" % (diamond_blastp_path, config["assembly"]["prefix"]),
         taxdump = config["settings"]["taxdump"],
     output:
-        "%s/busco_phylum.json" % blobdir_name(config)
+        "%s/buscogenes_phylum.json" % blobdir_name(config)
     params:
         blobdir = blobdir_name(config),
         evalue = similarity_setting(config, "diamond_blastp", "import_evalue"),
@@ -20,7 +20,7 @@ rule run_blobtools_add:
     shell:
         """blobtools replace \
             --taxdump {input.taxdump} \
-            --taxrule blastp=busco \
+            --taxrule blastp=buscogenes \
             --hits {input.blastp} \
             --evalue {params.evalue} \
             --hit-count {params.max_target_seqs} \
