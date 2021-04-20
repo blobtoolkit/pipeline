@@ -1,418 +1,161 @@
 import pathlib
-import sys
-import math
-
-BWA_INDEX = ['amb', 'ann', 'bwt', 'pac', 'sa']
 
 
-def check_version():
-    """
-    Check snakemake version is 5.20.1.
-    """
-    version = subprocess.run(['snakemake', '--version'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
-    if version != '5.20.1':
-        print('WARNING: This version of INSDC-Pipeline has been developed using Snakemake version 5.20.1', file=sys.stderr)
-        return False
-    return True
-
-
-class ConfigurationError(Exception):
-    """Called when configuration file is not valid."""
-    pass
-
-def check_config():
-    """
-    Check required fields are present in config.
-    """
-    sections = [{'name': 'assembly',
-                 'keys': ['accession', 'prefix', 'alias', 'span'],
-                 'defaults': {'accession': 'draft', 'alias': '==prefix'}},
-                {'name': 'busco',
-                 'keys': ['lineage_dir', 'lineages'],
-                 'defaults': {'lineage_dir': 'busco_lineages', 'lineages': []}},
-                {'name': 'reads',
-                 'keys': ['paired', 'single'],
-                 'defaults': {'paired': [], 'single': []}},
-                {'name': 'settings',
-                 'keys': ['blast_chunk', 'blast_max_chunks', 'blast_overlap',
-                          'blobtools2_path', 'chunk', 'taxonomy', 'tmp'],
-                 'defaults': {'blast_chunk': 100000, 'blast_max_chunks': 10,
-                              'blast_overlap': 500, 'chunk': 1000000,
-                              'tmp': '/tmp'}},
-                {'name': 'similarity',
-                 'keys': ['databases', 'taxrule'],
-                 'defaults': {'taxrule': 'eachdistorder'}},
-                {'name': 'taxon',
-                 'keys': ['name', 'taxid'],
-                 'defaults': {}}]
-    similarity_defaults = {'evalue': 1e-25,
-                           'mask_ids': [],
-                           'max_target_seqs': 10,
-                           'root': 1}
-    container_defaults = {
-        'busco': {'lineage_dir': '/blobtoolkit/databases/busco'},
-        'settings': {'blobtools2_path': '/blobtoolkit/blobtools2',
-                     'blobtools_viewer_path': '/blobtoolkit/viewer',
-                     'taxonomy': '/blobtoolkit/databases/ncbi_taxdump'},
-        'similarity': {
-            'databases': [
-                {'local': '/blobtoolkit/databases/ncbi_db',
-                 'name': 'nt'},
-                {'local': '/blobtoolkit/databases/uniprot_db',
-                 'name': 'reference_proteomes'}
-            ]
-        }
-    }
-    if pathlib.Path('/blobtoolkit/databases/ncbi_db').exists():
-        # set some container specific defaults
-        for section, defaults in container_defaults.items():
-            if section not in config:
-                config[section] = {}
-            for key, value in defaults.items():
-                if key not in config[section]:
-                    config[section].update({key: value})
-        container_version = os.environ.get('CONTAINER_VERSION')
-        if container_version:
-            config.update({'container': {}})
-            config['container'].update({'version': container_version})
-
-
-    optional = ['busco', 'reads']
-    for section in sections:
-        if section['name'] not in config:
-            if section['name'] in optional:
-                print("INFO: optional section '%s' is not present in config file" % section['name'], file=sys.stderr)
-                config[section['name']] = {}
-            else:
-                raise ConfigurationError("ERROR: config file must contain a '%s' section with keys '%s'" % (section['name'],
-                                                                                        ', '.join(section['keys'])))
-        for key in section['keys']:
-            if key not in config[section['name']]:
-                if key in section['defaults']:
-                    value = section['defaults'][key]
-                    if isinstance(value, str) and value.startswith('=='):
-                        value = config[section['name']][value.replace('==', '')]
-                    print("INFO: using default value for '%s.%s'" % (section['name'], key), file=sys.stderr)
-                    print(value, file=sys.stderr)
-                    config[section['name']][key] = value
-                else:
-                    raise ConfigurationError("ERROR: config file section '%s' must contain '%s'" % (section['name'], key))
-    # fill in additional database info
-    if 'defaults' not in config['similarity'] or not config['similarity']['defaults']:
-        config['similarity']['defaults'] = {}
-    for key, value in similarity_defaults.items():
-        if key not in config['similarity']['defaults']:
-            config['similarity']['defaults'].update({key: value})
-    for db in config['similarity']['databases']:
-        if 'name' not in db or 'local' not in db:
-            quit("ERROR: 'name' and 'local' must be specified for all databases")
-        if db['name'] == 'nt' or db['name'] == 'nt_v5':
-            db.update({'source': 'ncbi',
-                       'tool': 'blast',
-                       'type': 'nucl'})
-        elif db['name'] == 'reference_proteomes':
-            db.update({'source': 'uniprot',
-                       'tool': 'diamond',
-                       'type': 'prot'})
-        else:
-            print("INFO: only 'nt' and 'reference_proteomes' databases are supported, ignoring '%s'" % db['name'], file=sys.stderr)
-    if not re.match(r'^\w+$', config['assembly']['prefix']):
-        raise ConfigurationError("ERROR: assembly prefix '%s' contains non-word characters. Please use only letters, numbers and underscores." % config['assembly']['prefix'])
-    for readset in config['reads']['single'] + config['reads']['paired']:
-        if not re.match(r'^[a-zA-Z0-9]+$', readset[0]):
-            raise ConfigurationError("ERROR: read file basename '%s' contains non-word characters. Please use only letters and numbers." % readset[0])
-    if '--use-singularity' in sys.argv:
-        return True
-    return False
-
-
-def apply_similarity_search_defaults():
-    """
-    Apply defaults to similarity search databases.
-    """
-    similarity = {}
-    for key, value in config['similarity']['defaults'].items():
-        for db in config['similarity']['databases']:
-            if key not in db:
-                db[key] = value
-            similarity.update({db['name']: db})
-            if db['name'].startswith('nt'):
-                similarity.update({'blastdb': {'local': db['local']}})
-    return similarity
-
-
-def get_read_info(config):
-    """
-    Create dict of sequencing strategies, platforms and base count for reads.
-    """
+def reads_by_prefix(config):
+    """Return read meta by prefix"""
     reads = {}
-    min = 0
-    max = math.inf
-    platforms = ('ILLUMINA', 'OXFORD_NANOPORE', 'PACBIO_SMRT', 'LS454')
-    strategies = ('paired', 'single')
-    if 'reads' not in config:
-        return reads
-    if 'coverage' in config['reads']:
-        if 'min' in config['reads']['coverage']:
-            min = config['reads']['coverage']['min']
-        if 'max' in config['reads']['coverage']:
-            max = config['reads']['coverage']['max']
-    for strategy in strategies:
-        for row in config['reads'][strategy]:
-            accession = row[0]
-            platform = row[1]
-            if platform not in platforms:
-                print("WARNING: platform %s is not recognised, must be one of %s" % (platform, platforms),
-                      file=sys.stderr)
-            try:
-                bases = row[2]
-                coverage = bases / config['assembly']['span']
-            except:
-                coverage = 10
-            if strategy == 'paired':
-                try:
-                    url = re.split(',|;', row[3])
-                except:
-                    url = ["%s_1.fastq.gz" % accession, "%s_2.fastq.gz" % accession]
+    if "reads" not in config:
+        return {}
+
+    for strategy in ("paired", "single"):
+        if not strategy in config["reads"] or not config["reads"][strategy]:
+            continue
+        for entry in config["reads"][strategy]:
+            if isinstance(entry, list):
+                meta = {
+                    "prefix": entry[0],
+                    "platform": entry[1],
+                    "strategy": strategy,
+                    "base_count": entry[2],
+                    "file": entry[3],
+                }
+                if len(entry) == 5:
+                    meta["url"] = entry[4].split(";")
             else:
-                try:
-                    url = [row[3]]
-                except:
-                    url = ["%s.fastq.gz" % accession]
-            if coverage >= min:
-                reads[accession] = {'platform': platform, 'coverage': coverage, 'strategy': strategy, 'url': url}
-                if coverage > max:
-                    reads[accession]['subsample'] = max / coverage
-                    print("WARNING: read file %s will be subsampled due to high coverage (%.2f > %.2f)" % (accession, coverage, max),
-                          file=sys.stderr)
-            else:
-                print("WARNING: skipping read file %s due to low coverage (%.2f < %.2f)" % (accession, coverage, min),
-                      file=sys.stderr)
+                meta = entry
+        reads.update({meta["prefix"]: meta})
+
     return reads
 
 
-def ncbi_idmap(name):
-    """
-    Make a list of remote "accession2taxid" files to download.
-    """
-    url = 'ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid'
-    db = similarity[name]
-    return ' '.join(list(map(lambda x: "%s/%s.accession2taxid.gz" % (url, x), db['idmap'])))
+def minimap_tuning(config, prefix):
+    """Set minimap2 mapping parameter."""
+    reads = reads_by_prefix(config)
+    tunings = {"ILLUMINA": "sr", "OXFORD_NANOPORE": "map-ont", "PACBIO_SMRT": "map-pb"}
+    return tunings[reads[prefix]["platform"]]
 
 
-def list_similarity_results(config):
-    """
-    Generate a list of output filenames for sequence similarity searches
-    based on list of databases in "config['similarity']".
-    """
-    path = []
-    for db in config['similarity']['databases']:
-        # suffix = 'out' if db['tool'] == 'blast' else 'taxified.out'
-        suffix = 'out'
-        program = 'blastn' if db['type'] == 'nucl' else 'blastx' if db['tool'] == 'blast' else 'diamond'
-        masked = ''
-        if 'mask_ids' in db and isinstance(db['mask_ids'], (list, )):
-            masked = "minus.%s" % '.'.join(str(mask) for mask in db['mask_ids'])
-        else:
-            masked = 'full'
-        path.append("%s.%s.%s.root.%s.%s.%s" % (config['assembly']['prefix'],
-                                                program,
-                                                db['name'],
-                                                db['root'],
-                                                masked,
-                                                suffix))
-    return path
+def read_files(config, prefix):
+    """Set minimap2 mapping parameter."""
+    reads = reads_by_prefix(config)
+    return reads[prefix]["file"].split(";")
 
 
-def blast_db_name(config):
-    """
-    Test whether _v5 should be appended to nt database name.
-    """
-    for db in config['similarity']['databases']:
-        if db['name'].startswith('nt'):
-            return db['name']
-    return 'nt'
-
-
-def blast_query_file(name, assembly):
-    """
-    Generate filename for filtered query file for similarity searches.
-    """
-    file = assembly
-    if 'exclude_hits' in similarity[name]:
-        for db in similarity[name]['exclude_hits']:
-            file = db + '_filtered.' + file
-    return file
-
-
-def list_sra_accessions(reads):
-    """
-    Return a list SRA accessions.
-    """
-    accessions = []
-    if reads is not None:
-        accessions = reads.keys()
-    return accessions
-
-
-def generate_mapping_command(accession, reads):
-    """
-    Generate a read mapping command appropriate to the
-    sequencing strategy and library type.
-    """
-    cmd = 'bwa mem'
-    if reads[accession]['platform'] == 'ILLUMINA':
-        cmd = 'minimap2 -ax sr'
-    elif reads[accession]['platform'] == 'PACBIO_SMRT':
-        cmd = 'minimap2 -ax map-pb'
-    elif reads[accession]['platform'] == 'OXFORD_NANOPORE':
-        cmd = 'minimap2 -ax map-ont'
-    return cmd
-
-
-def list_read_files(accession, reads, subsample):
-    """
-    List read files.
-    """
-    files = []
-    for fq_url in reads[accession]['url']:
-        file = re.sub(r'.+\/', '', fq_url)
-        if subsample and 'subsample' in reads[accession]:
-            file = file.replace('fastq', 'subsampled.fastq')
-        files.append(file)
-    return files
-
-
-def generate_subsample_command(accession, reads):
-    """
-    Generate a read mapping command appropriate to the
-    sequencing strategy and library type.
-    """
-    cmd = 'cp'
-    arrow = ''
-    seed = 100
-    if 'coverage' in reads and 'seed' in reads['coverage']:
-        seed = reads['coverage']['seed']
-    if 'subsample' in reads[accession]:
-        cmd = "seqtk sample -s%s" % seed
-        arrow = "%.2f | pigz -c > " % reads[accession]['subsample']
-    return [cmd, arrow]
-
-
-def prepare_ebi_sra_url(acc, file):
-    if len(reads[acc]) == 1:
-        return reads[acc][0]
-    urls = []
-    for url in reads[acc]['url']:
-        urls += url.split(';')
-    for url in urls:
-        if file in url:
-            if url.startswith('ftp') and 'ftp://' not in url:
-                url = 'ftp://'+url
-            return url
-    return ''
-
-
-def prepare_ncbi_assembly_url(accession, name):
-    base = 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all'
-    acc = accession.replace('_', '').split('.', 1)[0]
-    path = '/'.join(acc[i:i+3] for i in range(0, len(acc), 3))
-    asm = "%s_%s" % (accession, name.replace(' ', '_'))
-    asm = asm.replace('__', '_').replace(',', '')
-    url = "%s/%s/%s/%s_genomic.fna.gz" % (base, path, asm, asm)
-    return url
-
-
-def cov_files_by_platform(reads, assembly, platform):
-    """
-    Return a list of coverage files for a given sequencing platform.
-    """
-    accessions = []
-    if reads is not None:
-        accessions += [accession for accession in reads if reads[accession]['platform'] == platform]
-    return list(map(lambda sra: "%s.%s.bam.cov" % (assembly, sra), accessions))
-
-
-def platform_cov_files(reads, assembly):
-    platforms = set()
-    if reads is not None:
-        for accession in reads:
-            if reads[accession]['platform'] not in platforms:
-                platforms.add(reads[accession]['platform'])
-    return list(map(lambda platform: "%s.%s.sum.cov" % (assembly, platform), platforms))
-
-
-def get_threads(rule, default):
-    if rule in cluster_config and 'run_threads' in cluster_config[rule]:
-        return int(cluster_config[rule]['run_threads'])
-    elif rule in cluster_config and 'threads' in cluster_config[rule]:
-        return int(cluster_config[rule]['threads'])
-    elif '__default__' in cluster_config and 'threads' in cluster_config['__default__']:
-        return int(cluster_config['__default__']['threads'])
-    return default
-
-
-def hit_fields(asm, rev, taxrule):
-    if taxrule.startswith('best'):
-        return "%s%s/%s_phylum_positions.json" % (asm, rev, taxrule)
-    if taxrule.startswith('each'):
-        return [
-            "%s%s/%s_nt_phylum_positions.json" % (asm, rev, taxrule.replace('each', 'best')),
-            "%s%s/%s_aa_phylum_positions.json" % (asm, rev, taxrule.replace('each', 'best'))
-        ]
-
-
-def ncbi_dir(wc):
-    if use_singularity:
-        dir = '/blobtoolkit/databases/ncbi_db'
+def seqtk_sample_input(config, prefix):
+    """Generate seqtk command to subsamplereads if required."""
+    meta = reads_by_prefix(config)[prefix]
+    filenames = meta["file"].split(";")
+    ratio = 1
+    if "coverage" in config["reads"] and "max" in config["reads"]["coverage"]:
+        base_count = meta["base_count"]
+        if isinstance(base_count, int):
+            ratio = (
+                config["assembly"]["span"]
+                * config["reads"]["coverage"]["max"]
+                / base_count
+            )
+    if ratio <= 0.95:
+        command = " ".join(
+            [
+                "<(seqtk sample -s 100 %s %.2f)" % (filename, ratio)
+                for filename in filenames
+            ]
+        )
     else:
-        dir = similarity['blastdb']['local']
-    return dir
+        command = " ".join(filenames)
+    return command
 
 
-def uniprot_dir(wc):
-    if use_singularity:
-        dir = '/blobtoolkit/databases/uniprot_db'
-    else:
-        dir = similarity['reference_proteomes']['local']
-    return dir
+def diamond_db_name(config):
+    """Generate filtered diamond database name."""
+    name = "reference_proteomes"
+    parts = ["diamond", name]
+    return ".".join(parts)
 
 
-def busco_dir(wc):
-    if use_singularity:
-        dir = '/blobtoolkit/databases/busco'
-    else:
-        dir = config['busco']['lineage_dir']
-    return dir
+def blobdir_name(config):
+    """Generate blobdir name."""
+    name = config["assembly"]["prefix"]
+    if "revision" in config and config["revision"] > 0:
+        name = "%s.%d" % (name, config["revision"])
+    return name
 
 
-def taxdump_dir(wc):
-    if use_singularity:
-        dir = '/blobtoolkit/databases/ncbi_taxdump'
-    else:
-        dir = config['settings']['taxonomy']
-    return dir
+def blobtools_cov_flag(config):
+    """Generate --cov flag for blobtools add."""
+    keys = reads_by_prefix(config).keys()
+    if keys:
+        return "--cov " + " --cov ".join(
+            [
+                "%s/%s.%s.bam=%s"
+                % (minimap_path, config["assembly"]["prefix"], key, key)
+                for key in keys
+            ]
+        )
+    return ""
 
 
-def destination_dir(wc):
-    if use_singularity:
-        dir = '/blobtoolkit/output'
-    else:
-        dir = config['destdir']
-    return dir
+def set_blast_chunk(config):
+    """Set minimum chunk size for splitting long sequences."""
+    return config["settings"].get("blast_chunk", 100000)
 
 
-def git_dir(wc):
-    if use_singularity:
-        dir = '/blobtoolkit/insdc-pipeline/.git'
-    else:
-        dir = os.path.dirname(os.path.abspath(workflow.snakefile))+'/.git'
-    return dir
+def set_blast_chunk_overlap(config):
+    """Set overlap length for splitting long sequences."""
+    return config["settings"].get("blast_overlap", 0)
 
 
-def taxrule_name():
-    if config['similarity']['taxrule'].startswith('each'):
-        taxrule = config['similarity']['taxrule'].replace('each', 'best')
-        taxrules = ["%s_aa" % taxrule, "%s_nt" % taxrule]
-        return taxrules
-    return [config['similarity']['taxrule']]
+def set_blast_max_chunks(config):
+    """Set minimum chunk size for splitting long sequences."""
+    return config["settings"].get("blast_max_chunks", 10)
+
+
+def set_blast_min_length(config):
+    """Set minimum sequence length for running blast searches."""
+    return config["settings"].get("blast_min_length", 1000)
+
+
+def read_similarity_settings(config, group):
+    """Read similarity settings for blast rules and outputs."""
+    settings = {
+        "evalue": 1.0e-10,
+        "import_evalue": 1.0e-25,
+        "max_target_seqs": 10,
+        "name": "reference_proteomes",
+        "taxrule": "bestdistorder",
+    }
+    if "defaults" in config["similarity"]:
+        settings.update({**config["similarity"]["defaults"]})
+    if group in config["similarity"]:
+        settings.update({**config["similarity"][group]})
+    return settings
+
+
+def similarity_setting(config, group, value):
+    """Get a single similarity setting value."""
+    settings = read_similarity_settings(config, group)
+    setting = settings.get(value, None)
+    if setting is not None:
+        return setting
+    settings = {
+        "evalue": 1.0e-25,
+        "max_target_seqs": 10,
+        "taxrule": "bestdistorder",
+        **settings,
+    }
+    if value.startswith("import_"):
+        value = value.replace("import_", "")
+    return settings[value]
+
+
+def get_basal_lineages(config):
+    """Get basal BUSCO lineages from config."""
+    if "basal_lineages" in config["busco"]:
+        return config["busco"]["basal_lineages"]
+    basal = {"archaea_odb10", "bacteria_odb10", "eukaryota_odb10"}
+    lineages = []
+    if "lineages" in config["busco"]:
+        for lineage in config["busco"]["lineages"]:
+            if lineage in basal:
+                lineages.push(lineage)
+    return lineages

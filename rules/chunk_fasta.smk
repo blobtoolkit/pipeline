@@ -3,19 +3,18 @@ rule chunk_fasta:
     Split long contigs into chunks.
     """
     input:
-        fasta = '{assembly}.windowmasker.fasta'
+        fasta = "%s/{assembly}.windowmasker.fasta" % windowmasker_path,
     output:
-        '{assembly}.chunks.fasta' if keep else temp('{assembly}.chunks.fasta')
+        bed = "{assembly}.fasta.bed"
     params:
-        chunk = config['settings']['blast_chunk'],
-        overlap = config['settings']['blast_overlap'],
-        max_chunks = config['settings']['blast_max_chunks']
-    conda:
-        '../envs/blobtools2.yaml'
-    threads: get_threads('chunk_fasta', 1)
+        chunk = set_blast_chunk(config),
+        overlap = set_blast_chunk_overlap(config),
+        max_chunks = set_blast_max_chunks(config),
+        min_length = set_blast_min_length(config)
+    threads: 1
     log:
-        'logs/{assembly}/chunk_fasta.log'
+        "logs/{assembly}/chunk_fasta.log"
     benchmark:
-        'logs/{assembly}/chunk_fasta.benchmark.txt'
+        "logs/{assembly}/chunk_fasta.benchmark.txt"
     script:
-        '../scripts/chunk_fasta.py'
+        "../scripts/chunk_fasta.py"

@@ -1,112 +1,78 @@
 #!/bin/bash
-#BSUB -n 1
-#BSUB -o snakemake.%J.out
-#BSUB -e snakemake.%J.err
+#BSUB -n 32
+#BSUB -o btk_v2.%J.out
+#BSUB -e btk_v2.%J.err
 #BSUB -q long
-#BSUB -J insdc-pipeline
+#BSUB -R "select[mem>100000] rusage[mem=100000] span[hosts=1]"
+#BSUB -M 100000
 
-# export PIPELINE=/path/to/insdc-pipeline
-# export WORKDIR=/path/to/working/directory
-# export ASSEMBLY=ABCD01
-# export CLUSTER_CONFIG=/path/to/cluster.yaml
-# export THREADS=64
-# bsub -R "select[mem>10000] rusage[mem=10000]" -M 10000 < $PIPELINE/scripts/lsf_wrapper.sh
-
-# Check the insdc-pipeline directory has been specified
-if [ -z "$PIPELINE" ]; then
-  echo "ERROR: you must specify PIPELINE=/path/to/insdc-pipeline" >&2
+# Check required variables have been specified
+if [ -z "$DATA_DIR" ]; then
+  echo "ERROR: you must specify DATA_DIR=/path/to/data" >&2
+  exit 1
+fi
+if [ -z "$SNAKE_DIR" ]; then
+  echo "ERROR: you must specify SNAKE_DIR=/path/to/pipeline/directory" >&2
+  exit 1
+fi
+if [ -z "$ACCESSION" ]; then
+  echo "ERROR: you must specify ACCESSION, e.g. ACCESSION=GCA_00000000.0" >&2
+  exit 1
+fi
+if [ -z "$TOOL" ]; then
+  echo "ERROR: you must specify TOOL, e.g. TOOL=busco" >&2
   exit 1
 fi
 
-# Check a working directory has been specified
-if [ -z "$WORKDIR" ]; then
-  echo "ERROR: you must specify WORKDIR=/path/to/working/directory" >&2
+# Check the configuration file exists
+if [ ! -s "$DATA_DIR/$ACCESSION/config.yaml" ]; then
+  echo "ERROR: config file $DATA_DIR/$ACCESSION/config.yaml does not exist" >&2
   exit 1
 fi
 
-# Check an assembly prefix has been specified
-if [ -z "$ASSEMBLY" ]; then
-  echo "ERROR: you must specify ASSEMBLY=ABCD01" >&2
+# Check the Snakefile exists
+if [ ! -s "$SNAKE_DIR/$TOOL.smk" ]; then
+  echo "ERROR: $SNAKE_DIR/$TOOL.smk is not a valid Snakefile" >&2
   exit 1
 fi
 
-# Check a cluster.yaml config file has been specified
-if [ -z "$CLUSTER_CONFIG" ]; then
-  echo "ERROR: you must specify CLUSTER_CONFIG=/path/to/cluster.yaml" >&2
-  exit 1
-fi
-
-# Check a maximum number of threads has been specified
-if [ -z "$THREADS" ]; then
-  echo "ERROR: you must specify the maximum number of threads to use, e.g. export THREADS=16" >&2
-  exit 1
-fi
-
-# Check the specified insdc-pipeline directory contains a Snakefile
-if [ ! -s "$PIPELINE/Snakefile" ]; then
-  echo "ERROR: $PIPELINE is not a valid insdc-pipeline directory" >&2
-  exit 1
-fi
-
-# Check the specified working directory exists
-if [ ! -d "$WORKDIR" ]; then
-  echo "ERROR: $WORKDIR is not a valid working directory" >&2
-  exit 1
-fi
-
-# Check an assembly config file exists
-if [ ! -s "$WORKDIR/$ASSEMBLY.yaml" ]; then
-  echo "ERROR: $WORKDIR/$ASSEMBLY.yaml is not a valid configuration file" >&2
-  exit 1
-fi
-
-# Check a cluster.yaml config file exists
-if [ ! -s "$CLUSTER_CONFIG" ]; then
-  echo "ERROR: $CLUSTER_CONFIG is not a valid cluster configuration file" >&2
-  exit 1
-fi
 
 # Load the Conda environment containing snakemake
-source $HOME/miniconda3/bin/activate snake_env
+eval "$(conda shell.bash hook)"
+conda activate bts_env
+
 EXITCODE=$?
 if [ ! $EXITCODE -eq 0 ]; then
-  echo "ERROR: Unable to activate conda environment 'snake_env'" >&2
-  exit 1
-fi
-
-# Check activate binary is available
-ACTIVATE=$(which activate)
-if [ -z "$ACTIVATE" ]; then
-  echo "ERROR: The activate binary could not be found" >&2
-  echo "       Try copying the binary into the snake_env environment manually:" >&2
-  echo "           cp $HOME/miniconda3/bin/activate $HOME/miniconda3/envs/snake_env/bin/" >&2
+  echo "ERROR: Unable to activate conda environment 'bts_env'" >&2
   exit 1
 fi
 
 # Check the working directory is unlocked in case a previous run failed
-if [ -d "$WORKDIR/.snakemake" ]; then
-  snakemake --directory $WORKDIR \
-            --configfile $WORKDIR/$ASSEMBLY.yaml \
-            --unlock \
-            -s $PIPELINE/Snakefile
+mkdir -p $DATA_DIR/$ACCESSION/$TOOL
+snakemake -p \
+          -j 1 \
+          --directory $DATA_DIR/$ACCESSION/$TOOL \
+          --configfile $DATA_DIR/$ACCESSION/config.yaml \
+          -s $SNAKE_DIR/$TOOL.smk \
+          --unlock
+
+if [ $? -ne 0 ];then
+  echo "ERROR: failed while unlocking working directory"
+  exit 1
 fi
 
-# run snakemake workflow
-snakemake -p --use-conda \
-             --conda-prefix $HOME/.conda \
-             --directory $WORKDIR \
-             --configfile $WORKDIR/$ASSEMBLY.yaml \
-             --cluster-config $CLUSTER_CONFIG \
-             --drmaa " -o {log}.o \
-                       -e {log}.e \
-                       -R \"select[mem>{cluster.mem}] rusage[mem={cluster.mem}] span[hosts=1]\" \
-                       -M {cluster.mem} \
-                       -n {cluster.threads} \
-                       -q {cluster.queue} " \
-             --stats $ASSEMBLY.snakemake.stats \
-             --resources btk=1 \
-             --latency-wait 300 \
-             --rerun-incomplete \
-             -j $THREADS \
-             -s $PIPELINE/Snakefile && touch $WORKDIR/$ASSEMBLY.complete
+# Run pipeline
+snakemake -p \
+          -j $THREADS \
+          --directory $DATA_DIR/$ACCESSION/$TOOL \
+          --configfile $DATA_DIR/$ACCESSION/config.yaml \
+          --latency-wait 60 \
+          --stats $DATA_DIR/$ACCESSION/$TOOL.stats \
+          -s $SNAKE_DIR/$TOOL.smk
 
+if [ $? -ne 0 ];then
+  echo "ERROR: failed while running pipeline"
+  exit 1
+fi
+
+echo "done"

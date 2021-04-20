@@ -1,59 +1,73 @@
-keep_intermediates: false
 assembly:
-  accession: GCA_000182075.1
-  alias: M22
-  bioproject: PRJNA28815
-  biosample: SAMN00189351
-  level: contig
-  prefix: ABPC01
-  scaffold-count: 6145
-  span: 10776755
+  accession: GCA_902806685.1
+  alias: iAphHyp1.1
+  bioproject: PRJEB36756
+  biosample: SAMEA994723
+  file: /volumes/data/by_accession/GCA_902806685.1/assembly/GCA_902806685.1.fasta.gz
+  level: chromosome
+  prefix: CADCXM01
+  scaffold-count: 87
+  span: 408137179
+  url: ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/902/806/685/GCA_902806685.1_iAphHyp1.1/GCA_902806685.1_iAphHyp1.1_genomic.fna.gz
 busco:
-  lineage_dir: /data/test/databases/busco
+  lineage_dir: /volumes/databases/busco_2021_03
   lineages:
-    - saccharomycetales_odb9
-    - saccharomyceta_odb9
-    - ascomycota_odb9
-    - dikarya_odb9
-    - fungi_odb9
-    - eukaryota_odb9
+    - lepidoptera_odb10
+    - endopterygota_odb10
+    - insecta_odb10
+    - arthropoda_odb10
+    - metazoa_odb10
+    - eukaryota_odb10
+    - bacteria_odb10
+    - archaea_odb10
+  basal_lineages:
+    - eukaryota_odb10
+    - bacteria_odb10
+    - archaea_odb10
 reads:
   coverage:
-    max: 100
-    min: 0.5
-  paired: []
-  single:
-  - [SRR090215, LS454, 79442198, ftp.sra.ebi.ac.uk/vol1/fastq/SRR090/SRR090215/SRR090215.fastq.gz]
-  - [SRR090216, LS454, 86168386, ftp.sra.ebi.ac.uk/vol1/fastq/SRR090/SRR090216/SRR090216.fastq.gz]
+    max: 30
+  paired:
+    - prefix: ERR3316071
+      platform: ILLUMINA
+      base_count: 33696183030
+      file: /volumes/data/by_accession/GCA_902806685.1/reads/ERR3316071_1.fastq.gz;/volumes/data/by_accession/GCA_902806685.1/reads/ERR3316071_2.fastq.gz
+      url: ftp.sra.ebi.ac.uk/vol1/fastq/ERR331/001/ERR3316071/ERR3316071_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR331/001/ERR3316071/ERR3316071_2.fastq.gz
+    - prefix: ERR3316069
+      platform: ILLUMINA
+      base_count: 33234827596
+      file: /volumes/data/by_accession/GCA_902806685.1/reads/ERR3316069_1.fastq.gz;/volumes/data/by_accession/GCA_902806685.1/reads/ERR3316069_2.fastq.gz
+      url: ftp.sra.ebi.ac.uk/vol1/fastq/ERR331/009/ERR3316069/ERR3316069_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR331/009/ERR3316069/ERR3316069_2.fastq.gz
+    - prefix: ERR3316072
+      platform: ILLUMINA
+      base_count: 30325234266
+      file: /volumes/data/by_accession/GCA_902806685.1/reads/ERR3316072_1.fastq.gz;/volumes/data/by_accession/GCA_902806685.1/reads/ERR3316072_2.fastq.gz
+      url: ftp.sra.ebi.ac.uk/vol1/fastq/ERR331/002/ERR3316072/ERR3316072_1.fastq.gz;ftp.sra.ebi.ac.uk/vol1/fastq/ERR331/002/ERR3316072/ERR3316072_2.fastq.gz
+revision: 0
 settings:
   blast_chunk: 100000
   blast_max_chunks: 10
-  blast_overlap: 500
-  blast_path: /home/ubuntu/blast/ncbi-blast-2.8.1+/bin
-  blobtools2_path: /home/ubuntu/blobtools2
-  chunk: 1000000
-  taxonomy: /home/ubuntu/databases/taxdump/
+  blast_overlap: 0
+  blast_min_length: 1000
+  taxdump: /volumes/databases/taxdump_2021_03
   tmp: /tmp
 similarity:
-  databases:
-  - name: nt
-    idmap: [nucl_est, nucl_gb, nucl_gss, nucl_wgs, pdb]
-    local: /home/ubuntu/databases/ncbi_2019_03
-    source: ncbi
-    tool: blast
-    type: nucl
-  - name: reference_proteomes
-    local: /home/ubuntu/databases/uniprot_2019_02
-    max_target_seqs: 1
-    source: uniprot
-    tool: diamond
-    type: prot
   defaults:
-    evalue: 1e-25
-    mask_ids: [4930]
+    evalue: 1.0e-10
+    import_evalue: 1.0e-25
     max_target_seqs: 10
-    root: 1
-  taxrule: bestsumorder
+    taxrule: bestdistorder
+  diamond_blastx:
+    name: reference_proteomes
+    path: /volumes/databases/uniprot_2021_03
+  diamond_blastp:
+    name: reference_proteomes
+    path: /volumes/databases/uniprot_2021_03
+    import_max_target_seqs: 100000
+  blastn:
+    name: nt
+    path: /volumes/databases/ncbi_nt_2021_04
 taxon:
-  name: Saccharomyces cerevisiae M22
-  taxid: 538975
+  name: Maniola hyperantus
+  taxid: '2795564'
+version: 1

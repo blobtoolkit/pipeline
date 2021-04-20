@@ -177,10 +177,30 @@ def parse_assembly_meta(accession):
     meta = {
         "assembly": {"accession": accession},
         "busco": {"lineages": []},
-        "reads": {"paired": []},
+        "reads": {"paired": [], "single": []},
         "revision": 0,
-        "settings": {"tmp": "/tmp", "blast_chunk": 100000, "blast_max_chunks": 10},
-        "similarity": {},
+        "settings": {
+            "tmp": "/tmp",
+            "blast_chunk": 100000,
+            "blast_max_chunks": 10,
+            "blast_overlap": 0,
+            "blast_min_length": 1000,
+        },
+        "similarity": {
+            "defaults": {
+                "evalue": 1.0e-10,
+                "import_evalue": 1.0e-25,
+                "max_target_seqs": 10,
+                "taxrule": "bestdistorder",
+            },
+            "diamond_blastx": {"name": "reference_proteomes"},
+            "diamond_blastp": {
+                "name": "reference_proteomes",
+                "import_max_target_seqs": 100000,
+                "taxrule": "blastp=buscogenes",
+            },
+            "blastn": {"name": "nt"},
+        },
         "taxon": {},
         "version": 1,
     }
@@ -325,19 +345,19 @@ def add_taxon_to_meta(meta, taxon_meta):
             meta["taxon"].update({obj["taxon_rank"]: obj["scientific_name"]})
 
 
-def add_reads_to_meta(meta, sra, readdir):
+def add_reads_to_meta(meta, sra, readdir, strategy="paired"):
     """Add read accessions to metadata."""
     LOGGER.info("Adding read accessions to assembly metadata")
     for index, run in enumerate(sra):
-        info = [
-            run["run_accession"],
-            run["instrument_platform"],
-            run["base_count"],
-            "%s/%s_1.fastq.gz;%s/%s_2.fastq.gz"
+        info = {
+            "prefix": run["run_accession"],
+            "platform": run["instrument_platform"],
+            "base_count": run["base_count"],
+            "file": "%s/%s_1.fastq.gz;%s/%s_2.fastq.gz"
             % (readdir, run["run_accession"], readdir, run["run_accession"]),
-            run["fastq_ftp"],
-        ]
-        meta["reads"]["paired"].append(info)
+            "url": run["fastq_ftp"],
+        }
+        meta["reads"][strategy].append(info)
         if index == 2:
             return
 
@@ -375,9 +395,11 @@ if __name__ == "__main__":
     dbdir = opts["--db"]
     buscodir = "%s/busco" % dbdir
     uniprotdir = "%s/uniprot" % dbdir
+    ntdir = "%s/nt" % dbdir
     taxdumpdir = "%s/taxdump" % dbdir
     if opts["--db-suffix"]:
         buscodir += "_%s" % opts["--db-suffix"]
+        ntdir += "_%s" % opts["--db-suffix"]
         uniprotdir += "_%s" % opts["--db-suffix"]
         taxdumpdir += "_%s" % opts["--db-suffix"]
     if not outdir.endswith(accession):
@@ -399,7 +421,17 @@ if __name__ == "__main__":
     set_btk_version(meta)
     busco_sets = find_busco_lineages(taxon_meta["lineage"])
     if busco_sets:
-        meta["busco"].update({"lineage_dir": buscodir, "lineages": busco_sets})
+        meta["busco"].update(
+            {
+                "lineage_dir": buscodir,
+                "lineages": busco_sets,
+                "basal_lineages": [
+                    "eukaryota_odb10",
+                    "bacteria_odb10",
+                    "archaea_odb10",
+                ],
+            }
+        )
     if opts["--download"]:
         fetch_busco_lineages(busco_sets, buscodir)
     sra = assembly_reads(meta["assembly"]["biosample"])
@@ -412,12 +444,8 @@ if __name__ == "__main__":
             os.makedirs(readdir, exist_ok=True)
             for run in sra:
                 fetch_read_files(run, "%s/reads" % outdir)
-    meta["similarity"] = {
-        "path": uniprotdir,
-        "name": "reference_proteomes",
-        "evalue": 1e-25,
-        "max_target_seqs": 10,
-        "taxrule": "bestdistsum",
-    }
+    meta["similarity"]["blastn"].update({"path": ntdir})
+    meta["similarity"]["diamond_blastx"].update({"path": uniprotdir})
+    meta["similarity"]["diamond_blastp"].update({"path": uniprotdir})
     meta["settings"]["taxdump"] = taxdumpdir
     tofile.write_file("%s/config.yaml" % outdir, meta)

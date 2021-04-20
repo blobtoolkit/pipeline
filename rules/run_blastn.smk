@@ -1,32 +1,36 @@
 rule run_blastn:
     """
-    Run NCBI blastn to search nucleotide database with assembly query.
+    Run Diamond blastx to search protein database with assembly query.
     """
     input:
-        # fasta = '{assembly}.windowmasker.fasta',
-        fasta = '{assembly}.chunks.fasta',
-        db = lambda wc: "%s/%s.nal" % (similarity[wc.name]['local'], wc.name),
-        taxids = '{name}.root.{root}{masked}.taxids'
+        fasta = "{assembly}.nohit.fasta.chunks",
+        db = "%s/%s.nal" % (similarity_setting(config, "blastn", "path"), similarity_setting(config, "blastn", "name"))
     output:
-        nohit = '{assembly}.blastn.{name}.root.{root}{masked}.nohit' if keep else temp('{assembly}.blastn.{name}.root.{root}{masked}.nohit'),
-        raw = '{assembly}.blastn.{name}.root.{root}{masked}.out.raw'
-    wildcard_constraints:
-        root = '\d+',
-        masked = '.[fm][ulins\d\.]+'
+        "{assembly}.blastn.nt.out.raw"
     params:
-        dir = ncbi_dir,
-        evalue = lambda wc: similarity[wc.name]['evalue'],
-        max_target_seqs = lambda wc: similarity[wc.name]['max_target_seqs'],
-        multiprocessing = True if 'multiprocessing' in config['settings'] else False,
-        chunk = 0,
-        overlap = config['settings']['blast_overlap'],
-        max_chunks = config['settings']['blast_max_chunks']
-    conda:
-        '../envs/pyblast.yaml'
-    threads: get_threads('run_blastn', maxcore)
+        db = "%s/%s" % (similarity_setting(config, "blastn", "path"), similarity_setting(config, "blastn", "name")),
+        evalue = similarity_setting(config, "diamond_blastx", "evalue"),
+        max_target_seqs = similarity_setting(config, "diamond_blastx", "max_target_seqs"),
+        taxid = config["taxon"]["taxid"]
+    threads: 30
     log:
-        'logs/{assembly}/run_blastn/{name}.root.{root}{masked}.log'
+        "logs/{assembly}/run_blastn.log"
     benchmark:
-        'logs/{assembly}/run_blastn/{name}.root.{root}{masked}.benchmark.txt'
-    script:
-        '../scripts/blast_wrapper.py'
+        "logs/{assembly}/run_blastn.benchmark.txt"
+    shell:
+        """(if [ -s {output} ]; then \
+            blastn -task megablast \
+                -query {input.fasta} \
+                -db {params.db} \
+                -outfmt 6 qseqid staxids bitscore qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore \
+                -max_target_seqs {params.max_target_seqs} \
+                -max_hsps 1 \
+                -evalue {params.evalue} \
+                -num_threads {threads} \
+                -negative_taxids {params.taxid} \
+                -lcase_masking \
+                -dust "20 64 1" \
+                > {output}; \
+        else \
+            > {output}; \
+        fi) 2> {log}"""

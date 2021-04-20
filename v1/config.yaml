@@ -1,0 +1,59 @@
+keep_intermediates: false
+assembly:
+  accession: GCA_000182075.1
+  alias: M22
+  bioproject: PRJNA28815
+  biosample: SAMN00189351
+  level: contig
+  prefix: ABPC01
+  scaffold-count: 6145
+  span: 10776755
+busco:
+  lineage_dir: /data/test/databases/busco
+  lineages:
+    - saccharomycetales_odb9
+    - saccharomyceta_odb9
+    - ascomycota_odb9
+    - dikarya_odb9
+    - fungi_odb9
+    - eukaryota_odb9
+reads:
+  coverage:
+    max: 100
+    min: 0.5
+  paired: []
+  single:
+  - [SRR090215, LS454, 79442198, ftp.sra.ebi.ac.uk/vol1/fastq/SRR090/SRR090215/SRR090215.fastq.gz]
+  - [SRR090216, LS454, 86168386, ftp.sra.ebi.ac.uk/vol1/fastq/SRR090/SRR090216/SRR090216.fastq.gz]
+settings:
+  blast_chunk: 100000
+  blast_max_chunks: 10
+  blast_overlap: 500
+  blast_path: /home/ubuntu/blast/ncbi-blast-2.8.1+/bin
+  blobtools2_path: /home/ubuntu/blobtools2
+  chunk: 1000000
+  taxonomy: /home/ubuntu/databases/taxdump/
+  tmp: /tmp
+similarity:
+  databases:
+  - name: nt
+    idmap: [nucl_est, nucl_gb, nucl_gss, nucl_wgs, pdb]
+    local: /home/ubuntu/databases/ncbi_2019_03
+    source: ncbi
+    tool: blast
+    type: nucl
+  - name: reference_proteomes
+    local: /home/ubuntu/databases/uniprot_2019_02
+    max_target_seqs: 1
+    source: uniprot
+    tool: diamond
+    type: prot
+  defaults:
+    evalue: 1e-25
+    mask_ids: [4930]
+    max_target_seqs: 10
+    root: 1
+  taxrule: bestsumorder
+taxon:
+  name: Saccharomyces cerevisiae M22
+  taxid: 538975

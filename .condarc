@@ -1,8 +1,0 @@
-channels:
-  - defaults
-  - conda-forge
-  - r
-  - bioconda
-path_conflict: warn
-conda-build:
-  use_local: true
