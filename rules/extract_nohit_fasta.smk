@@ -18,4 +18,4 @@ rule extract_nohit_fasta:
         """seqtk subseq {input.fasta} <(grep '>' {input.fasta} | \
             grep -v -w -f <(awk '{{if($14<{params.evalue}){{print $1}}}}' {input.blastx} | \
                 sort | uniq) \
-            | cut -f1 | sed 's/>//')"""
+            | cut -f1 | sed 's/>//') > {output}"""
