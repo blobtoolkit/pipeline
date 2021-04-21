@@ -66,21 +66,24 @@ if __name__ == "__main__":
                                 tarinfo,
                             )
                         ) as fh:
-                            header = next(fh).strip()
-                            title = ""
-                            if header_pattern.match(header):
-                                title = "%s=%s=%s" % (header, busco_id, status)
-                            else:
-                                parts = header.split(" # ")
-                                title = "%s:%s-%s=%s=%s" % (
-                                    re.sub(r"_[^_]+$", "", parts[0]),
-                                    parts[1],
-                                    parts[2],
-                                    busco_id,
-                                    status,
-                                )
-                            ofh.write("%s\n" % title)
-                            ofh.writelines(fh)
+                            for line in fh:
+                                if line.startswith(">"):
+                                    header = line.strip()
+                                    title = ""
+                                    if header_pattern.match(header):
+                                        title = "%s=%s=%s" % (header, busco_id, status)
+                                    else:
+                                        parts = header.split(" # ")
+                                        title = "%s:%s-%s=%s=%s" % (
+                                            re.sub(r"_[^_]+$", "", parts[0]),
+                                            parts[1],
+                                            parts[2],
+                                            busco_id,
+                                            status,
+                                        )
+                                    ofh.write("%s\n" % title)
+                                else:
+                                    ofh.write(line)
     except Exception as err:
         logger.error(err)
         exit(1)
