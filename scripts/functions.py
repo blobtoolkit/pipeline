@@ -23,8 +23,7 @@ def reads_by_prefix(config):
                     meta["url"] = entry[4].split(";")
             else:
                 meta = entry
-        reads.update({meta["prefix"]: meta})
-
+            reads.update({meta["prefix"]: meta})
     return reads
 
 
@@ -36,7 +35,7 @@ def minimap_tuning(config, prefix):
 
 
 def read_files(config, prefix):
-    """Set minimap2 mapping parameter."""
+    """Get read filenames."""
     reads = reads_by_prefix(config)
     return reads[prefix]["file"].split(";")
 

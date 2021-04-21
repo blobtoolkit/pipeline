@@ -5,7 +5,7 @@ rule run_blobtools_create:
     input:
         length = "%s/%s.stats.length.bed" % (stats_path, config["assembly"]["prefix"]),
         gc = "%s/%s.stats.gc.bed" % (stats_path, config["assembly"]["prefix"]),
-        busco = expand("%s/%s.busco.{lineage}/full_table.tsv.gz" % (busco_path, config["assembly"]["prefix"]), lineage=config['busco']['lineages']),
+        busco = "%s/%s.busco.%s/full_table.tsv.gz" % (busco_path, config["assembly"]["prefix"], config['busco']['lineages'][0]),
         blastx = "%s/%s.diamond.reference_proteomes.out" % (diamond_path, config["assembly"]["prefix"]),
         blastn = "%s/%s.blastn.nt.out" % (blastn_path, config["assembly"]["prefix"]),
         taxdump = config["settings"]["taxdump"],
@@ -15,7 +15,7 @@ rule run_blobtools_create:
         "%s/identifiers.json" % blobdir_name(config),
         "%s/%s_phylum.json" % (blobdir_name(config), similarity_setting(config, "diamond_blastx", "taxrule")),
         expand("%s/{sra}_cov.json" % blobdir_name(config), sra=reads_by_prefix(config).keys()),
-        expand("%s/{lineage}_busco.json" % blobdir_name(config), lineage=config['busco']['lineages'])
+        "%s/%s_busco.json" % (blobdir_name(config), config['busco']['lineages'][0])
     params:
         statsdir = stats_path,
         busco = lambda wc: " --busco ".join(expand("%s/%s.busco.{lineage}/full_table.tsv.gz" % (busco_path, config["assembly"]["prefix"]), lineage=config['busco']['lineages'])),

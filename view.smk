@@ -47,7 +47,7 @@ rule copy_blobdir:
         copied = temp("{blobdir}.copied"),
         cov = expand("{{blobdir}}/{sra}_cov.json", sra=reads_by_prefix(config).keys()),
         tax = "{blobdir}/%s_phylum_positions.json" % similarity_setting(config, "diamond_blastx", "taxrule"),
-        busco = expand("{{blobdir}}/{lineage}_busco.json", lineage=config["busco"]["lineages"]),
+        busco = "{blobdir}/%s_busco.json" % config["busco"]["lineages"][0],
         ids = "{blobdir}/identifiers.json"
     params:
         blobdir = lambda wc: wc.blobdir

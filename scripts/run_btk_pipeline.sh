@@ -15,16 +15,20 @@ DONE_DIR=/volumes/data/processed_by_accession
 SNAKE_DIR=~/blobtoolkit/insdc-pipeline
 THREADS=60
 
-# generate the config file
-$SNAKE_DIR/scripts/generate_config.py $ACCESSION \
-       --download \
-       --out /volumes/data/by_accession \
-       --db /volumes/databases \
-       --db-suffix 2021_03
+RESTART=$2
 
-if [ $? -ne 0 ];then
- echo "ERROR: failed to generate config file"
- exit 1
+if [ -z "$RESTART" ]; then
+  # generate the config file
+  $SNAKE_DIR/scripts/generate_config.py $ACCESSION \
+        --download \
+        --out /volumes/data/by_accession \
+        --db /volumes/databases \
+        --db-suffix 2021_03
+
+  if [ $? -ne 0 ];then
+  echo "ERROR: failed to generate config file"
+  exit 1
+  fi
 fi
 
 # Load the Conda environment containing snakemake

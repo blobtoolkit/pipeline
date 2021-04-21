@@ -47,7 +47,7 @@ rule all:
         "%s/%s_phylum.json" % (blobdir_name(config), similarity_setting(config, "diamond_blastx", "taxrule")),
         "%s/buscogenes_phylum.json" % blobdir_name(config),
         expand("%s/{sra}_cov.json" % blobdir_name(config), sra=reads_by_prefix(config).keys()),
-        expand("%s/{lineage}_busco.json" % blobdir_name(config), lineage=config['busco']['lineages'])
+        "%s/%s_busco.json" % (blobdir_name(config), config['busco']['lineages'][0])
         
 
 include: "rules/run_blobtools_create.smk"

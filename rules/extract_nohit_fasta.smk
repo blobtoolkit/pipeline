@@ -7,11 +7,15 @@ rule extract_nohit_fasta:
         fasta = "%s/{assembly}.windowmasker.fasta" % windowmasker_path
     output:
         "{assembly}.nohit.fasta"
+    params:
+        evalue = similarity_setting(config, "diamond_blastx", "import_evalue")
     threads: 4
     log:
         "logs/{assembly}/extract_nohit_fasta.log"
     benchmark:
         "logs/{assembly}/extract_nohit_fasta.benchmark.txt"
     shell:
-        """seqtk subseq {input.fasta} <(grep '<' {input.fasta} | \
-            grep -v -f -F <(cut -f1 {input.blastx} | sort | uniq)) > {output} 2> {log}"""
+        """seqtk subseq {input.fasta} <(grep '>' {input.fasta} | \
+            grep -v -w -f <(awk '{{if($14<{params.evalue}){{print $1}}}}' {input.blastx} | \
+                sort | uniq) \
+            | cut -f1 | sed 's/>//')"""

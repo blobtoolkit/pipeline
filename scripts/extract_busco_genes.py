@@ -54,6 +54,8 @@ if __name__ == "__main__":
             for busco_file in args["--busco"]:
                 busco_dir = Path(busco_file).absolute().parent
                 busco_seqs = "%s/busco_sequences.tar.gz" % busco_dir
+                if not Path(busco_seqs).is_file():
+                    continue
                 tar = tarfile.open(busco_seqs)
                 for tarinfo in tar.getmembers():
                     if tarinfo.name.endswith(".faa"):
