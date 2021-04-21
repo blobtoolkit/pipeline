@@ -212,7 +212,13 @@ def seq_stats(seq):
         gc = gc / atgc
     else:
         gc = 0
-    return {"gc": gc, "n": n / len(seq), "ncount": n, "masked": masked / len(seq)}
+    return {
+        "gc": gc,
+        "n": n / len(seq),
+        "ncount": n,
+        "masked": masked / len(seq),
+        "length": len(seq),
+    }
 
 
 def write_bedfiles(bed_data, args):
@@ -229,16 +235,31 @@ def write_bedfiles(bed_data, args):
             for key, value in obj["stats"].items():
                 start = min(obj["start"], start)
                 end = max(obj["end"], end)
-                sums[key] += value * (obj["end"] - obj["start"])
-                lines["%s_windows" % key].append("%s\t.\t%.4f\n" % (location, value))
+                if key != "ncount" and key != "length":
+                    sums[key] += value * (obj["end"] - obj["start"])
+                    lines["%s_windows" % key].append(
+                        "%s\t.\t%.4f\n" % (location, value)
+                    )
+                else:
+                    sums[key] += value
+                    if key == "length":
+                        lines["%s_windows" % key].append(
+                            "%s\t.\t%.d\n" % (location, sums[key])
+                        )
+                    else:
+                        lines["%s_windows" % key].append(
+                            "%s\t.\t%.d\n" % (location, value)
+                        )
                 if key == "gc":
                     lines["mask"].append("%s\twindow\n" % location)
         location = "%s\t%d\t%d" % (title, start, end)
         length = end - start
-        lines["length"].append("%s\t.\t%d\n" % (location, length))
         lines["mask"].append("%s\tfull\n" % location)
         for key, value in sums.items():
-            lines[key].append("%s\t.\t%.4f\n" % (location, value / length))
+            if key != "ncount" and key != "length":
+                lines[key].append("%s\t.\t%.4f\n" % (location, value / length))
+            else:
+                lines[key].append("%s\t.\t%.d\n" % (location, value))
     for key, rows in lines.items():
         bedfile = args["--bed"]
         bedfile = re.sub(r"\.bed$", "", bedfile)

@@ -18,11 +18,11 @@ rule run_blastn:
     benchmark:
         "logs/{assembly}/run_blastn.benchmark.txt"
     shell:
-        """(if [ -s {output} ]; then \
+        """(if [ -s {input.fasta} ]; then \
             blastn -task megablast \
                 -query {input.fasta} \
                 -db {params.db} \
-                -outfmt 6 qseqid staxids bitscore qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore \
+                -outfmt "6 qseqid staxids bitscore std" \
                 -max_target_seqs {params.max_target_seqs} \
                 -max_hsps 1 \
                 -evalue {params.evalue} \
