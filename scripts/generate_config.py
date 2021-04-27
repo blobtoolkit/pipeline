@@ -423,7 +423,7 @@ if __name__ == "__main__":
     if busco_sets:
         meta["busco"].update(
             {
-                "lineage_dir": buscodir,
+                "download_dir": buscodir,
                 "lineages": busco_sets,
                 "basal_lineages": [
                     "eukaryota_odb10",

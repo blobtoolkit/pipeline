@@ -7,7 +7,7 @@ rule run_busco_v5:
     output:
         full = "{assembly}.busco.{lineage}/full_table.tsv.gz",
     params:
-        # lineage_dir = lambda wc: "%s/%s" % (config["busco"]["lineage_dir"], wc.lineage),
+        busco_download_dir = config["busco"]["download_dir"],
         lineage = lambda wc: wc.lineage,
         assembly = lambda wc: wc.assembly,
         outdir = lambda wc: "%s_%s" % (wc.assembly, wc.lineage),
@@ -26,7 +26,8 @@ rule run_busco_v5:
             -f \
             -i {input.fasta} \
             -o {params.assembly}_{params.lineage} \
-            --download_path {params.buscodir} \
+            --download_path {params.busco_download_dir} \
+            -l {params.lineage} \
             --offline \
             -m geno \
             -c {threads} > {log} 2>&1 && \

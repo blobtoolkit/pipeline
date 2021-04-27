@@ -129,7 +129,7 @@ assembly:
   span: 408137179
   url: ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/902/806/685/GCA_902806685.1_iAphHyp1.1/GCA_902806685.1_iAphHyp1.1_genomic.fna.gz
 busco:
-  lineage_dir: /volumes/databases/busco_2021_03
+  download_dir: /volumes/databases/busco_2021_03
   lineages:
     - lepidoptera_odb10
     - endopterygota_odb10
