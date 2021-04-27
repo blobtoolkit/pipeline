@@ -240,7 +240,7 @@ def fetch_busco_lineages(busco_sets, buscodir):
         return
     lineages_to_fetch = []
     for lineage in busco_sets:
-        busco_lineage = "%s/%s" % (buscodir, lineage)
+        busco_lineage = "%s/lineages/%s" % (buscodir, lineage)
         if not os.path.isdir(busco_lineage):
             lineages_to_fetch.append(lineage)
     if not lineages_to_fetch:
