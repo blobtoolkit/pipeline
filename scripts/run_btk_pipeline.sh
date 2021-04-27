@@ -51,10 +51,14 @@ if [ $? -ne 0 ];then
   exit 1
 fi
 
-rm -rf $DATA_DIR/$ACCESSION/reads
+if [ ! -z "$RESTART" ]; then
 
-rm -rf $DATA_DIR/$ACCESSION/assembly
+  rm -rf $DATA_DIR/$ACCESSION/reads
 
-rm -rf $DATA_DIR/$ACCESSION/minimap/*.bam
+  rm -rf $DATA_DIR/$ACCESSION/assembly
 
-mv $DATA_DIR/$ACCESSION $DONE_DIR/$ACCESSION
+  rm -rf $DATA_DIR/$ACCESSION/minimap/*.bam
+
+  mv $DATA_DIR/$ACCESSION $DONE_DIR/$ACCESSION
+
+fi

@@ -228,6 +228,7 @@ def write_bedfiles(bed_data, args):
     lines = defaultdict(list)
     for title, arr in bed_data.items():
         sums = defaultdict(float)
+        positions = []
         start = arr[0]["start"]
         end = arr[0]["end"]
         for obj in arr:
@@ -243,12 +244,17 @@ def write_bedfiles(bed_data, args):
                 else:
                     sums[key] += value
                     if key == "length":
-                        lines["%s_windows" % key].append(
-                            "%s\t.\t%.d\n" % (location, sums[key])
+                        position = sums[key]
+                        lines["length_windows"].append(
+                            "%s\t.\t%d\n" % (location, value)
                         )
+                        lines["position_windows"].append(
+                            "%s\t.\t%d\n" % (location, position)
+                        )
+                        positions.append(position)
                     else:
                         lines["%s_windows" % key].append(
-                            "%s\t.\t%.d\n" % (location, value)
+                            "%s\t.\t%d\n" % (location, value)
                         )
                 if key == "gc":
                     lines["mask"].append("%s\twindow\n" % location)
@@ -258,6 +264,14 @@ def write_bedfiles(bed_data, args):
         for key, value in sums.items():
             if key != "ncount" and key != "length":
                 lines[key].append("%s\t.\t%.4f\n" % (location, value / length))
+            elif key == "length":
+                lines["length"].append("%s\t.\t%d\n" % (location, value))
+                lines["position"].append("%s\t.\t%d\n" % (location, value))
+                lines["proportion"].append("%s\t.\t%.4f\n" % (location, value / length))
+                for position in positions:
+                    lines["proportion_windows"].append(
+                        "%s\t.\t%.4f\n" % (location, position / length)
+                    )
             else:
                 lines[key].append("%s\t.\t%.d\n" % (location, value))
     for key, rows in lines.items():
