@@ -40,26 +40,30 @@ git clone -b $VERSION https://github.com/blobtoolkit/viewer
 ```
 
 ### Pipeline dependencies
-Most pipeline dependencies can be installed using conda:
+Most pipeline dependencies can be installed using conda. The mamba replacement for conda is faster and more stable:
 ```
-conda create -n bts_env python=3.8
-conda activate bts_env
-
-conda install -c conda-forge -c bioconda snakemake minimap2 seqtk diamond=2 docopt defusedxml entrez-direct
-conda install -c conda-forge -c bioconda busco=5 samtools=1.10
-conda install -c conda-forge -c bioconda pysam=0.16
-conda install -c conda-forge psutil pyyaml tqdm ujson urllib3
-conda install -c tolkit tolkein
-conda install -c bioconda mosdepth
+conda install -y -n base -c conda-forge mamba
+```
+Use `mamba` where you would normally use `conda` for creating environments and installing packages:
+```
+mamba create -y -n btk_env -c conda-forge -c bioconda -c tolkit \
+    python=3.8 snakemake docopt defusedxml psutil pyyaml tqdm ujson urllib3 \
+    entrez-direct minimap2=2.17 seqtk diamond=2 busco=5 \
+    samtools=1.10 pysam=0.16 mosdepth=0.2.9 tolkein
+```
+Activate this environment:
+```
+conda activate btk_env
 ```
 
 ### Additional viewer dependencies
 If these are not installable on your local compute environment (e.g. a shared cluster), it may be necessary to run the viewer steps separately:
 ```
 sudo apt update && sudo apt-get -y install firefox xvfb
-conda install -c conda-forge -y geckodriver selenium pyvirtualdisplay;
+
+conda activate btk_env
+mamba install -y -c conda-forge geckodriver selenium pyvirtualdisplay nodejs=10
 pip install fastjsonschema;
-conda install nodejs=10
 cd ~/blobtoolkit/viewer
 npm install
 ```
