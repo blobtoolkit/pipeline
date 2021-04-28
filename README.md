@@ -35,7 +35,7 @@ mkdir -p ~/blobtoolkit
 cd ~/blobtoolkit
 git clone -b $VERSION https://github.com/blobtoolkit/blobtools2
 git clone -b $VERSION https://github.com/blobtoolkit/specification
-git clone -b $VERSION https://github.com/blobtoolkit/insdc-pipeline
+git clone -b $VERSION https://github.com/blobtoolkit/pipeline
 git clone -b $VERSION https://github.com/blobtoolkit/viewer
 ```
 
