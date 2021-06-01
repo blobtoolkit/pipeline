@@ -212,76 +212,56 @@ def seq_stats(seq):
         gc = gc / atgc
     else:
         gc = 0
-    return {
-        "gc": gc,
-        "n": n / len(seq),
-        "ncount": n,
-        "masked": masked / len(seq),
-        "length": len(seq),
-    }
+    return {"gc": gc, "n": n / len(seq), "ncount": n, "masked": masked / len(seq)}
 
 
 def write_bedfiles(bed_data, args):
     """Write bedfiles."""
     if "--bed" not in args or not args["--bed"]:
         return
-    lines = defaultdict(list)
+    locations = []
+    rows = []
+    header = ""
     for title, arr in bed_data.items():
-        sums = defaultdict(float)
-        positions = []
-        start = arr[0]["start"]
-        end = arr[0]["end"]
         for obj in arr:
-            location = "%s\t%d\t%d" % (title, obj["start"], obj["end"])
+            if not header:
+                header = "sequence\tstart\tend\t%s\n" % "\t".join(obj["stats"].keys())
+                rows.append(header)
+            row = "%s\t%d\t%d" % (title, obj["start"], obj["end"])
+            locations.append("%s\n" % row)
             for key, value in obj["stats"].items():
-                start = min(obj["start"], start)
-                end = max(obj["end"], end)
-                if key != "ncount" and key != "length":
-                    sums[key] += value * (obj["end"] - obj["start"])
-                    lines["%s_windows" % key].append(
-                        "%s\t.\t%.4f\n" % (location, value)
-                    )
+                if key != "ncount":
+                    row += "\t%.4f" % value
                 else:
-                    sums[key] += value
-                    if key == "length":
-                        position = sums[key]
-                        lines["length_windows"].append(
-                            "%s\t.\t%d\n" % (location, value)
-                        )
-                        lines["position_windows"].append(
-                            "%s\t.\t%d\n" % (location, position)
-                        )
-                        positions.append(position)
-                    else:
-                        lines["%s_windows" % key].append(
-                            "%s\t.\t%d\n" % (location, value)
-                        )
-                if key == "gc":
-                    lines["mask"].append("%s\twindow\n" % location)
-        location = "%s\t%d\t%d" % (title, start, end)
-        length = end - start
-        lines["mask"].append("%s\tfull\n" % location)
-        for key, value in sums.items():
-            if key != "ncount" and key != "length":
-                lines[key].append("%s\t.\t%.4f\n" % (location, value / length))
-            elif key == "length":
-                lines["length"].append("%s\t.\t%d\n" % (location, value))
-                lines["position"].append("%s\t.\t%d\n" % (location, value))
-                lines["proportion"].append("%s\t.\t%.4f\n" % (location, value / length))
-                for position in positions:
-                    lines["proportion_windows"].append(
-                        "%s\t.\t%.4f\n" % (location, position / length)
-                    )
-            else:
-                lines[key].append("%s\t.\t%.d\n" % (location, value))
-    for key, rows in lines.items():
-        bedfile = args["--bed"]
-        bedfile = re.sub(r"\.bed$", "", bedfile)
-        bedfile += ".%s.bed" % key
-        if bedfile.startswith("."):
-            bedfile = "%s%s" % (args["--in"], bedfile)
-        with open(bedfile, "w") as ofh:
-            ofh.writelines(rows)
+                    row += "\t%d" % value
+            rows.append("%s\n" % row)
+        # if key == "gc":
+        #     lines["mask"].append("%s\twindow\n" % location)
+        # location = "%s\t%d\t%d" % (title, start, end)
+        # length = end - start
+        # lines["mask"].append("%s\tfull\n" % location)
+        # for key, value in sums.items():
+        #     if key != "ncount" and key != "length":
+        #         lines[key].append("%s\t%.4f\n" % (location, value / length))
+        #     elif key == "length":
+        #         lines["length"].append("%s\t%d\n" % (location, value))
+        #         lines["position"].append("%s\t%d\n" % (location, value))
+        #         lines["proportion"].append("%s\t%.4f\n" % (location, value / length))
+        #         for position in positions:
+        #             lines["proportion_windows"].append(
+        #                 "%s\t%.4f\n" % (location, position / length)
+        #             )
+        #     else:
+        #         lines[key].append("%s\t%.d\n" % (location, value))
+    bedfile = args["--bed"]
+    # bedfile += ".%s.bed" % key
+    if bedfile.startswith("."):
+        bedfile = "%s%s" % (args["--in"], bedfile)
+    bedfile = re.sub(r"\.bed$", "", bedfile)
+    with open("%s.mask.bed" % bedfile, "w") as ofh:
+        ofh.writelines(locations)
+    with open("%s.tsv" % bedfile, "w") as ofh:
+        ofh.writelines(rows)
 
 
 def parse_args(args):

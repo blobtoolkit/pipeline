@@ -94,6 +94,35 @@ def blobtools_cov_flag(config):
     return ""
 
 
+def gzipped_bed_cols(config):
+    """Generate cut commands for gzipped bed files."""
+    keys = reads_by_prefix(config).keys()
+    if keys:
+        return " ".join(
+            [
+                "<(echo %s_cov && gunzip -c %s.%s.regions.bed.gz | cut -f 4)"
+                % (key, config["assembly"]["prefix"], key)
+                for key in keys
+            ]
+        )
+    return ""
+
+
+def set_stats_chunk(config):
+    """Set chunk size for calculating stats."""
+    return config["settings"].get("stats_chunk", 1000)
+
+
+def set_stats_windows(config):
+    """Set window sizes for averaging stats."""
+    windows = config["settings"].get("stats_windows", 0.1)
+    if not isinstance(windows, list):
+        windows = [windows]
+    if not 1 in windows:
+        windows.append(1)
+    return windows
+
+
 def set_blast_chunk(config):
     """Set minimum chunk size for splitting long sequences."""
     return config["settings"].get("blast_chunk", 100000)

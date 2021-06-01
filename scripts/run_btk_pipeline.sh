@@ -22,8 +22,8 @@ if [ -z "$RESTART" ]; then
   $SNAKE_DIR/scripts/generate_config.py $ACCESSION \
         --download \
         --out /volumes/data/by_accession \
-        --db /volumes/databases \
-        --db-suffix 2021_03
+        --db /volumes/databasenfs \
+        --db-suffix 2021_04
 
   if [ $? -ne 0 ];then
   echo "ERROR: failed to generate config file"

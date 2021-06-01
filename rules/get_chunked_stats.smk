@@ -5,20 +5,14 @@ rule get_chunked_stats:
     input:
         fasta = "%s/{assembly}.windowmasker.fasta" % windowmasker_path,
     output:
-        mask = "{assembly}.stats.mask.bed",
-        gc = "{assembly}.stats.gc.bed",
-        gc_windows = "{assembly}.stats.gc_windows.bed",
-        n = "{assembly}.stats.n.bed",
-        n_windows = "{assembly}.stats.n_windows.bed",
-        masked = "{assembly}.stats.masked.bed",
-        masked_windows = "{assembly}.stats.masked_windows.bed",
-        length = "{assembly}.stats.length.bed"
+        bed = "{assembly}.chunk_stats.mask.bed",
+        tsv = "{assembly}.chunk_stats.tsv",
     params:
-        chunk = set_blast_chunk(config),
-        overlap = set_blast_chunk_overlap(config),
-        max_chunks = set_blast_max_chunks(config),
-        min_length = set_blast_min_length(config),
-        bed = lambda wc: "%s.stats.bed" % wc.assembly
+        chunk = set_stats_chunk(config),
+        overlap = 0,
+        max_chunks = 1000000000,
+        min_length = set_stats_chunk(config),
+        bed = lambda wc: "%s.chunk_stats.bed" % wc.assembly
     threads: 1
     log:
         "logs/{assembly}/get_seq_stats.log"
