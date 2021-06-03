@@ -32,7 +32,7 @@ include: "scripts/functions.py"
 
 busco_path = "../busco"
 minimap_path = "../minimap"
-stats_path = "../stats"
+window_stats_path = "../window_stats"
 diamond_path = "../diamond"
 blastn_path = "../blastn"
 diamond_blastp_path = "../diamond_blastp"

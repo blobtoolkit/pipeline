@@ -92,14 +92,15 @@ def get_window_size(length, interval, window, min_length, min_count):
 
 def calculate_mean(arr, log):
     """Calculate mean and sd of arr values."""
+    n = len(arr)
     if log:
         logged_arr = [math.log10(value) for value in arr if value > 0]
         mean = math.pow(10, statistics.mean(logged_arr))
         sd = math.pow(10, statistics.stdev(logged_arr))
-        return mean, sd
+        return mean, sd, n
     mean = statistics.mean(arr)
     sd = statistics.stdev(arr)
-    return mean, sd
+    return mean, sd, n
 
 
 def calculate_window_stats(lengths, chunks, window, interval, args):
@@ -125,9 +126,12 @@ def calculate_window_stats(lengths, chunks, window, interval, args):
                             "end": str(end_pos),
                             "proportion": "%.3f" % (end_pos / length),
                         }
-                    mean, sd = calculate_mean(arr[start_i:end_i], key.endswith("_cov"))
+                    mean, sd, n = calculate_mean(
+                        arr[start_i:end_i], key.endswith("_cov")
+                    )
                     values[seqid][start_pos][key] = "%.3f" % mean
                     values[seqid][start_pos]["%s_sd" % key] = "%.3f" % sd
+                    values[seqid][start_pos]["%s_n" % key] = "%d" % n
                     start_pos = end_pos
                     start_i = end_i + 1
     return values

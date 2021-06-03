@@ -30,12 +30,12 @@ try:
     BLOBTOOLS = "blobtools"
 
     views = [
-        "--view blob --param plotShape=circle --param largeFonts=true --format png --format svg",
-        "--view blob --param plotShape=hex --param largeFonts=true --format png --format svg",
-        "--view blob --param plotShape=square --param largeFonts=true --format png --format svg",
-        "--view blob --param plotShape=kite --param largeFonts=true --format png --format svg",
-        "--view cumulative --param largeFonts=true --format png --format svg",
-        "--view snail --param largeFonts=true --format png --format svg",
+        "--view blob --param plotShape=circle --param largeFonts=true --format png",
+        "--view blob --param plotShape=hex --param largeFonts=true --format png",
+        "--view blob --param plotShape=square --param largeFonts=true --format png",
+        "--view blob --param plotShape=kite --param largeFonts=true --format png",
+        "--view cumulative --param largeFonts=true --format png",
+        "--view snail --param largeFonts=true --format png",
     ]
 
     if not COVERAGE:
