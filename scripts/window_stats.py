@@ -17,7 +17,7 @@ Usage: ./window_stats.py [--in TSV] [--window FLOAT...] [--min-window-length INT
 
 Options:
     --in TSV                 chunked summary stats tsv file.
-    --min-window-length INT  minimum length of a window. [Default: 10000]
+    --min-window-length INT  minimum length of a window. [Default: 100000]
     --min-window-count INT   minimum number of windows. [Default: 1]
     --window INT             window size or proportion. [Default: 1]
     --out TSV                output TSV filename or suffix.
