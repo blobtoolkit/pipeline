@@ -31,6 +31,7 @@ License:
 include: "scripts/functions.py"
 
 minimap_path = "../minimap"
+busco_path = "../busco"
 chunk_stats_path = "../chunk_stats"
 
 rule all:

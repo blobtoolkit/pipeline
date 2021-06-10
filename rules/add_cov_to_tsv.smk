@@ -4,7 +4,7 @@ rule add_cov_to_tsv:
     """
     input:
         bed = expand("{{assembly}}.{sra}.regions.bed.gz", sra=reads_by_prefix(config).keys()),
-        tsv = "%s/{assembly}.chunk_stats.tsv" % chunk_stats_path
+        tsv = "%s/{assembly}.chunk_stats.tsv" % busco_path
     output:
         tsv = "{assembly}.chunk_stats.tsv"
     params:

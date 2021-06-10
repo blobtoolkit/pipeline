@@ -30,13 +30,17 @@ License:
 
 include: "scripts/functions.py"
 
+chunk_stats_path = "../chunk_stats"
+
 rule all:
     """
     Dummy rule to define all outputs
     """
     input:
-        expand("%s.busco.{lineage}/full_table.tsv.gz" % config["assembly"]["prefix"], lineage=config["busco"]["lineages"])
+        expand("%s.busco.{lineage}/full_table.tsv.gz" % config["assembly"]["prefix"], lineage=config["busco"]["lineages"]),
+        "%s.chunk_stats.tsv"  % config["assembly"]["prefix"],
 
 
 include: "rules/run_busco5.smk"
+include: "rules/count_busco_genes.smk"
 include: "rules/unzip_assembly_fasta.smk"

@@ -49,10 +49,7 @@ logger = logging.getLogger()
 
 def chunk_size(value):
     """Calculate nice value for chunk size."""
-    mag = math.floor(math.log10(value))
-    first = int(str(value)[:2]) + 1
-    chunk_size = first * pow(10, mag - 1)
-    return chunk_size
+    return round(value / 1000 + 0.5) * 1000
 
 
 def chunk_fasta(
@@ -212,7 +209,7 @@ def seq_stats(seq):
         gc = gc / atgc
     else:
         gc = 0
-    return {"gc": gc, "n": n / len(seq), "ncount": n, "masked": masked / len(seq)}
+    return {"gc": gc, "n": n / len(seq), "n_count": n, "masked": masked / len(seq)}
 
 
 def write_bedfiles(bed_data, args):
