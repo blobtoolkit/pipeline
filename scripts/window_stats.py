@@ -120,18 +120,26 @@ def calculate_window_stats(lengths, chunks, window, interval, args):
                 start_pos = 0
                 while start_pos < length:
                     end_pos = min(start_pos + window_size, length)
+                    # window_length = start_pos - end_pos
                     mid_pos = start_pos + (end_pos - start_pos) / 2
                     end_i = round(end_pos / interval + 0.5) - 1
+                    if window == 1:
+                        proportion = "1"
+                    else:
+                        proportion = "%.3f" % (mid_pos / length)
                     if start_pos not in values[seqid]:
                         values[seqid][start_pos] = {
                             "end": str(end_pos),
-                            "proportion": "%.3f" % (mid_pos / length),
+                            "proportion": proportion,
                         }
-                    if key.endswith("_count"):
+                    if key.endswith("count"):
                         values[seqid][start_pos][key] = "%d" % sum(arr[start_i:end_i])
+                        # values[seqid][start_pos][
+                        #     key.replace("_count", "_cpm")
+                        # ] = "%.3f" % (sum(arr[start_i:end_i]) / window_length * 1000000)
                     else:
                         mean, sd, n = calculate_mean(
-                            arr[start_i:end_i], key.endswith("_cov")
+                            arr[start_i : end_i + 1], key.endswith("_cov")
                         )
                         values[seqid][start_pos][key] = "%.3f" % mean
                         values[seqid][start_pos]["%s_sd" % key] = "%.3f" % sd

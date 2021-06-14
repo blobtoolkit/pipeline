@@ -209,7 +209,7 @@ def seq_stats(seq):
         gc = gc / atgc
     else:
         gc = 0
-    return {"gc": gc, "n": n / len(seq), "n_count": n, "masked": masked / len(seq)}
+    return {"gc": gc, "n": n / len(seq), "ncount": n, "masked": masked / len(seq)}
 
 
 def write_bedfiles(bed_data, args):
