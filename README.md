@@ -30,7 +30,7 @@ The previous pipeline is available inside the v1 directory.
 ### BlobToolKit components
 The various BlobToolKit components can be downloaded from their respecive Github repositories:
 ```
-VERSION=release/v2.5.0
+VERSION=release/v2.6.0
 mkdir -p ~/blobtoolkit
 cd ~/blobtoolkit
 git clone -b $VERSION https://github.com/blobtoolkit/blobtools2
