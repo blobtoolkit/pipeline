@@ -167,11 +167,19 @@ def similarity_setting(config, group, value):
     settings = {
         "evalue": 1.0e-25,
         "max_target_seqs": 10,
+        "taxrule": "buscogenes",
         **settings,
     }
     if value.startswith("import_"):
         value = value.replace("import_", "")
     return settings[value]
+
+
+def set_update_taxrule(config):
+    taxrule = similarity_setting(config, "diamond_blastx", "taxrule")
+    if taxrule == "buscoregions":
+        return "--update-plot"
+    return ""
 
 
 def get_basal_lineages(config):

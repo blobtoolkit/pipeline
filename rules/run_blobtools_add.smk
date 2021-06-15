@@ -12,7 +12,8 @@ rule run_blobtools_add:
     params:
         blobdir = blobdir_name(config),
         evalue = similarity_setting(config, "diamond_blastx", "import_evalue"),
-        max_target_seqs = similarity_setting(config, "diamond_blastx", "import_max_target_seqs")
+        max_target_seqs = similarity_setting(config, "diamond_blastx", "import_max_target_seqs"),
+        update_plot = set_update_taxrule(config)
     threads: 4
     log:
         "logs/%s/run_blobtools_add.log" % config["assembly"]["prefix"]
@@ -21,7 +22,7 @@ rule run_blobtools_add:
     shell:
         """blobtools replace \
             --taxdump {input.taxdump} \
-            --taxrule buscoregions \
+            --taxrule bestdistorder=buscoregions {params.update_plot} \
             --hits {input.blastx} \
             --hits {input.blastn} \
             --evalue {params.evalue} \
