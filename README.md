@@ -10,9 +10,15 @@ The previous pipeline is available inside the v1 directory.
 
 1. `windowmasker.smk` - identify and mask repetitive regions using Windowmasker. Masked sequences are used in all blast searches.
 
-1. `stats.smk` - calculate sequence statistics for each contif and for chunks (default up to 10) of long contigs (>100 kb). Calculate coverage stats using mosdepth.
+1. `chunk_stats.smk` - calculate sequence statistics in 1kb windows for each contig.
 
-1. `busco.smk` - run BUSCO using specific and basal lineages.
+for each contig and for chunks (default up to 10) of long contigs (>100 kb). Calculate coverage stats using mosdepth.
+
+1. `busco.smk` - run BUSCO using specific and basal lineages. Count BUSCOs in 1kb windows for each contig
+
+1. `cov_stats` - calculate coverage in 1kb windows using mosdepth.
+
+1. `window_stats` - aggregate 1kb values into windows of fixed proportion (10%, 1% of contig length) and fixed length (100kb, 1Mb) 
 
 1. `diamond_blastp.smk` - Diamond blastp search of busco gene models for basal lineages (`archaea_odb10`, `bacteria_odb10` and `eukaryota_odb10`) against the UniProt reference proteomes.
 
@@ -77,7 +83,7 @@ export PATH=~/blobtoolkit/blobtools2:~/blobtoolkit/specification:~/blobtoolkit/i
 ### Databases
 Download the NCBI taxdump
 ```bash
-TAXDUMP=/volumes/databases/taxdump_2021_03
+TAXDUMP=/volumes/databases/taxdump_2021_06
 mkdir -p $TAXDUMP;
 cd $TAXDUMP;
 curl -L ftp://ftp.ncbi.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz | tar xzf -;
@@ -86,7 +92,7 @@ cd -;
 
 Download and extract UniProt reference proteomes
 ```bash
-UNIPROT=/volumes/databases/uniprot_2021_03
+UNIPROT=/volumes/databases/uniprot_2021_06
 mkdir -p $UNIPROT
 wget -q -O $UNIPROT/reference_proteomes.tar.gz \
  ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/$(curl \
@@ -107,11 +113,19 @@ cd -
 
 Download NCBI nt database:
 ```bash
-NT=/volumes/databases/nt_2021_03
+NT=/volumes/databases/nt_2021_06
 wget "ftp://ftp.ncbi.nlm.nih.gov/blast/db/nt.??.tar.gz" -P $NT/ &&
 for file in $NT/*.tar.gz; do
     tar xf $file -C $NT && rm $file;
 done
+```
+
+Download BUSCO data and lineages to allow BUSCO to run in offline mode:
+```bash
+BUSCO=/volumes/databases/busco_2021_06
+cd $BUSCO
+wget -r https://busco-data.ezlab.org/v5/data
+find busco-data.ezlab.org -name "*.tar.gz" | parallel "cd {//}; tar -xzf {/}"
 ```
 
 ## Configuration
@@ -133,7 +147,7 @@ assembly:
   span: 408137179
   url: ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/902/806/685/GCA_902806685.1_iAphHyp1.1/GCA_902806685.1_iAphHyp1.1_genomic.fna.gz
 busco:
-  download_dir: /volumes/databases/busco_2021_03
+  download_dir: /volumes/databases/busco_2021_06
   lineages:
     - lepidoptera_odb10
     - endopterygota_odb10
@@ -147,6 +161,12 @@ busco:
     - eukaryota_odb10
     - bacteria_odb10
     - archaea_odb10
+fields:
+  values:
+    file: /volumes/data/by_accession/GCA_902806685.1/assembly/field_values.tsv
+  synonyms:
+    file: /volumes/data/by_accession/GCA_902806685.1/assembly/sequence_synonyms.tsv
+    prefix: names
 reads:
   coverage:
     max: 30
@@ -172,24 +192,24 @@ settings:
   blast_max_chunks: 10
   blast_overlap: 0
   blast_min_length: 1000
-  taxdump: /volumes/databases/taxdump_2021_03
+  taxdump: /volumes/databases/taxdump_2021_06
   tmp: /tmp
 similarity:
   defaults:
     evalue: 1.0e-10
     import_evalue: 1.0e-25
     max_target_seqs: 10
-    taxrule: bestdistorder
+    taxrule: buscogenes
   diamond_blastx:
     name: reference_proteomes
-    path: /volumes/databases/uniprot_2021_03
+    path: /volumes/databases/uniprot_2021_06
   diamond_blastp:
     name: reference_proteomes
-    path: /volumes/databases/uniprot_2021_03
+    path: /volumes/databases/uniprot_2021_06
     import_max_target_seqs: 100000
   blastn:
     name: nt
-    path: /volumes/databases/ncbi_nt_2021_04
+    path: /volumes/databases/ncbi_nt_2021_06
 taxon:
   name: Maniola hyperantus
   taxid: '2795564'
@@ -200,7 +220,21 @@ In this example, `url:` definitions are optional and used to show the source for
 
 The assembly `span:` and reads `base_count:` need only be specified if reads coverage `max:` is to be used for the purposes of subsampling read files when mapping.
 
-BUSCO will be run for all `lineages:` in the busco section. Any lineages also specified in `basal_lineages:` will be used as sources of BUSCO genes for the diamond_blastp step. 
+BUSCO will be run for all `lineages:` in the busco section. Any lineages also specified in `basal_lineages:` will be used as sources of BUSCO genes for the diamond_blastp step.
+
+Additional values can be specified by specifying files in `fields:`. Multiple files can be specified by using unique keys and each will be imported using the blobtools2 `--text` import. The key `synonyms:` may be used to import synonyms, all other keys will be treated as containing columns of category or variable data. Category/variable names must be specified in a header row, e.g.: 
+
+```
+identifier      status
+LR761647.1      Autosome
+LR761648.1      Autosome
+LR761649.1      Autosome
+LR761650.1      Allosome
+LR761651.1      Autosome
+CADCXM010000001.1       Scaffold
+CADCXM010000002.1       Scaffold
+...
+```
 
 ## Running the pipeline
 
