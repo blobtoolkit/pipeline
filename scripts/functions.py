@@ -182,6 +182,23 @@ def set_update_taxrule(config):
     return ""
 
 
+def set_fields(config):
+    params = ""
+    if "fields" in config and isinstance(config["fields"], dict):
+        for key, obj in config["fields"].items():
+            if "file" in obj:
+                if key == "synonyms":
+                    prefix = obj.get("prefix", "")
+                    if prefix:
+                        prefix = "=%s" % prefix
+                    params += " --synonyms %s%s" % (obj["file"], prefix)
+                else:
+                    params += " --text %s" % (obj["file"])
+    if params:
+        params += " --text-header"
+    return params
+
+
 def get_basal_lineages(config):
     """Get basal BUSCO lineages from config."""
     if "basal_lineages" in config["busco"]:

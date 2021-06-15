@@ -13,7 +13,8 @@ rule run_blobtools_add:
         blobdir = blobdir_name(config),
         evalue = similarity_setting(config, "diamond_blastx", "import_evalue"),
         max_target_seqs = similarity_setting(config, "diamond_blastx", "import_max_target_seqs"),
-        update_plot = set_update_taxrule(config)
+        update_plot = set_update_taxrule(config),
+        fields = set_fields(config)
     threads: 4
     log:
         "logs/%s/run_blobtools_add.log" % config["assembly"]["prefix"]
@@ -27,5 +28,5 @@ rule run_blobtools_add:
             --hits {input.blastn} \
             --evalue {params.evalue} \
             --hit-count {params.max_target_seqs} \
-            --threads {threads} \
+            --threads {threads} {params.fields} \
             {params.blobdir} > {log} 2>&1"""
