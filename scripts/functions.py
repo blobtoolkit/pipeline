@@ -150,7 +150,6 @@ def read_similarity_settings(config, group):
         "import_evalue": 1.0e-25,
         "max_target_seqs": 10,
         "name": "reference_proteomes",
-        "taxrule": "bestdistorder",
     }
     if "defaults" in config["similarity"]:
         settings.update({**config["similarity"]["defaults"]})
@@ -168,7 +167,6 @@ def similarity_setting(config, group, value):
     settings = {
         "evalue": 1.0e-25,
         "max_target_seqs": 10,
-        "taxrule": "bestdistorder",
         **settings,
     }
     if value.startswith("import_"):

@@ -4,14 +4,15 @@ rule run_blobtools_add:
     """
     input:
         meta = "%s/meta.json" % blobdir_name(config),
-        blastp = "%s/%s.diamond.busco_genes.out" % (diamond_blastp_path, config["assembly"]["prefix"]),
+        blastx = "%s/%s.diamond.reference_proteomes.out" % (diamond_path, config["assembly"]["prefix"]),
+        blastn = "%s/%s.blastn.nt.out" % (blastn_path, config["assembly"]["prefix"]),
         taxdump = config["settings"]["taxdump"],
     output:
-        "%s/buscogenes_phylum.json" % blobdir_name(config)
+        "%s/buscoregions_phylum.json" % blobdir_name(config),
     params:
         blobdir = blobdir_name(config),
-        evalue = similarity_setting(config, "diamond_blastp", "import_evalue"),
-        max_target_seqs = similarity_setting(config, "diamond_blastp", "import_max_target_seqs")
+        evalue = similarity_setting(config, "diamond_blastx", "import_evalue"),
+        max_target_seqs = similarity_setting(config, "diamond_blastx", "import_max_target_seqs")
     threads: 4
     log:
         "logs/%s/run_blobtools_add.log" % config["assembly"]["prefix"]
@@ -20,8 +21,9 @@ rule run_blobtools_add:
     shell:
         """blobtools replace \
             --taxdump {input.taxdump} \
-            --taxrule blastp=buscogenes \
-            --hits {input.blastp} \
+            --taxrule buscoregions \
+            --hits {input.blastx} \
+            --hits {input.blastn} \
             --evalue {params.evalue} \
             --hit-count {params.max_target_seqs} \
             --threads {threads} \
