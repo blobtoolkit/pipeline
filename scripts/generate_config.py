@@ -6,22 +6,30 @@ Generate config files for BlobToolKit pipeline.
 Usage:
   generate_config.py <ACCESSION> [--coverage 30] [--download]
     [--out /path/to/output/directory] [--db /path/to/database/directory]
-    [--db-suffix STRING]
+    [--db-suffix STRING] [--read-runs INT] [--platforms STRING]
 
 Options:
   --coverage=INT         Maximum coverage for read mapping [default: 30]
   --download             Flag to download remote files [default: False]
   --out PATH             Path to output directory [default: .]
   --db PATH              Path to database directory [default: .]
-  --db-suffix STRING     Database version suffix (e.g. 2021_03)
+  --db-suffix STRING     Database version suffix (e.g. 2021_06)
+  --read-runs INT        Maximum number of read runs [default: 3]
+  --platforms STRING     priority order for sequencing platforms
+                         [default: PACBIO_SMRT,ILLUMINA_XTEN,ILLUMINA,OXFORD_NANOPORE,OTHER]
 """
 
 import os
 import re
-import subprocess
+import shutil
 import sys
+import urllib.request as request
+from collections import defaultdict
+from contextlib import closing
 from operator import itemgetter
-from subprocess import PIPE, Popen
+from pathlib import Path
+from subprocess import PIPE, Popen, run
+from urllib.error import URLError
 
 import requests
 import ujson
@@ -120,6 +128,24 @@ def find_busco_lineages(ancestors):
     return lineages
 
 
+def fetch_file(url, filename):
+    """fetch a remote file using aria2."""
+    filepath = Path(filename)
+    if filepath.is_file():
+        LOGGER.info("File exists, not overwriting")
+        return
+    cmd = [
+        "aria2c",
+        "-q",
+        "-d",
+        filepath.parent,
+        "-o",
+        filepath.name,
+        url,
+    ]
+    run(cmd)
+
+
 def fetch_assembly_url(accession):
     """
     Fetch an assembly url using edirect.
@@ -145,7 +171,63 @@ def fetch_assembly_url(accession):
 def fetch_assembly_fasta(url, filename):
     """Save assembly fasta file to local disk."""
     LOGGER.info("Fetching assembly FASTA to %s" % filename)
-    tofetch.fetch_ftp(url, filename)
+    fetch_file(url, filename)
+
+
+def parse_assembly_report(filename, cat_filename, syn_filename):
+    """Parse synonyms and assembly level into tsv files."""
+    synonyms = []
+    categories = []
+    cats = {
+        "identifier": {"index": 4, "list": []},
+        "assembly_role": {"index": 1, "list": []},
+        "assembly_level": {"index": 3, "list": []},
+        "assembly_unit": {"index": 7, "list": []},
+    }
+    names = {
+        "identifier": {"index": 4, "list": []},
+        "name": {"index": 0, "list": []},
+        "assigned_name": {"index": 2, "list": []},
+        "refseq_accession": {"index": 6, "list": []},
+    }
+    with tofile.open_file_handle(filename) as fh:
+        for line in fh:
+            if line.startswith("#"):
+                continue
+            row = line.rstrip().split("\t")
+            for group in (cats, names):
+                for obj in group.values():
+                    value = row[obj["index"]]
+                    obj["list"].append(value)
+    header = []
+    for key, obj in cats.items():
+        if len(set(obj["list"])) > 1:
+            header.append(key)
+    categories.append(header)
+    for idx, value in enumerate(cats[header[0]]["list"]):
+        row = [value]
+        for key in header[1:]:
+            row.append(cats[key]["list"][idx])
+        categories.append(row)
+    tofile.write_file(cat_filename, categories)
+    header = []
+    for key, obj in names.items():
+        if len(set(obj["list"])) > 1:
+            header.append(key)
+    synonyms.append(header)
+    for idx, value in enumerate(names[header[0]]["list"]):
+        row = [value]
+        for key in header[1:]:
+            row.append(names[key]["list"][idx])
+        synonyms.append(row)
+    tofile.write_file(syn_filename, synonyms)
+
+
+def fetch_assembly_report(url, filename, cat_filename, syn_filename):
+    """Save assembly report file to local disk."""
+    LOGGER.info("Fetching assembly report to %s" % filename)
+    fetch_file(url, filename)
+    parse_assembly_report(filename, cat_filename, syn_filename)
 
 
 def fetch_assembly_meta_xml(accession):
@@ -185,13 +267,15 @@ def parse_assembly_meta(accession):
             "blast_max_chunks": 10,
             "blast_overlap": 0,
             "blast_min_length": 1000,
+            "stats_chunk": 1000,
+            "stats_windows": [0.1, 0.01, 100000, 1000000],
         },
         "similarity": {
             "defaults": {
                 "evalue": 1.0e-10,
                 "import_evalue": 1.0e-25,
                 "max_target_seqs": 10,
-                "taxrule": "bestdistorder",
+                "taxrule": "buscogenes",
             },
             "diamond_blastx": {"name": "reference_proteomes"},
             "diamond_blastp": {
@@ -270,7 +354,7 @@ def fetch_goat_data(taxon_id):
     return data["records"][0]["record"]
 
 
-def assembly_reads(biosample):
+def assembly_reads(biosample, read_runs, platforms):
     """
     Query INSDC reads for a <biosample>.
 
@@ -283,6 +367,13 @@ def assembly_reads(biosample):
     )
     data = tofetch.fetch_url(url)
     sra = []
+    per_platform = {
+        "PACBIO_SMRT": [],
+        "ILLUMINA_XTEN": [],
+        "ILLUMINA": [],
+        "OXFORD_NANOPORE": [],
+        "OTHER": [],
+    }
     header = None
     for line in data.split("\n"):
         if not line or line == "":
@@ -292,21 +383,34 @@ def assembly_reads(biosample):
             continue
         fields = line.split("\t")
         values = {}
-        x_ten = False
+        platform = "OTHER"
         for i in range(0, len(header)):
             value = fields[i]
+            if header[i] == "instrument_platform" and platform != "XTEN":
+                platform = fields[i]
             if header[i] == "experiment_title":
                 if value == "HiSeq X Ten paired end sequencing":
-                    x_ten = True
+                    platform = "XTEN"
             values.update({header[i]: value})
-        if x_ten:
-            if "base_count" in values:
-                values["base_count"] = int(values["base_count"])
-            else:
-                values["base_count"] = 0
-            sra.append(values)
+        if "base_count" in values:
+            values["base_count"] = int(values["base_count"])
+        else:
+            values["base_count"] = 0
+        per_platform[platform].append(values)
+    for key in platforms.split(","):
+        arr = per_platform[key]
+        runs = []
+        if arr:
+            for entry in arr:
+                runs.append(entry)
+        runs = sorted(runs, key=itemgetter("base_count"), reverse=True)[
+            : read_runs - len(sra)
+        ]
+        sra += runs
+        if len(sra) >= read_runs:
+            break
     if sra:
-        return sorted(sra, key=itemgetter("base_count"), reverse=True)[:3]
+        return sra
     return None
 
 
@@ -318,13 +422,14 @@ def base_count(x):
         return 0
 
 
-def fetch_read_files(meta, readdir):
+def fetch_read_files(meta):
     """Fetch sra reads."""
+    files = meta["file"].split(";")
     for index, url in enumerate(meta["fastq_ftp"].split(";")):
         url = "ftp://%s" % url
-        read_file = "%s/%s_%d.fastq.gz" % (readdir, meta["run_accession"], index + 1)
+        read_file = files[index]
         LOGGER.info("Fetching read file %s", read_file)
-        tofetch.fetch_ftp(url, read_file)
+        fetch_file(url, read_file)
 
 
 def add_taxon_to_meta(meta, taxon_meta):
@@ -345,18 +450,24 @@ def add_taxon_to_meta(meta, taxon_meta):
             meta["taxon"].update({obj["taxon_rank"]: obj["scientific_name"]})
 
 
-def add_reads_to_meta(meta, sra, readdir, strategy="paired"):
+def add_reads_to_meta(meta, sra, readdir):
     """Add read accessions to metadata."""
     LOGGER.info("Adding read accessions to assembly metadata")
-    for index, run in enumerate(sra):
+    for index, library in enumerate(sra):
+        strategy = library["library_layout"].lower()
         info = {
-            "prefix": run["run_accession"],
-            "platform": run["instrument_platform"],
-            "base_count": run["base_count"],
-            "file": "%s/%s_1.fastq.gz;%s/%s_2.fastq.gz"
-            % (readdir, run["run_accession"], readdir, run["run_accession"]),
-            "url": run["fastq_ftp"],
+            "prefix": library["run_accession"],
+            "platform": library["instrument_platform"],
+            "base_count": library["base_count"],
+            "file": ";".join(
+                [
+                    re.sub(r"^.+/", "%s/" % readdir, url)
+                    for url in library["fastq_ftp"].split(";")
+                ]
+            ),
+            "url": library["fastq_ftp"],
         }
+        library["file"] = info["file"]
         meta["reads"][strategy].append(info)
         if index == 2:
             return
@@ -405,17 +516,26 @@ if __name__ == "__main__":
     if not outdir.endswith(accession):
         outdir += "/%s" % accession
     os.makedirs(outdir, exist_ok=True)
+    meta = parse_assembly_meta(accession)
     assembly_url = fetch_assembly_url(accession)
     if assembly_url is None:
         LOGGER.error("Unable to find assembly URL")
         sys.exit(1)
     assembly_file = "%s/assembly/%s.fasta.gz" % (outdir, accession)
+    meta["assembly"].update({"file": assembly_file, "url": assembly_url})
+    assembly_report = "%s/assembly/%s.report.txt" % (outdir, accession)
+    syn_filename = "%s/assembly/%s.synonyms.tsv" % (outdir, accession)
+    cat_filename = "%s/assembly/%s.categories.tsv" % (outdir, accession)
+    meta["fields"] = {
+        "synonyms": {"file": syn_filename, "prefix": "insdc"},
+        "categories": {"file": cat_filename},
+    }
     if opts["--download"]:
         os.makedirs(buscodir, exist_ok=True)
         os.makedirs("%s/assembly" % outdir, exist_ok=True)
         fetch_assembly_fasta(assembly_url, assembly_file)
-    meta = parse_assembly_meta(accession)
-    meta["assembly"].update({"file": assembly_file, "url": assembly_url})
+        report_url = assembly_url.replace("_genomic.fna.gz", "_assembly_report.txt")
+        fetch_assembly_report(report_url, assembly_report, cat_filename, syn_filename)
     taxon_meta = fetch_goat_data(meta["taxon"]["taxid"])
     add_taxon_to_meta(meta, taxon_meta)
     set_btk_version(meta)
@@ -434,7 +554,9 @@ if __name__ == "__main__":
         )
     if opts["--download"]:
         fetch_busco_lineages(busco_sets, buscodir)
-    sra = assembly_reads(meta["assembly"]["biosample"])
+    sra = assembly_reads(
+        meta["assembly"]["biosample"], int(opts["--read-runs"]), opts["--platforms"]
+    )
     if sra:
         if opts["--coverage"]:
             meta["reads"].update({"coverage": {"max": int(opts["--coverage"])}})
@@ -442,8 +564,8 @@ if __name__ == "__main__":
         add_reads_to_meta(meta, sra, readdir)
         if opts["--download"]:
             os.makedirs(readdir, exist_ok=True)
-            for run in sra:
-                fetch_read_files(run, "%s/reads" % outdir)
+            for library in sra:
+                fetch_read_files(library)
     meta["similarity"]["blastn"].update({"path": ntdir})
     meta["similarity"]["diamond_blastx"].update({"path": uniprotdir})
     meta["similarity"]["diamond_blastp"].update({"path": uniprotdir})

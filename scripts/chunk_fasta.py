@@ -31,7 +31,7 @@ Options:
     --max-chunks INT     maximum number of chunks to split a sequence into. [Default: 10]
     --min-length INT     minimum sequence length. [Default: 1000]
     --out FASTA          output FASTA filename or suffix. [Default: .chunked]
-    --bed BEDFILE        output BED filename or suffix. [Default: .bed]
+    --bed BEDFILE        output BED/BED-like TSV filename or suffix. [Default: .bed]
 """
 
 logger_config = {
@@ -255,6 +255,7 @@ def write_bedfiles(bed_data, args):
     if bedfile.startswith("."):
         bedfile = "%s%s" % (args["--in"], bedfile)
     bedfile = re.sub(r"\.bed$", "", bedfile)
+    bedfile = re.sub(r"\.tsv$", "", bedfile)
     with open("%s.mask.bed" % bedfile, "w") as ofh:
         ofh.writelines(locations)
     with open("%s.tsv" % bedfile, "w") as ofh:

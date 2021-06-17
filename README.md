@@ -222,6 +222,8 @@ The assembly `span:` and reads `base_count:` need only be specified if reads cov
 
 BUSCO will be run for all `lineages:` in the busco section. Any lineages also specified in `basal_lineages:` will be used as sources of BUSCO genes for the diamond_blastp step.
 
+Two taxrules are used to infer taxonomy from blast hits. The default `buscogenes` taxrule uses results from diamond blastp searches of genes from the basal BUSCO lineages. The alternate `buscoregions` taxrule uses diamond blastx and NCBI blastn searches of regions containing a high density of genes from the most-specific lineage (i.e. the first lineage listed in the config). This was the default taxrule up to v2.5 (named `bestdistorder`) and can be restored as the default by setting `taxrule: buscoregions` under `similarity:` -> `defaults:`.
+
 Additional values can be specified by specifying files in `fields:`. Multiple files can be specified by using unique keys and each will be imported using the blobtools2 `--text` import. The key `synonyms:` may be used to import synonyms, all other keys will be treated as containing columns of category or variable data. Category/variable names must be specified in a header row, e.g.: 
 
 ```

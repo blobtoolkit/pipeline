@@ -95,6 +95,8 @@ def calculate_mean(arr, log):
     n = len(arr)
     if log:
         logged_arr = [math.log10(value) for value in arr if value > 0]
+        if not logged_arr:
+            return 0, 0, n
         mean = math.pow(10, statistics.mean(logged_arr))
         sd = math.pow(10, statistics.stdev(logged_arr))
         return mean, sd, n
