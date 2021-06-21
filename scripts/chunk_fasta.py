@@ -53,7 +53,7 @@ def chunk_size(value):
 
 
 def chunk_fasta(
-    fastafile, *, chunk=math.inf, overlap=0, max_chunks=math.inf, min_length=1000
+    fastafile, *, chunk=math.inf, overlap=0, max_chunks=math.inf, min_length=0
 ):
     """Read FASTA file one sequence at a time and split long sequences into chunks."""
     cmd = "cat %s" % fastafile
@@ -302,7 +302,6 @@ if __name__ == "__main__":
             chunk=int(args["--chunk"]),
             overlap=int(args["--overlap"]),
             max_chunks=int(args["--max-chunks"]),
-            min_length=int(args["--min-length"]),
         ):
             if (
                 busco_windows
@@ -327,8 +326,9 @@ if __name__ == "__main__":
         if args["--out"] is not None:
             chunked = ""
             for seq in seqs:
-                chunked += ">%s_-_%d\n" % (seq["title"], seq["start"])
-                chunked += "%s\n" % seq["seq"]
+                if seq["length"] >= args["--min-length"]:
+                    chunked += ">%s_-_%d\n" % (seq["title"], seq["start"])
+                    chunked += "%s\n" % seq["seq"]
             outfile = args["--out"]
             if outfile.startswith("."):
                 outfile = "%s%s" % (args["--in"], args["--out"])

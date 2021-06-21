@@ -23,7 +23,7 @@ if [ -z "$RESTART" ]; then
         --download \
         --out /volumes/data/by_accession \
         --db /volumes/databasenfs \
-        --db-suffix 2021_04
+        --db-suffix 2021_06
 
   if [ $? -ne 0 ];then
   echo "ERROR: failed to generate config file"
