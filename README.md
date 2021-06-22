@@ -36,7 +36,7 @@ for each contig and for chunks (default up to 10) of long contigs (>100 kb). Cal
 ### BlobToolKit components
 The various BlobToolKit components can be downloaded from their respecive Github repositories:
 ```
-VERSION=release/v2.6.0
+VERSION=release/v2.6.1
 mkdir -p ~/blobtoolkit
 cd ~/blobtoolkit
 git clone -b $VERSION https://github.com/blobtoolkit/blobtools2
@@ -50,27 +50,50 @@ Most pipeline dependencies can be installed using conda. The mamba replacement f
 ```
 conda install -y -n base -c conda-forge mamba
 ```
-Use `mamba` where you would normally use `conda` for creating environments and installing packages:
+Use `mamba` where you would normally use `conda` for creating environments and installing packages. We recommend creating an environment using the `env.yaml` file to pin all dependencies:
+
+```
+mamba env create -f ~/blobtoolkit/pipeline/env.yaml
+```
+
+Alternatively create the environment by specifying individual packages: 
 ```
 mamba create -y -n btk_env -c conda-forge -c bioconda -c tolkit \
     python=3.8 snakemake docopt defusedxml psutil pyyaml tqdm ujson urllib3 \
     entrez-direct minimap2=2.17 seqtk diamond=2 busco=5 \
     samtools=1.10 pysam=0.16 mosdepth=0.2.9 tolkein
 ```
+
 Activate this environment:
 ```
 conda activate btk_env
 ```
 
+If you already have an environment named `btk_env` (e.g. when upgrading from an ealier BlobToolKit version) you will need to run `conda env remove -n btk_env` before creating a new environment.
+
 ### Additional viewer dependencies
-If these are not installable on your local compute environment (e.g. a shared cluster), it may be necessary to run the viewer steps separately:
+Viewer dependencies, with the exception of firefox and xvfb (use X-Quartz on OS X) are included in the `env.yaml` file, but will need to be installed separately if using the altenate install method. If Firefox is not installable on your local compute environment (e.g. a shared cluster), it may be necessary to run the viewer separately:
+
 ```
 sudo apt update && sudo apt-get -y install firefox xvfb
 
 conda activate btk_env
-mamba install -y -c conda-forge geckodriver selenium pyvirtualdisplay nodejs=10
+mamba install -y -c conda-forge geckodriver selenium pyvirtualdisplay nodejs=14
 pip install fastjsonschema;
+```
+
+Running the viewer requires an additional install step in the viewer directory to ensure the required modules are available:
+
+```
 cd ~/blobtoolkit/viewer
+npm install
+```
+
+If you are upgrading from a previous version or having difficulty with installation, it may be necessary to delete the node modules directory and run the command again:
+
+```
+cd ~/blobtoolkit/viewer
+rm -r node_modules
 npm install
 ```
 

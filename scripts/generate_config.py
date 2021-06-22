@@ -386,11 +386,11 @@ def assembly_reads(biosample, read_runs, platforms):
         platform = "OTHER"
         for i in range(0, len(header)):
             value = fields[i]
-            if header[i] == "instrument_platform" and platform != "XTEN":
+            if header[i] == "instrument_platform" and platform != "ILLUMINA_XTEN":
                 platform = fields[i]
             if header[i] == "experiment_title":
                 if value == "HiSeq X Ten paired end sequencing":
-                    platform = "XTEN"
+                    platform = "ILLUMINA_XTEN"
             values.update({header[i]: value})
         if "base_count" in values:
             values["base_count"] = int(values["base_count"])

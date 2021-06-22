@@ -64,6 +64,7 @@ def load_mask(filename):
 
 def parse_busco_summary(filename, mask, header):
     """Parse chunked values into dict."""
+    lineage = None
     with tofile.open_file_handle(filename) as fh:
         buscos = defaultdict(list)
         for line in fh.readlines():
@@ -78,6 +79,7 @@ def parse_busco_summary(filename, mask, header):
                 continue
             seqid, start, *rest = rest
             buscos[seqid].append(int(start))
+    if lineage is not None:
         for seqid in mask:
             starts = sorted(buscos[seqid])
             i = 0
