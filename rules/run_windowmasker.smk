@@ -3,7 +3,7 @@ rule run_windowmasker:
     Run windowmasker to mask repeats in the assembly.
     """
     input:
-        fasta = temp("%s.fasta" %config["assembly"]["prefix"])
+        fasta = "%s.fasta" % config["assembly"]["prefix"]
     output:
         counts = "%s.windowmasker.counts" % config["assembly"]["prefix"],
         masked = "%s.windowmasker.fasta" % config["assembly"]["prefix"]
