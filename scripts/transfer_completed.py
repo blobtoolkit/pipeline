@@ -100,7 +100,12 @@ if __name__ == "__main__":
     outdir = "%s/%s" % (opts["--out"], prefix)
     bindir = opts.get("--bin", None)
     Path(outdir).mkdir(parents=True, exist_ok=True)
-    create_static_directory("%s/view/%s" % (indir, prefix))
+    if Path("%s/view").is_dir():
+        create_static_directory("%s/view/%s" % (indir, prefix))
+        transfer_files("%s/view/%s" % (indir, prefix), outdir, compress=True)
+        transfer_files("%s/view/%s_static" % (indir, prefix), outdir)
+    else:
+        transfer_files("%s/blobtools/%s" % (indir, prefix), outdir, compress=True)
     transfer_files(r"%s/blastn/%s.*.out" % (indir, prefix), outdir, compress=True)
     transfer_files("%s/blobtools/%s.meta.yaml" % (indir, prefix), outdir, compress=True)
     transfer_files(r"%s/busco/%s.busco.*_odb10" % (indir, prefix), outdir)
@@ -127,8 +132,6 @@ if __name__ == "__main__":
         compress=True,
     )
     transfer_files(r"%s/minimap/%s.*.bam" % (indir, prefix), outdir)
-    transfer_files("%s/view/%s" % (indir, prefix), outdir, compress=True)
-    transfer_files("%s/view/%s_static" % (indir, prefix), outdir)
     transfer_files(
         "%s/window_stats/%s.window_stats.tsv" % (indir, prefix), outdir, compress=True
     )
