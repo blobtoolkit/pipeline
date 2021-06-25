@@ -469,8 +469,6 @@ def add_reads_to_meta(meta, sra, readdir):
         }
         library["file"] = info["file"]
         meta["reads"][strategy].append(info)
-        if index == 2:
-            return
 
 
 def set_btk_version(meta):
