@@ -79,6 +79,13 @@ def create_static_directory(indir):
         shutil.move(file, staticdir)
 
 
+def create_pipeline_directory(indir, outdir):
+    """Move image files to static directory."""
+    Path(outdir).mkdir(parents=True, exist_ok=True)
+    for file in glob.glob(r"%s/*.stats" % indir):
+        shutil.move(file, outdir)
+
+
 def remove_unwanted_files(indir, bindir):
     """Move unwanted files to bin or delete."""
     LOGGER.info("Removing unwanted files")
@@ -100,6 +107,7 @@ if __name__ == "__main__":
     outdir = "%s/%s" % (opts["--out"], prefix)
     bindir = opts.get("--bin", None)
     Path(outdir).mkdir(parents=True, exist_ok=True)
+    create_pipeline_directory(indir, "%s/pipeline/%s" % (indir, prefix))
     if Path("%s/view").is_dir():
         create_static_directory("%s/view/%s" % (indir, prefix))
         transfer_files("%s/view/%s" % (indir, prefix), outdir, compress=True)
@@ -132,6 +140,7 @@ if __name__ == "__main__":
         compress=True,
     )
     transfer_files(r"%s/minimap/%s.*.bam" % (indir, prefix), outdir)
+    transfer_files("%s/pipeline/%s" % (indir, prefix), outdir, compress=True)
     transfer_files(
         "%s/window_stats/%s.window_stats.tsv" % (indir, prefix), outdir, compress=True
     )
