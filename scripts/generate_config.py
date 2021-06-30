@@ -6,7 +6,7 @@ Generate config files for BlobToolKit pipeline.
 Usage:
   generate_config.py <ACCESSION> [--coverage 30] [--download]
     [--out /path/to/output/directory] [--db /path/to/database/directory]
-    [--db-suffix STRING] [--read-runs INT] [--platforms STRING]
+    [--db-suffix STRING] [--read-runs INT] [--api-key STRING] [--platforms STRING]
 
 Options:
   --coverage=INT         Maximum coverage for read mapping [default: 30]
@@ -15,6 +15,7 @@ Options:
   --db PATH              Path to database directory [default: .]
   --db-suffix STRING     Database version suffix (e.g. 2021_06)
   --read-runs INT        Maximum number of read runs [default: 3]
+  --api-key STRING       NCBI api key for use with edirect
   --platforms STRING     priority order for sequencing platforms
                          [default: PACBIO_SMRT,ILLUMINA_XTEN,ILLUMINA,OXFORD_NANOPORE,OTHER]
 """
@@ -146,14 +147,17 @@ def fetch_file(url, filename):
     run(cmd)
 
 
-def fetch_assembly_url(accession):
+def fetch_assembly_url(accession, api_key=None):
     """
     Fetch an assembly url using edirect.
     """
+    eutils_env = os.environ.copy()
+    if api_key and api_key is not None:
+        eutils_env["NCBI_API_KEY"] = api_key
     esearch = Popen(
-        "esearch -db assembly -query %s" % accession, stdout=PIPE, shell=True
+        "esearch -db assembly -query %s" % accession, stdout=PIPE, shell=True, env=eutils_env
     )
-    esummary = Popen("esummary", stdin=esearch.stdout, stdout=PIPE, shell=True)
+    esummary = Popen("esummary", stdin=esearch.stdout, stdout=PIPE, shell=True, env=eutils_env)
     xtract = Popen(
         "xtract -pattern DocumentSummary -element FtpPath_GenBank",
         stdin=esummary.stdout,
@@ -515,7 +519,7 @@ if __name__ == "__main__":
         outdir += "/%s" % accession
     os.makedirs(outdir, exist_ok=True)
     meta = parse_assembly_meta(accession)
-    assembly_url = fetch_assembly_url(accession)
+    assembly_url = fetch_assembly_url(accession, opts["--api-key"])
     if assembly_url is None:
         LOGGER.error("Unable to find assembly URL")
         sys.exit(1)
