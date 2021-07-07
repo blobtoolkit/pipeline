@@ -8,7 +8,7 @@ Usage:
 
 Options:
   --in PATH              Path to input directory [default: .]
-  --out PATH             Path to output directory [default: ./complete]
+  --out PATH             Path to output directory [default: ../complete]
   --bin PATH             Path to bin directory. If specified, unwanted files will
                          be moved here rather than deleted.
 """
@@ -71,9 +71,8 @@ def transfer_files(pattern, destdir, *, compress=False, rename=False):
         shutil.move(file, destdir)
 
 
-def create_static_directory(indir):
+def create_static_directory(indir, staticdir):
     """Move image files to static directory."""
-    staticdir = "%s_static" % indir
     Path(staticdir).mkdir(parents=True, exist_ok=True)
     for file in glob.glob(r"%s/*.png" % indir):
         shutil.move(file, staticdir)
@@ -94,7 +93,7 @@ def remove_unwanted_files(indir, bindir):
         Path(bindir).mkdir(parents=True, exist_ok=True)
         shutil.move(indir, bindir)
     else:
-        LOGGER.info("Deleting %s")
+        LOGGER.info("Deleting %s" % indir)
         shutil.rmtree(indir)
 
 
@@ -103,17 +102,22 @@ if __name__ == "__main__":
     data = tofile.read_file("%s/config.yaml" % opts["--in"])
     meta = yaml.full_load(data)
     prefix = meta["assembly"]["prefix"]
+    blobdir = prefix
+    revision = meta.get("revision", 0)
+    if revision:
+        blobdir += ".%d" % int(revision)
     indir = opts["--in"]
     outdir = "%s/%s" % (opts["--out"], prefix)
     bindir = opts.get("--bin", None)
     Path(outdir).mkdir(parents=True, exist_ok=True)
-    create_pipeline_directory(indir, "%s/pipeline/%s" % (indir, prefix))
-    if Path("%s/view").is_dir():
-        create_static_directory("%s/view/%s" % (indir, prefix))
-        transfer_files("%s/view/%s" % (indir, prefix), outdir, compress=True)
-        transfer_files("%s/view/%s_static" % (indir, prefix), outdir)
+    create_pipeline_directory(indir, "%s/%s.pipeline" % (indir, prefix))
+    transfer_files("%s/%s.pipeline" % (indir, prefix), outdir, compress=True)
+    if Path("%s/view" % indir).is_dir():
+        create_static_directory("%s/view/%s" % (indir, blobdir), "%s/%s.static" % (indir, blobdir))
+        transfer_files("%s/view/%s" % (indir, blobdir), outdir, compress=True)
+        transfer_files("%s/%s.static" % (indir, blobdir), outdir)
     else:
-        transfer_files("%s/blobtools/%s" % (indir, prefix), outdir, compress=True)
+        transfer_files("%s/blobtools/%s" % (indir, blobdir), outdir, compress=True)
     transfer_files(r"%s/blastn/%s.*.out" % (indir, prefix), outdir, compress=True)
     transfer_files("%s/blobtools/%s.meta.yaml" % (indir, prefix), outdir, compress=True)
     transfer_files(r"%s/busco/%s.busco.*_odb10" % (indir, prefix), outdir)
