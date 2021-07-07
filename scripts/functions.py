@@ -30,7 +30,13 @@ def reads_by_prefix(config):
 def minimap_tuning(config, prefix):
     """Set minimap2 mapping parameter."""
     reads = reads_by_prefix(config)
-    tunings = {"ILLUMINA": "sr", "OXFORD_NANOPORE": "map-ont", "PACBIO_SMRT": "map-pb"}
+    tunings = {
+        "ILLUMINA": "sr",
+        "ILLUMINA_XTEN": "sr",
+        "OXFORD_NANOPORE": "map-ont",
+        "PACBIO_SMRT": "map-pb",
+        "OTHER": "sr",
+    }
     return tunings[reads[prefix]["platform"]]
 
 

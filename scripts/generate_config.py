@@ -400,7 +400,10 @@ def assembly_reads(biosample, read_runs, platforms):
             values["base_count"] = int(values["base_count"])
         else:
             values["base_count"] = 0
-        per_platform[platform].append(values)
+        try:
+            per_platform[platform].append(values)
+        except KeyError:
+            per_platform["OTHER"].append(values)
     for key in platforms.split(","):
         arr = per_platform[key]
         runs = []
