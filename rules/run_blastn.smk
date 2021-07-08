@@ -31,6 +31,20 @@ rule run_blastn:
                 -lcase_masking \
                 -dust "20 64 1" \
                 > {output}; \
+            if [ $? -ne 0 ]; then \
+                echo "Restarting blastn without taxid filter" > {log} \
+                blastn -task megablast \
+                    -query {input.fasta} \
+                    -db {params.db} \
+                    -outfmt "6 qseqid staxids bitscore std" \
+                    -max_target_seqs {params.max_target_seqs} \
+                    -max_hsps 1 \
+                    -evalue {params.evalue} \
+                    -num_threads {threads} \
+                    -lcase_masking \
+                    -dust "20 64 1" \
+                    > {output}; \
+            fi \
         else \
             > {output}; \
         fi) 2> {log}"""

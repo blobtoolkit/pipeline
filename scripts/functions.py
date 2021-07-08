@@ -32,12 +32,11 @@ def minimap_tuning(config, prefix):
     reads = reads_by_prefix(config)
     tunings = {
         "ILLUMINA": "sr",
-        "ILLUMINA_XTEN": "sr",
         "OXFORD_NANOPORE": "map-ont",
         "PACBIO_SMRT": "map-pb",
         "OTHER": "sr",
     }
-    return tunings[reads[prefix]["platform"]]
+    return tunings.get(reads[prefix]["platform"], "sr")
 
 
 def read_files(config, prefix):
