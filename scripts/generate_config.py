@@ -6,7 +6,8 @@ Generate config files for BlobToolKit pipeline.
 Usage:
   generate_config.py <ACCESSION> [--coverage 30] [--download]
     [--out /path/to/output/directory] [--db /path/to/database/directory]
-    [--db-suffix STRING] [--read-runs INT] [--api-key STRING] [--platforms STRING]
+    [--db-suffix STRING] [--reads STRING...] [--read-runs INT] [--api-key STRING]
+    [--platforms STRING]
 
 Options:
   --coverage=INT         Maximum coverage for read mapping [default: 30]
@@ -14,6 +15,7 @@ Options:
   --out PATH             Path to output directory [default: .]
   --db PATH              Path to database directory [default: .]
   --db-suffix STRING     Database version suffix (e.g. 2021_06)
+  --reads STRING         Read accession to include.
   --read-runs INT        Maximum number of read runs [default: 3]
   --api-key STRING       NCBI api key for use with edirect
   --platforms STRING     priority order for sequencing platforms
@@ -155,9 +157,14 @@ def fetch_assembly_url(accession, api_key=None):
     if api_key and api_key is not None:
         eutils_env["NCBI_API_KEY"] = api_key
     esearch = Popen(
-        "esearch -db assembly -query %s" % accession, stdout=PIPE, shell=True, env=eutils_env
+        "esearch -db assembly -query %s" % accession,
+        stdout=PIPE,
+        shell=True,
+        env=eutils_env,
     )
-    esummary = Popen("esummary", stdin=esearch.stdout, stdout=PIPE, shell=True, env=eutils_env)
+    esummary = Popen(
+        "esummary", stdin=esearch.stdout, stdout=PIPE, shell=True, env=eutils_env
+    )
     xtract = Popen(
         "xtract -pattern DocumentSummary -element FtpPath_GenBank",
         stdin=esummary.stdout,
@@ -253,7 +260,7 @@ def deep_find_text(data, tags):
         try:
             data = data.find(tag)
         except:
-            return None
+            return ""
     return data.text
 
 
@@ -358,26 +365,14 @@ def fetch_goat_data(taxon_id):
     return data["records"][0]["record"]
 
 
-def assembly_reads(biosample, read_runs, platforms):
-    """
-    Query INSDC reads for a <biosample>.
-
-    Return a dict of SRA accession, FASTQ ftp url, md5 and file size.
-    """
+def fetch_read_info(accession, per_platform):
+    """Fetch read info for an accession."""
     warehouse = "https://www.ebi.ac.uk/ena/data/warehouse"
     url = (
         "%s/filereport?accession=%s&result=read_run&fields=run_accession,fastq_bytes,base_count,library_strategy,library_selection,library_layout,instrument_platform,experiment_title,fastq_ftp"
-        % (warehouse, biosample)
+        % (warehouse, accession)
     )
     data = tofetch.fetch_url(url)
-    sra = []
-    per_platform = {
-        "PACBIO_SMRT": [],
-        "ILLUMINA_XTEN": [],
-        "ILLUMINA": [],
-        "OXFORD_NANOPORE": [],
-        "OTHER": [],
-    }
     header = None
     for line in data.split("\n"):
         if not line or line == "":
@@ -404,6 +399,26 @@ def assembly_reads(biosample, read_runs, platforms):
             per_platform[platform].append(values)
         except KeyError:
             per_platform["OTHER"].append(values)
+
+
+def assembly_reads(accession, read_runs, platforms):
+    """
+    Query INSDC reads for an <accession> (or list of accessions).
+
+    Return a dict of SRA accession, FASTQ ftp url, md5 and file size.
+    """
+    sra = []
+    per_platform = {
+        "PACBIO_SMRT": [],
+        "ILLUMINA_XTEN": [],
+        "ILLUMINA": [],
+        "OXFORD_NANOPORE": [],
+        "OTHER": [],
+    }
+    if not isinstance(accession, list):
+        accession = [accession]
+    for acc in accession:
+        fetch_read_info(acc, per_platform)
     for key in platforms.split(","):
         arr = per_platform[key]
         runs = []
@@ -559,8 +574,13 @@ if __name__ == "__main__":
         )
     if opts["--download"]:
         fetch_busco_lineages(busco_sets, buscodir)
+    read_accessions = []
+    if meta["assembly"]["biosample"]:
+        read_accessions = [meta["assembly"]["biosample"]]
+    if opts["--reads"]:
+        read_accessions += opts["--reads"]
     sra = assembly_reads(
-        meta["assembly"]["biosample"], int(opts["--read-runs"]), opts["--platforms"]
+        read_accessions, int(opts["--read-runs"]), opts["--platforms"]
     )
     if sra:
         if opts["--coverage"]:

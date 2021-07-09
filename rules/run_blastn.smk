@@ -18,7 +18,7 @@ rule run_blastn:
     benchmark:
         "logs/{assembly}/run_blastn.benchmark.txt"
     shell:
-        """(if [ -s {input.fasta} ]; then \
+        """if [ -s {input.fasta} ]; then \
             blastn -task megablast \
                 -query {input.fasta} \
                 -db {params.db} \
@@ -30,9 +30,10 @@ rule run_blastn:
                 -negative_taxids {params.taxid} \
                 -lcase_masking \
                 -dust "20 64 1" \
+                > {output} 2> {log}; \
+            if [ -s {log} ]; then \
+                echo "Restarting blastn without taxid filter" >> {log}; \
                 > {output}; \
-            if [ $? -ne 0 ]; then \
-                echo "Restarting blastn without taxid filter" > {log} \
                 blastn -task megablast \
                     -query {input.fasta} \
                     -db {params.db} \
@@ -43,8 +44,8 @@ rule run_blastn:
                     -num_threads {threads} \
                     -lcase_masking \
                     -dust "20 64 1" \
-                    > {output}; \
+                    > {output} 2>> {log}; \
             fi \
         else \
             > {output}; \
-        fi) 2> {log}"""
+        fi"""
