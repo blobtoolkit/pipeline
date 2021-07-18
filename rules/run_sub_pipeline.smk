@@ -28,6 +28,7 @@ def thread_config(wc):
         "diamond_blastp": 30,
         "minimap": 30,
         "windowmasker": 1,
+        "view": 1,
     }
     return threads.get(wc.tool, thread_defaults.get(wc.tool, 4))
 
