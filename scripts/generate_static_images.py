@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
+import glob
 import logging
 import os
-import re
 import shlex
 import subprocess
 from pathlib import Path
-
-import yaml
 
 logger_config = {
     "level": logging.INFO,
@@ -27,6 +25,7 @@ try:
     OUTFILE = str(snakemake.output)
     HOST = str(snakemake.params.host)
     PORTS = str(snakemake.params.ports)
+    TIMEOUT = int(snakemake.params.timeout)
     BLOBTOOLS = "blobtools"
 
     views = [
@@ -45,8 +44,8 @@ try:
 
     for view in views:
         cmds.append(
-            "%s view --host %s --ports %s %s --out ./%s/ %s"
-            % (BLOBTOOLS, HOST, PORTS, view, BLOBDIR, BLOBDIR)
+            "%s view --host %s --timeout %d --ports %s %s --out ./%s/ %s"
+            % (BLOBTOOLS, HOST, TIMEOUT, PORTS, view, BLOBDIR, BLOBDIR)
         )
 
     cmds.append(
@@ -60,7 +59,7 @@ try:
         try:
             subprocess.run(shlex.split(cmd), encoding="utf-8")
         except Exception as err:
-            logger.error(err)
+            raise err
 
     for filename in os.listdir(BLOBDIR):
         p = Path("%s/%s" % (BLOBDIR, filename))
@@ -82,4 +81,10 @@ try:
                 p.rename(new_p)
 except Exception as err:
     logger.error(err)
+    for pngpath in glob.iglob(os.path.join(BLOBDIR, "%s.*.png" % BLOBDIR)):
+        os.remove(pngpath)
+    for svgpath in glob.iglob(os.path.join(BLOBDIR, "%s.*.svg" % BLOBDIR)):
+        os.remove(svgpath)
+    for jsonpath in glob.iglob(os.path.join(BLOBDIR, "%s.*.json" % BLOBDIR)):
+        os.remove(jsonpath)
     exit(1)

@@ -12,8 +12,6 @@ The previous pipeline is available inside the v1 directory.
 
 1. `chunk_stats.smk` - calculate sequence statistics in 1kb windows for each contig.
 
-for each contig and for chunks (default up to 10) of long contigs (>100 kb). Calculate coverage stats using mosdepth.
-
 1. `busco.smk` - run BUSCO using specific and basal lineages. Count BUSCOs in 1kb windows for each contig
 
 1. `cov_stats` - calculate coverage in 1kb windows using mosdepth.

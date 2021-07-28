@@ -111,9 +111,13 @@ if __name__ == "__main__":
     bindir = opts.get("--bin", None)
     Path(outdir).mkdir(parents=True, exist_ok=True)
     create_pipeline_directory(indir, "%s/%s.pipeline" % (indir, prefix))
+    transfer_files(r"%s/*.tar" % indir, outdir)
+    transfer_files(r"%s/*.gz" % indir, outdir)
     transfer_files("%s/%s.pipeline" % (indir, prefix), outdir, compress=True)
     if Path("%s/view" % indir).is_dir():
-        create_static_directory("%s/view/%s" % (indir, blobdir), "%s/%s.static" % (indir, blobdir))
+        create_static_directory(
+            "%s/view/%s" % (indir, blobdir), "%s/%s.static" % (indir, blobdir)
+        )
         transfer_files("%s/view/%s" % (indir, blobdir), outdir, compress=True)
         transfer_files("%s/%s.static" % (indir, blobdir), outdir)
     else:

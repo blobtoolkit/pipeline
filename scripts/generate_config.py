@@ -367,12 +367,14 @@ def fetch_goat_data(taxon_id):
 
 def fetch_read_info(accession, per_platform):
     """Fetch read info for an accession."""
-    warehouse = "https://www.ebi.ac.uk/ena/data/warehouse"
+    portal = "https://www.ebi.ac.uk/ena/portal/api"
     url = (
         "%s/filereport?accession=%s&result=read_run&fields=run_accession,fastq_bytes,base_count,library_strategy,library_selection,library_layout,instrument_platform,experiment_title,fastq_ftp"
-        % (warehouse, accession)
+        % (portal, accession)
     )
     data = tofetch.fetch_url(url)
+    if data is None:
+        return
     header = None
     for line in data.split("\n"):
         if not line or line == "":
@@ -579,9 +581,7 @@ if __name__ == "__main__":
         read_accessions = [meta["assembly"]["biosample"]]
     if opts["--reads"]:
         read_accessions += opts["--reads"]
-    sra = assembly_reads(
-        read_accessions, int(opts["--read-runs"]), opts["--platforms"]
-    )
+    sra = assembly_reads(read_accessions, int(opts["--read-runs"]), opts["--platforms"])
     if sra:
         if opts["--coverage"]:
             meta["reads"].update({"coverage": {"max": int(opts["--coverage"])}})

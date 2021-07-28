@@ -215,3 +215,8 @@ def get_basal_lineages(config):
             if lineage in basal:
                 lineages.push(lineage)
     return lineages
+
+
+def set_view_timeout(config):
+    """Set timeout duration for generating static images."""
+    return config["settings"].get("view_timeout", 60)

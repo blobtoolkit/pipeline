@@ -44,7 +44,8 @@ rule run_sub_pipeline:
     params:
         tool = lambda wc: wc.tool,
         snake_path = workflow.basedir,
-        parent_dir = parent_dir
+        parent_dir = parent_dir,
+        restart = lambda wc: 2 if wc.tool == "view" else 0
     threads: thread_config
     log:
         "logs/{tool}/run_sub_pipeline.log"

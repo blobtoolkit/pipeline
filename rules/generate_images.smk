@@ -10,7 +10,8 @@ rule generate_images:
     params:
         blobdir = lambda wc: wc.blobdir,
         host = "http://localhost",
-        ports = "8000-8099"
+        ports = "8000-8099",
+        timeout = set_view_timeout(config)
     threads: 3
     log:
         "logs/{blobdir}/generate_images.log"
