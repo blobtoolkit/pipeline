@@ -58,4 +58,5 @@ rule run_sub_pipeline:
           --configfile {params.parent_dir}/config.yaml \
           --latency-wait 60 \
           --stats {output} \
+          --restart-times {params.restart} \
           -s {params.snake_path}/{params.tool}.smk 2> {log}"""

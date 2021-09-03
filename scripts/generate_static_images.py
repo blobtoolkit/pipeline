@@ -4,6 +4,7 @@ import glob
 import logging
 import os
 import shlex
+import signal
 import subprocess
 from pathlib import Path
 
@@ -56,10 +57,23 @@ try:
 
     for cmd in cmds:
         logger.info(cmd)
-        try:
-            subprocess.run(shlex.split(cmd), encoding="utf-8")
-        except Exception as err:
-            raise err
+        with subprocess.Popen(
+            shlex.split(cmd),
+            stdout=subprocess.PIPE,
+            preexec_fn=os.setsid,
+            encoding="utf-8",
+        ) as process:
+            try:
+                output = process.communicate(timeout=1800)[0]
+            except subprocess.TimeoutExpired:
+                os.killpg(
+                    process.pid, signal.SIGINT
+                )  # send signal to the process group
+                output = process.communicate()[0]
+        # try:
+        #     subprocess.check_output(shlex.split(cmd), encoding="utf-8", timeout=1800)
+        # except Exception as err:
+        #     raise err
 
     for filename in os.listdir(BLOBDIR):
         p = Path("%s/%s" % (BLOBDIR, filename))

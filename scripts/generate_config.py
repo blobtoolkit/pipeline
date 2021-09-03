@@ -173,9 +173,11 @@ def fetch_assembly_url(accession, api_key=None):
     )
     xtract_stdout = xtract.communicate()[0].decode("utf-8").strip()
     for url in xtract_stdout.split("\n"):
-        basename = re.findall(GCA_NAME, url)
-        if basename:
-            return "%s/%s_genomic.fna.gz" % (url, basename[0])
+        basenames = re.findall(GCA_NAME, url)
+        if basenames:
+            for basename in basenames:
+                if accession in basename:
+                    return "%s/%s_genomic.fna.gz" % (url, basename)
     return None
 
 
@@ -479,17 +481,15 @@ def add_reads_to_meta(meta, sra, readdir):
     LOGGER.info("Adding read accessions to assembly metadata")
     for index, library in enumerate(sra):
         strategy = library["library_layout"].lower()
+        fastq_ftp = library["fastq_ftp"].split(";")[-2:]
         info = {
             "prefix": library["run_accession"],
             "platform": library["instrument_platform"],
             "base_count": library["base_count"],
             "file": ";".join(
-                [
-                    re.sub(r"^.+/", "%s/" % readdir, url)
-                    for url in library["fastq_ftp"].split(";")
-                ]
+                [re.sub(r"^.+/", "%s/" % readdir, url) for url in fastq_ftp]
             ),
-            "url": library["fastq_ftp"],
+            "url": ";".join(fastq_ftp),
         }
         library["file"] = info["file"]
         meta["reads"][strategy].append(info)
