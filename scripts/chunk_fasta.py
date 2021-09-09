@@ -326,7 +326,7 @@ if __name__ == "__main__":
         if args["--out"] is not None:
             chunked = ""
             for seq in seqs:
-                if seq["length"] >= args["--min-length"]:
+                if seq["length"] >= int(args["--min-length"]):
                     chunked += ">%s_-_%d\n" % (seq["title"], seq["start"])
                     chunked += "%s\n" % seq["seq"]
             outfile = args["--out"]
