@@ -30,7 +30,8 @@ rule run_blastn:
                 -negative_taxids {params.taxid} \
                 -lcase_masking \
                 -dust "20 64 1" \
-                > {output} 2> {log}; \
+                > {output} 2> {log} || \
+            sleep 30; \
             if [ -s {log} ]; then \
                 echo "Restarting blastn without taxid filter" >> {log}; \
                 > {output}; \
