@@ -10,7 +10,7 @@ rule run_diamond_blastp:
     params:
         evalue = similarity_setting(config, "diamond_blastp", "evalue"),
         max_target_seqs = similarity_setting(config, "diamond_blastp", "max_target_seqs"),
-        taxid = config["taxon"]["taxid"]
+        taxid_flag = taxid_flag(config, "diamond_blastp")
     threads: 32
     log:
         "logs/{assembly}/run_diamond_blastp.log"
@@ -25,8 +25,7 @@ rule run_diamond_blastp:
                 --max-target-seqs {params.max_target_seqs} \
                 --max-hsps 1 \
                 --evalue {params.evalue} \
-                --threads {threads} \
-                --taxon-exclude {params.taxid} \
+                --threads {threads} {params.taxid_flag} \
                 > {output}; \
         else \
             > {output}; \

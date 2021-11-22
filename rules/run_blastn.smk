@@ -11,7 +11,7 @@ rule run_blastn:
         db = "%s/%s" % (similarity_setting(config, "blastn", "path"), similarity_setting(config, "blastn", "name")),
         evalue = similarity_setting(config, "diamond_blastx", "evalue"),
         max_target_seqs = similarity_setting(config, "diamond_blastx", "max_target_seqs"),
-        taxid = config["taxon"]["taxid"]
+        taxid_flag = taxid_flag(config, "blastn")
     threads: 30
     log:
         "logs/{assembly}/run_blastn.log"
@@ -26,8 +26,7 @@ rule run_blastn:
                 -max_target_seqs {params.max_target_seqs} \
                 -max_hsps 1 \
                 -evalue {params.evalue} \
-                -num_threads {threads} \
-                -negative_taxids {params.taxid} \
+                -num_threads {threads} {params.taxid_flag} \
                 -lcase_masking \
                 -dust "20 64 1" \
                 > {output} 2> {log} || \

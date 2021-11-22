@@ -51,10 +51,11 @@ def seqtk_sample_input(config, prefix):
     filenames = meta["file"].split(";")
     ratio = 1
     if "coverage" in config["reads"] and "max" in config["reads"]["coverage"]:
-        base_count = meta["base_count"]
-        if isinstance(base_count, int):
+        base_count = meta.get("base_count", None)
+        assembly_span = config["assembly"].get("span", None)
+        if isinstance(base_count, int) and isinstance(assembly_span, int):
             ratio = (
-                config["assembly"]["span"]
+                assembly_span
                 * config["reads"]["coverage"]["max"]
                 / base_count
             )
@@ -146,6 +147,19 @@ def set_blast_max_chunks(config):
 def set_blast_min_length(config):
     """Set minimum sequence length for running blast searches."""
     return config["settings"].get("blast_min_length", 1000)
+
+
+def taxid_flag(config, tool):
+    """Set taxid flag for running blast searches."""
+    taxid = config["taxon"].get("taxid", None)
+    if taxid is None:
+        return ""
+    flags = {
+        "blastn": "-negative_taxids",
+        "diamond_blastp": "--taxon-exclude",
+        "diamond_blastx": "--taxon-exclude"
+    }
+    return "%s %s" % (flags[tool], taxid)
 
 
 def read_similarity_settings(config, group):

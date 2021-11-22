@@ -139,7 +139,7 @@ if __name__ == "__main__":
         config = args["--config"]
         meta["assembly"] = config["assembly"]
         meta["taxon"] = config["taxon"]
-        meta["settings"] = config["settings"]
+        meta["settings"] = {"blast_chunk": 100000, "blast_max_chunks": 10, **config["settings"]}
         meta["similarity"] = {
             "diamond_blastx": read_similarity_settings(config, "diamond_blastx"),
             "diamond_blastp": read_similarity_settings(config, "diamond_blastp"),
