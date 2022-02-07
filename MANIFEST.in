@@ -1,0 +1,12 @@
+# MANIFEST.in
+exclude .gitignore
+include setup.py
+prune .cache
+prune .git
+prune build
+prune dist
+recursive-exclude *.egg-info *
+recursive-exclude conda-recipe *
+recursive-include pipeline/*.smk
+recursive-include pipeline/rules *
+recursive-include pipeline/lib *

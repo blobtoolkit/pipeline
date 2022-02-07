@@ -1,8 +1,6 @@
-# BTK Pipeline v2
+# BTK Pipeline v3.0.0
 
 Splits original pipeline into sub-pipelines that can be run independently or using the `blobtoolkit.smk` meta pipeline.
-
-The previous pipeline is available inside the v1 directory.
 
 ## Sub-pipelines
 
@@ -16,11 +14,11 @@ The previous pipeline is available inside the v1 directory.
 
 1. `cov_stats` - calculate coverage in 1kb windows using mosdepth.
 
-1. `window_stats` - aggregate 1kb values into windows of fixed proportion (10%, 1% of contig length) and fixed length (100kb, 1Mb) 
+1. `window_stats` - aggregate 1kb values into windows of fixed proportion (10%, 1% of contig length) and fixed length (100kb, 1Mb)
 
 1. `diamond_blastp.smk` - Diamond blastp search of busco gene models for basal lineages (`archaea_odb10`, `bacteria_odb10` and `eukaryota_odb10`) against the UniProt reference proteomes.
 
-1. `diamond.smk` - Diamond blastx search of assembly contigs against the UniProt reference proteomes. Contigs are split into chunks to allow distribution-based taxrules. Contigs over 1Mb are subsampled by retaining only the most BUSCO-dense 100 kb region from each chunk. 
+1. `diamond.smk` - Diamond blastx search of assembly contigs against the UniProt reference proteomes. Contigs are split into chunks to allow distribution-based taxrules. Contigs over 1Mb are subsampled by retaining only the most BUSCO-dense 100 kb region from each chunk.
 
 1. `blastn.smk` - NCBI blastn search of assembly contigs with no Diamond blastx match against the NCBI nt database
 
@@ -28,11 +26,12 @@ The previous pipeline is available inside the v1 directory.
 
 1. `view.smk` - BlobDir validation and static image generation
 
-
 ## Dependencies
 
 ### BlobToolKit components
+
 The various BlobToolKit components can be downloaded from their respecive Github repositories:
+
 ```
 VERSION=release/v2.6.5
 mkdir -p ~/blobtoolkit
@@ -44,17 +43,21 @@ git clone -b $VERSION https://github.com/blobtoolkit/viewer
 ```
 
 ### Pipeline dependencies
+
 Most pipeline dependencies can be installed using conda. The mamba replacement for conda is faster and more stable:
+
 ```
 conda install -y -n base -c conda-forge mamba
 ```
+
 Use `mamba` where you would normally use `conda` for creating environments and installing packages. We recommend creating an environment using the `env.yaml` file to pin all dependencies:
 
 ```
 mamba env create -f ~/blobtoolkit/pipeline/env.yaml
 ```
 
-Alternatively create the environment by specifying individual packages: 
+Alternatively create the environment by specifying individual packages:
+
 ```
 mamba create -y -n btk_env -c conda-forge -c bioconda -c tolkit \
     python=3.8 snakemake docopt defusedxml psutil pyyaml tqdm ujson urllib3 \
@@ -63,6 +66,7 @@ mamba create -y -n btk_env -c conda-forge -c bioconda -c tolkit \
 ```
 
 Activate this environment:
+
 ```
 conda activate btk_env
 ```
@@ -70,6 +74,7 @@ conda activate btk_env
 If you already have an environment named `btk_env` (e.g. when upgrading from an ealier BlobToolKit version) you will need to run `conda env remove -n btk_env` before creating a new environment.
 
 ### Additional viewer dependencies
+
 Viewer dependencies, with the exception of firefox and xvfb (use X-Quartz on OS X) are included in the `env.yaml` file, but will need to be installed separately if using the altenate install method. If Firefox is not installable on your local compute environment (e.g. a shared cluster), it may be necessary to run the viewer separately:
 
 ```
@@ -96,13 +101,17 @@ npm install
 ```
 
 ### PATH setup
+
 Commands below assume that BLobToolKit executables and scripts are available in you PATH:
+
 ```
 export PATH=~/blobtoolkit/blobtools2:~/blobtoolkit/specification:~/blobtoolkit/insdc-pipeline/scripts:$PATH
 ```
 
 ### Databases
+
 Download the NCBI taxdump
+
 ```bash
 TAXDUMP=/volumes/databases/taxdump_2021_06
 mkdir -p $TAXDUMP;
@@ -112,6 +121,7 @@ cd -;
 ```
 
 Download and extract UniProt reference proteomes
+
 ```bash
 UNIPROT=/volumes/databases/uniprot_2021_06
 mkdir -p $UNIPROT
@@ -133,6 +143,7 @@ cd -
 ```
 
 Download NCBI nt database:
+
 ```bash
 NT=/volumes/databases/nt_2021_06
 wget "ftp://ftp.ncbi.nlm.nih.gov/blast/db/nt.??.tar.gz" -P $NT/ &&
@@ -142,6 +153,7 @@ done
 ```
 
 Download BUSCO data and lineages to allow BUSCO to run in offline mode:
+
 ```bash
 BUSCO=/volumes/databases/busco_2021_06
 cd $BUSCO
@@ -150,11 +162,13 @@ find busco-data.ezlab.org -name "*.tar.gz" | parallel "cd {//}; tar -xzf {/}"
 ```
 
 ## Configuration
+
 The BlobToolKit pipeline requires a YAML format configuration file to specify file locations, parameters and metadata.
 
 ### Example
 
 config.yaml
+
 ```yaml
 assembly:
   accession: GCA_902806685.1
@@ -233,7 +247,7 @@ similarity:
     path: /volumes/databases/ncbi_nt_2021_06
 taxon:
   name: Maniola hyperantus
-  taxid: '2795564'
+  taxid: "2795564"
 version: 1
 ```
 
@@ -245,7 +259,7 @@ BUSCO will be run for all `lineages:` in the busco section. Any lineages also sp
 
 Two taxrules are used to infer taxonomy from blast hits. The default `buscogenes` taxrule uses results from diamond blastp searches of genes from the basal BUSCO lineages. The alternate `buscoregions` taxrule uses diamond blastx and NCBI blastn searches of regions containing a high density of genes from the most-specific lineage (i.e. the first lineage listed in the config). This was the default taxrule up to v2.5 (named `bestdistorder`) and can be restored as the default by setting `taxrule: buscoregions` under `similarity:` -> `defaults:`.
 
-Additional values can be specified by specifying files in `fields:`. Multiple files can be specified by using unique keys and each will be imported using the blobtools2 `--text` import. The key `synonyms:` may be used to import synonyms, all other keys will be treated as containing columns of category or variable data. Category/variable names must be specified in a header row, e.g.: 
+Additional values can be specified by specifying files in `fields:`. Multiple files can be specified by using unique keys and each will be imported using the blobtools2 `--text` import. The key `synonyms:` may be used to import synonyms, all other keys will be treated as containing columns of category or variable data. Category/variable names must be specified in a header row, e.g.:
 
 ```
 identifier      status
@@ -261,7 +275,7 @@ CADCXM010000002.1       Scaffold
 
 ## Running the pipeline
 
-For public assemblies, the script `scripts/generate_config.py` will fetch copies of assembly and read files and generate a YAML config file. There is also a `run_btk_pipeline.sh` wrapper script that will call `generate_config.py` and run the full meta pipeline when called with a public assembly accession:
+For public assemblies, the script `lib/generate_config.py` will fetch copies of assembly and read files and generate a YAML config file. There is also a `run_btk_pipeline.sh` wrapper script that will call `generate_config.py` and run the full meta pipeline when called with a public assembly accession:
 
 ```
 run_btk_pipeline.sh GCA_902806685.1
