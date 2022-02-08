@@ -4,11 +4,11 @@
 Transfer completed BlobDirs and intermediate files.
 
 Usage:
-  transfer_completed.py [--in PATH] [--out PATH] [--bin PATH]
+  transfer_completed.py --in PATH --out PATH [--bin PATH]
 
 Options:
-  --in PATH              Path to input directory [default: .]
-  --out PATH             Path to output directory [default: ../complete]
+  --in PATH              Path to input directory.
+  --out PATH             Path to output directory.
   --bin PATH             Path to bin directory. If specified, unwanted files will
                          be moved here rather than deleted.
 """
@@ -20,8 +20,11 @@ import tarfile
 from pathlib import Path
 
 import yaml
+from docopt import DocoptExit
 from docopt import docopt
-from tolkein import tofetch, tofile, tolog
+from tolkein import tofetch
+from tolkein import tofile
+from tolkein import tolog
 
 LOGGER = tolog.logger(__name__)
 
@@ -97,7 +100,8 @@ def remove_unwanted_files(indir, bindir):
         shutil.rmtree(indir)
 
 
-if __name__ == "__main__":
+def main():
+    """Entry point."""
     opts = docopt(__doc__)
     data = tofile.read_file("%s/config.yaml" % opts["--in"])
     meta = yaml.full_load(data)
@@ -156,3 +160,7 @@ if __name__ == "__main__":
         "%s/windowmasker/%s.windowmasker.fasta" % (indir, prefix), outdir, compress=True
     )
     remove_unwanted_files(indir, bindir)
+
+
+if __name__ == "__main__":
+    main()

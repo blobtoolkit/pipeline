@@ -126,7 +126,11 @@ setup(
         "test": [],
     },
     entry_points={
-        "console_scripts": ["window-stats = pipeline.lib.window_stats:main",],
+        "console_scripts": [
+            "window-stats = pipeline.lib.window_stats:main",
+            "unchunk-blast = pipeline.lib.unchunk_blast:main",
+            "transfer-completed = pipeline.lib.transfer_completed:main",
+        ],
         # "pipeline.subcmd": [
         #     "add = blobtools.lib.add:cli",
         #     "create = blobtools.lib.add:cli",

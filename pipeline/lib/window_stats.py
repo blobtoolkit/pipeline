@@ -4,7 +4,7 @@
 Window stats.
 
 Usage:
-    ./window_stats.py [--in TSV] [--window FLOAT...] [--min-window-length INT] [--min-window-count INT] [--out TSV]
+    window-stats --in TSV [--window FLOAT...] [--min-window-length INT] [--min-window-count INT] --out TSV
 
 Options:
     --in TSV                 chunked summary stats tsv file.
@@ -17,6 +17,7 @@ Options:
 import logging
 import math
 import statistics
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -37,16 +38,15 @@ logging.basicConfig(**logger_config)
 logger = logging.getLogger()
 
 
-def parse_args(args):
+def parse_args():
     """Parse snakemake args if available."""
     try:
-        args["--in"] = snakemake.input.tsv
-        args["--window"] = snakemake.params.window
-        args["--out"] = snakemake.output.tsv
+        sys.argv["--in"] = snakemake.input.tsv
+        sys.argv["--window"] = snakemake.params.window
+        sys.argv["--out"] = snakemake.output.tsv
     except NameError as err:
         logger.info(err)
         logger.info("Parsing parameters from command line")
-    return args
 
 
 def parse_chunked_values(filename):
@@ -72,6 +72,7 @@ def parse_chunked_values(filename):
 
 
 def round_to_interval(value, interval):
+    """Round a number to a given interval."""
     return round(
         round(value / interval + 0.5) * interval, -int(math.floor(math.log10(interval)))
     )
@@ -129,7 +130,6 @@ def calculate_window_stats(lengths, chunks, window, interval, args):
                 start_pos = 0
                 while start_pos < length:
                     end_pos = min(start_pos + window_size, length)
-                    # window_length = start_pos - end_pos
                     mid_pos = start_pos + (end_pos - start_pos) / 2
                     end_i = round(end_pos / interval + 0.5) - 1
                     if window == 1:
@@ -143,9 +143,6 @@ def calculate_window_stats(lengths, chunks, window, interval, args):
                         }
                     if key.endswith("count"):
                         values[seqid][start_pos][key] = "%d" % sum(arr[start_i:end_i])
-                        # values[seqid][start_pos][
-                        #     key.replace("_count", "_cpm")
-                        # ] = "%.3f" % (sum(arr[start_i:end_i]) / window_length * 1000000)
                     else:
                         mean, sd, n = calculate_mean(
                             arr[start_i : end_i + 1], key.endswith("_cov")
@@ -160,7 +157,11 @@ def calculate_window_stats(lengths, chunks, window, interval, args):
 
 def main():
     """Entry point."""
-    args = parse_args(docopt(__doc__))
+    try:
+        parse_args()
+        args = docopt(__doc__)
+    except DocoptExit:
+        raise DocoptExit
     try:
         lengths, chunks, interval = parse_chunked_values(args["--in"])
         outfile = args["--out"]
@@ -192,21 +193,8 @@ def main():
                 filetag = ".%s" % str(window)
             with open("%s%s%s" % (filename, filetag, suffix), "w") as fh:
                 fh.writelines(rows)
-
-        # if args["--out"] is not None:
-        #     chunked = ""
-        #     for seq in seqs:
-        #         chunked += ">%s_-_%d\n" % (seq["title"], seq["start"])
-        #         chunked += "%s\n" % seq["seq"]
-        #     outfile = args["--out"]
-        #     if outfile.startswith("."):
-        #         outfile = "%s%s" % (args["--in"], args["--out"])
-        #     with open(outfile, "w") as ofh:
-        #         ofh.writelines(chunked)
     except Exception as err:
         logger.error(err)
-        print(__doc__)
-        raise DocoptExit
         exit(1)
 
 

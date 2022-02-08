@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
-"""Update coordinates and remove seq name suffix from chunked blast results."""
-
-import logging
-import re
-from collections import defaultdict
-
-from docopt import docopt
-
-docs = """
+"""
 Unchunk BLAST results.
 
-Usage: ./unchunk_blast.py [--count INT] [--in TSV] [--out TSV]
+Update coordinates and remove seq name suffix from chunked blast results.
+
+Usage: unchunk-blast [--count INT] --in TSV --out TSV
 
 Options:
     --in TSV     input filename.
     --out TSV    output filename.
     --count INT  number of results to keep per chunk. [Default: 10]
 """
+
+import logging
+import re
+import sys
+from collections import defaultdict
+
+from docopt import DocoptExit
+from docopt import docopt
 
 logger_config = {
     "level": logging.INFO,
@@ -30,16 +32,25 @@ except NameError as err:
 logging.basicConfig(**logger_config)
 logger = logging.getLogger()
 
-if __name__ == "__main__":
-    args = docopt(docs)
+
+def parse_args():
+    """Parse snakemake args if available."""
     try:
-        args["--in"] = snakemake.input[0]
-        args["--count"] = snakemake.params.max_target_seqs
-        args["--out"] = snakemake.output[0]
+        sys.argv["--in"] = snakemake.input[0]
+        sys.argv["--count"] = snakemake.params.max_target_seqs
+        sys.argv["--out"] = snakemake.output[0]
     except NameError as err:
         logger.info(err)
         logger.info("Parsing parameters from command line")
 
+
+def main():
+    """Entry point."""
+    try:
+        parse_args()
+        args = docopt(__doc__)
+    except DocoptExit:
+        raise DocoptExit
     try:
         lines = defaultdict(dict)
         chunk_counts = defaultdict(int)
