@@ -4,7 +4,7 @@
 Generate config files for BlobToolKit pipeline.
 
 Usage:
-  generate_config.py <ACCESSION> [--coverage 30] [--download]
+  generate-config <ACCESSION> [--coverage 30] [--download]
     [--out /path/to/output/directory] [--db /path/to/database/directory]
     [--db-suffix STRING] [--reads STRING...] [--read-runs INT] [--api-key STRING]
     [--platforms STRING]
@@ -24,22 +24,21 @@ Options:
 
 import os
 import re
-import shutil
 import sys
-import urllib.request as request
-from collections import defaultdict
-from contextlib import closing
 from operator import itemgetter
 from pathlib import Path
-from subprocess import PIPE, Popen, run
-from urllib.error import URLError
+from subprocess import PIPE
+from subprocess import Popen
+from subprocess import run
 
 import requests
 import ujson
 import yaml
 from defusedxml import ElementTree as ET
 from docopt import docopt
-from tolkein import tofetch, tofile, tolog
+from tolkein import tofetch
+from tolkein import tofile
+from tolkein import tolog
 
 LOGGER = tolog.logger(__name__)
 
@@ -521,7 +520,8 @@ def set_btk_version(meta):
 #     return name
 
 
-if __name__ == "__main__":
+def main():
+    """Entry point."""
     opts = docopt(__doc__)
     accession = opts["<ACCESSION>"]
     outdir = opts["--out"]
@@ -596,3 +596,7 @@ if __name__ == "__main__":
     meta["similarity"]["diamond_blastp"].update({"path": uniprotdir})
     meta["settings"]["taxdump"] = taxdumpdir
     tofile.write_file("%s/config.yaml" % outdir, meta)
+
+
+if __name__ == "__main__":
+    main()
