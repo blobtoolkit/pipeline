@@ -1,27 +1,9 @@
 #!/usr/bin/env python3
-"""Split long sequences into chunks."""
+"""
+Split long sequences into chunks.
 
-import glob
-import logging
-import math
-import os.path
-import re
-import shlex
-import sys
-import time
-from collections import Counter, defaultdict
-from itertools import groupby
-from random import shuffle
-from subprocess import PIPE, Popen
-
-from docopt import docopt
-from tolkein import tofile
-
-docs = """
-Chunk FASTA.
-
-Usage: ./chunk_fasta.py [--in FASTA] [--chunk INT] [--overlap INT] [--max-chunks INT]
-                        [--busco TSV] [--min-length INT] [--out FASTA] [--bed BEDFILE]
+Usage: chunk_fasta --in FASTA [--chunk INT] [--overlap INT] [--max-chunks INT]
+                   [--busco TSV] [--min-length INT] [--out FASTA] [--bed BEDFILE]
 
 Options:
     --in FASTA           input FASTA file.
@@ -33,6 +15,21 @@ Options:
     --out FASTA          output FASTA filename or suffix. [Default: .chunked]
     --bed BEDFILE        output BED/BED-like TSV filename or suffix. [Default: .bed]
 """
+
+import logging
+import math
+import re
+import shlex
+import sys
+from collections import Counter
+from collections import defaultdict
+from itertools import groupby
+from subprocess import PIPE
+from subprocess import Popen
+
+from docopt import DocoptExit
+from docopt import docopt
+from tolkein import tofile
 
 logger_config = {
     "level": logging.INFO,
@@ -129,10 +126,6 @@ def parse_busco_full_summary(busco_file, chunk=100000):
                 else:
                     start_index += 1
         windows[title].sort(key=lambda window: window[2], reverse=True)
-    # with open("/tmp/data.tsv", "w") as fh:
-    #     for tup in windows["LR862382.1"]:
-    #         fh.write("\t".join([str(tup[0]), str(tup[2])]) + "\n")
-    # quit()
     return windows
 
 
@@ -232,26 +225,7 @@ def write_bedfiles(bed_data, args):
                 else:
                     row += "\t%d" % value
             rows.append("%s\n" % row)
-        # if key == "gc":
-        #     lines["mask"].append("%s\twindow\n" % location)
-        # location = "%s\t%d\t%d" % (title, start, end)
-        # length = end - start
-        # lines["mask"].append("%s\tfull\n" % location)
-        # for key, value in sums.items():
-        #     if key != "ncount" and key != "length":
-        #         lines[key].append("%s\t%.4f\n" % (location, value / length))
-        #     elif key == "length":
-        #         lines["length"].append("%s\t%d\n" % (location, value))
-        #         lines["position"].append("%s\t%d\n" % (location, value))
-        #         lines["proportion"].append("%s\t%.4f\n" % (location, value / length))
-        #         for position in positions:
-        #             lines["proportion_windows"].append(
-        #                 "%s\t%.4f\n" % (location, position / length)
-        #             )
-        #     else:
-        #         lines[key].append("%s\t%.d\n" % (location, value))
     bedfile = args["--bed"]
-    # bedfile += ".%s.bed" % key
     if bedfile.startswith("."):
         bedfile = "%s%s" % (args["--in"], bedfile)
     bedfile = re.sub(r"\.bed$", "", bedfile)
@@ -262,35 +236,38 @@ def write_bedfiles(bed_data, args):
         ofh.writelines(rows)
 
 
-def parse_args(args):
+def parse_args():
     """Parse snakemake args if available."""
     try:
-        args["--in"] = snakemake.input.fasta
-        args["--chunk"] = int(snakemake.params.chunk)
-        args["--overlap"] = int(snakemake.params.overlap)
-        args["--max-chunks"] = int(snakemake.params.max_chunks)
-        args["--min-length"] = int(snakemake.params.min_length)
+        sys.argv["--in"] = snakemake.input.fasta
+        sys.argv["--chunk"] = int(snakemake.params.chunk)
+        sys.argv["--overlap"] = int(snakemake.params.overlap)
+        sys.argv["--max-chunks"] = int(snakemake.params.max_chunks)
+        sys.argv["--min-length"] = int(snakemake.params.min_length)
         try:
-            args["--busco"] = snakemake.input.busco
+            sys.argv["--busco"] = snakemake.input.busco
         except AttributeError:
-            args["--busco"] = None
+            sys.argv["--busco"] = None
         try:
-            args["--out"] = snakemake.output.fasta
+            sys.argv["--out"] = snakemake.output.fasta
         except AttributeError:
-            args["--out"] = None
+            sys.argv["--out"] = None
         try:
-            args["--bed"] = snakemake.params.bed
+            sys.argv["--bed"] = snakemake.params.bed
         except AttributeError:
-            args["--bed"] = None
+            sys.argv["--bed"] = None
     except NameError as err:
-        logger.info(err)
-        logger.info("Parsing parameters from command line")
-    return args
+        pass
 
 
-if __name__ == "__main__":
+def main():
+    """Entry point."""
     try:
-        args = parse_args(docopt(docs))
+        parse_args()
+        args = docopt(__doc__)
+    except DocoptExit:
+        raise DocoptExit
+    try:
         busco_windows = {}
         if "--busco" in args and args["--busco"] is not None:
             busco_windows = parse_busco_full_summary(args["--busco"])
@@ -337,3 +314,7 @@ if __name__ == "__main__":
     except Exception as err:
         logger.error(err)
         exit(1)
+
+
+if __name__ == "__main__":
+    main()
