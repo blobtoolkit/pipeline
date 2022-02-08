@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
 """
-BlobToolKit Pipeline.
+BlobToolKit.
 
-Usage: btk pipeline [<command>] [<args>...] [-h|--help] [--version]
+Usage: btk [<command>] [<subcommand>] [<args>...] [-h|--help] [--version]
 
 Commands:
-    data            Fetch pipeline data
-    run             Run BlobToolKit Pipeline
+    blobtools       Blobtools commands
+    pipeline        Pipeline commands
+    viewer          Viewer commands
     -h, --help      Show this
     -v, --version   Show version number
-See 'blobtoolkit-pipeline <command> --help' for more information on a specific command.
+See 'btk <command> --help' for more information on a specific command.
 
 """
 
@@ -25,14 +26,14 @@ from .lib.version import __version__
 
 def main():
     """Entry point."""
-    if len(sys.argv) > 2:
+    if len(sys.argv) > 1:
         try:
             args = docopt(__doc__, help=False, version=__version__)
         except DocoptExit:
-            args = {"<command>": sys.argv[2]}
+            args = {"<command>": sys.argv[1]}
         if args["<command>"]:
             # load <command> from entry_points
-            for entry_point in working_set.iter_entry_points("pipeline.subcmd"):
+            for entry_point in working_set.iter_entry_points("btk.subcmd"):
                 if entry_point.name == args["<command>"]:
                     subcommand = entry_point.load()
                     sys.exit(subcommand())

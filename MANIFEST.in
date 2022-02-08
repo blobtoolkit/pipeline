@@ -7,6 +7,7 @@ prune build
 prune dist
 recursive-exclude *.egg-info *
 recursive-exclude conda-recipe *
+recursive-include btk/lib *
 recursive-include pipeline/*.smk
 recursive-include pipeline/rules *
 recursive-include pipeline/lib *

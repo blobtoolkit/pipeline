@@ -62,10 +62,11 @@ setup(
         "test": [],
     },
     entry_points={
-        "console_scripts": [
-            "btk-pipeline = pipeline:main",
-            "blobtoolkit-pipeline = pipeline:main",
-            "pipeline = pipeline:main",
+        "console_scripts": ["btk = btk:main",],
+        "btk.subcmd": ["pipeline = pipeline:main",],
+        "pipeline.subcmd": [
+            "data = pipeline.lib.window_stats:main",
+            "run = pipeline.lib.unchunk_blast:main",
             "count-busco-genes = pipeline.lib.count_busco_genes:main",
             "extract-busco-genes = pipeline.lib.extract_busco_genes:main",
             "generate-config = pipeline.lib.generate_config:main",
@@ -73,10 +74,6 @@ setup(
             "transfer-completed = pipeline.lib.transfer_completed:main",
             "unchunk-blast = pipeline.lib.unchunk_blast:main",
             "window-stats = pipeline.lib.window_stats:main",
-        ],
-        "pipeline.subcmd": [
-            "data = pipeline.lib.window_stats:main",
-            "run = pipeline.lib.unchunk_blast:main",
         ],
     },
     project_urls={
