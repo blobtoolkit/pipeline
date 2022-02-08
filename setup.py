@@ -130,6 +130,7 @@ setup(
             "window-stats = pipeline.lib.window_stats:main",
             "unchunk-blast = pipeline.lib.unchunk_blast:main",
             "transfer-completed = pipeline.lib.transfer_completed:main",
+            "generate-static-images = pipeline.lib.generate_static_images:main",
         ],
         # "pipeline.subcmd": [
         #     "add = blobtools.lib.add:cli",

@@ -4,7 +4,7 @@
 Transfer completed BlobDirs and intermediate files.
 
 Usage:
-  transfer_completed.py --in PATH --out PATH [--bin PATH]
+  transfer-completed --in PATH --out PATH [--bin PATH]
 
 Options:
   --in PATH              Path to input directory.
