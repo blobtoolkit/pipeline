@@ -67,6 +67,7 @@ setup(
         "pipeline.subcmd": [
             "data = pipeline.lib.window_stats:main",
             "run = pipeline.lib.unchunk_blast:main",
+            "add-summary-to-metadata = pipeline.lib.add_summary_to_metadata:main",
             "chunk-fasta = pipeline.lib.chunk_fasta:main",
             "count-busco-genes = pipeline.lib.count_busco_genes:main",
             "extract-busco-genes = pipeline.lib.extract_busco_genes:main",

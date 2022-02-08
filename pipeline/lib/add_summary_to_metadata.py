@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
 
+"""
+Add summary data to metadata.
+
+Usage: add-summary-to-metadata --config FILE --out FILE --gitdir PATH
+
+Options:
+    --config FILE   YAML format config file
+    --out FILE      Output file
+    --gitdir PATH   Path to pipeline .git directory
+"""
+
 import logging
 import os
 import re
-import shlex
 import subprocess
 import sys
 import traceback
@@ -11,8 +21,11 @@ from collections import OrderedDict
 
 import git
 import yaml
-
-from functions import read_similarity_settings, reads_by_prefix
+from docopt import DocoptExit
+from docopt import docopt
+from functions import read_similarity_settings
+from functions import reads_by_prefix
+from tolkein import tofile
 
 logger_config = {
     "level": logging.INFO,
@@ -88,10 +101,7 @@ def add_software_versions(meta, args):
             cmd.append(flag)
         try:
             p = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding="utf-8",
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding="utf-8",
             )
             (output, err) = p.communicate()
             status = p.wait()
@@ -113,12 +123,12 @@ def add_software_versions(meta, args):
     meta["settings"]["software_versions"] = versions
 
 
-def parse_args(args):
+def parse_args():
     """Parse snakemake args if available."""
     try:
-        args["--config"] = snakemake.config
-        args["--out"] = str(snakemake.output)
-        args["--gitdir"] = (
+        sys.argv["--config"] = snakemake.config
+        sys.argv["--out"] = str(snakemake.output)
+        sys.argv["--gitdir"] = (
             git.Repo(
                 os.path.dirname(os.path.abspath(__file__)),
                 search_parent_directories=True,
@@ -126,20 +136,28 @@ def parse_args(args):
             + "/.git"
         )
     except NameError as err:
-        logger.info(err)
-        logger.info("Script cannot be run from the command line")
-        sys.exit(1)
-    return args
+        pass
 
 
-if __name__ == "__main__":
+def main():
+    """Entry point."""
     try:
-        args = parse_args({})
+        parse_args()
+        args = docopt(__doc__)
+    except DocoptExit:
+        raise DocoptExit
+    try:
         meta = {}
         config = args["--config"]
+        if not isinstance(config, dict):
+            config = tofile.load_yaml(config)
         meta["assembly"] = config["assembly"]
         meta["taxon"] = config["taxon"]
-        meta["settings"] = {"blast_chunk": 100000, "blast_max_chunks": 10, **config["settings"]}
+        meta["settings"] = {
+            "blast_chunk": 100000,
+            "blast_max_chunks": 10,
+            **config["settings"],
+        }
         meta["similarity"] = {
             "diamond_blastx": read_similarity_settings(config, "diamond_blastx"),
             "diamond_blastp": read_similarity_settings(config, "diamond_blastp"),
@@ -172,3 +190,7 @@ if __name__ == "__main__":
     except Exception as err:
         logger.error(traceback.format_exc())
         exit(13)
+
+
+if __name__ == "__main__":
+    main()

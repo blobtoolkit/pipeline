@@ -2,7 +2,7 @@
 """
 Split long sequences into chunks.
 
-Usage: chunk_fasta --in FASTA [--chunk INT] [--overlap INT] [--max-chunks INT]
+Usage: chunk-fasta --in FASTA [--chunk INT] [--overlap INT] [--max-chunks INT]
                    [--busco TSV] [--min-length INT] [--out FASTA] [--bed BEDFILE]
 
 Options:
@@ -129,7 +129,7 @@ def parse_busco_full_summary(busco_file, chunk=100000):
     return windows
 
 
-def chunk_by_busco(seq, args):
+def chunk_by_busco(seq, seqs, busco_windows, args):
     """Use BUSCO gene density to define chunks."""
     subseq_found = False
     has_busco = False
@@ -285,7 +285,7 @@ def main():
                 and seq["chunks"] == int(args["--max-chunks"])
                 and seq["length"] > int(args["--chunk"]) + int(args["--overlap"])
             ):
-                chunk_by_busco(seq, args)
+                chunk_by_busco(seq, seqs, busco_windows, args)
             else:
                 if "--bed" in args and args["--bed"]:
                     stats = seq_stats(seq["seq"])
