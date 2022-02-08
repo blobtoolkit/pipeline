@@ -127,10 +127,17 @@ setup(
     },
     entry_points={
         "console_scripts": [
+            "btk-pipeline = pipeline:main",
+            "blobtoolkit-pipeline = pipeline:main",
+            "pipeline = pipeline:main",
             "window-stats = pipeline.lib.window_stats:main",
             "unchunk-blast = pipeline.lib.unchunk_blast:main",
             "transfer-completed = pipeline.lib.transfer_completed:main",
             "generate-static-images = pipeline.lib.generate_static_images:main",
+        ],
+        "pipeline.subcmd": [
+            "data = pipeline.lib.window_stats:main",
+            "run = pipeline.lib.unchunk_blast:main",
         ],
         # "pipeline.subcmd": [
         #     "add = blobtools.lib.add:cli",
