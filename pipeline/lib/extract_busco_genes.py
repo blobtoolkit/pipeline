@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
-"""Extract BUSCO gene sequences and set headers."""
+"""
+Extract BUSCO gene sequences and set headers.
 
-import codecs
-import logging
-import re
-import tarfile
-from pathlib import Path
-
-from docopt import docopt
-from tolkein import tofile
-
-docs = """
-Extract BUSCO genes.
-
-Usage: ./extract_busco_genes.py [--busco PATH...] [--out FASTA]
+Usage: extract-busco-genes --busco PATH... --out FASTA
 
 Options:
     --busco PATH         BUSCO full summary tsv file.
     --out FASTA          output FASTA filename.
 """
+
+import codecs
+import logging
+import re
+import sys
+import tarfile
+from pathlib import Path
+
+from docopt import DocoptExit
+from docopt import docopt
+from tolkein import tofile
 
 logger_config = {
     "level": logging.INFO,
@@ -33,19 +33,22 @@ logging.basicConfig(**logger_config)
 logger = logging.getLogger()
 
 
-def parse_args(args):
+def parse_args():
     """Parse snakemake args if available."""
     try:
-        args["--busco"] = snakemake.input.busco
-        args["--out"] = snakemake.output.fasta
+        sys.argv["--busco"] = snakemake.input.busco
+        sys.argv["--out"] = snakemake.output.fasta
     except NameError as err:
-        logger.info(err)
-        logger.info("Parsing parameters from command line")
-    return args
+        pass
 
 
-if __name__ == "__main__":
-    args = parse_args(docopt(docs))
+def main():
+    """Entry point."""
+    try:
+        parse_args()
+        args = docopt(__doc__)
+    except DocoptExit:
+        raise DocoptExit
     file_pattern = re.compile(r"busco_sequences\/(\w+?)_\w+\/(\d+at\d+).faa")
     header_pattern = re.compile(r">\S+:\d+-\d+")
     utf8reader = codecs.getreader("utf-8")
@@ -61,11 +64,7 @@ if __name__ == "__main__":
                     if tarinfo.name.endswith(".faa"):
                         match = file_pattern.match(tarinfo.name)
                         status, busco_id = match.groups()
-                        with utf8reader(
-                            tar.extractfile(
-                                tarinfo,
-                            )
-                        ) as fh:
+                        with utf8reader(tar.extractfile(tarinfo,)) as fh:
                             for line in fh:
                                 if line.startswith(">"):
                                     header = line.strip()
@@ -87,3 +86,7 @@ if __name__ == "__main__":
     except Exception as err:
         logger.error(err)
         exit(1)
+
+
+if __name__ == "__main__":
+    main()

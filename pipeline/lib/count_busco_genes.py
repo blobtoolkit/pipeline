@@ -1,25 +1,22 @@
 #!/usr/bin/env python3
-"""Count busco genes."""
-
-import logging
-import math
-import statistics
-from collections import defaultdict
-from pathlib import Path
-
-from docopt import docopt
-from tolkein import tofile
-
-docs = """
+"""
 Count BUSCO genes.
 
-Usage: ./count_busco_genes.py [--in TSV...] [--mask TSV] [--out TSV]
+Usage: count-busco-genes --in TSV... --mask TSV --out TSV
 
 Options:
     --in TSV      chunked summary stats tsv file.
     --mask TSV    BED or BED-like TSV format mask file to specify sequence chunks.
     --out TSV     output TSV filename or suffix.
 """
+
+import logging
+import sys
+from collections import defaultdict
+
+from docopt import DocoptExit
+from docopt import docopt
+from tolkein import tofile
 
 logger_config = {
     "level": logging.INFO,
@@ -34,16 +31,14 @@ logging.basicConfig(**logger_config)
 logger = logging.getLogger()
 
 
-def parse_args(args):
+def parse_args():
     """Parse snakemake args if available."""
     try:
-        args["--in"] = snakemake.input.busco
-        args["--mask"] = snakemake.input.mask
-        args["--out"] = snakemake.output.tsv
+        sys.argv["--in"] = snakemake.input.busco
+        sys.argv["--mask"] = snakemake.input.mask
+        sys.argv["--out"] = snakemake.output.tsv
     except NameError as err:
-        logger.info(err)
-        logger.info("Parsing parameters from command line")
-    return args
+        pass
 
 
 def load_mask(filename):
@@ -92,23 +87,17 @@ def parse_busco_summary(filename, mask, header):
                         ctr += 1
                         i += 1
                 obj["cols"].append(ctr)
-
-            # if header is None:
-            #     header = {key: idx + 3 for idx, key in enumerate(row[3:])}
-            #     continue
-            # seqid = row[0]
-            # chunk_length = int(row[2]) - int(row[1])
-            # if chunk_length > interval:
-            #     interval = chunk_length
-            # lengths[seqid] += chunk_length
-            # for key, idx in header.items():
-            #     values[seqid][key].append(float(row[idx]))
     return mask, header
 
 
-if __name__ == "__main__":
+def main():
+    """Entry point."""
     try:
-        args = parse_args(docopt(docs))
+        parse_args()
+        args = docopt(__doc__)
+    except DocoptExit:
+        raise DocoptExit
+    try:
         mask, header = load_mask(args["--mask"])
         for buscofile in args["--in"]:
             mask, header = parse_busco_summary(buscofile, mask, header)
@@ -125,5 +114,7 @@ if __name__ == "__main__":
             ofh.writelines(rows)
     except Exception as err:
         raise err
-        logger.error(err)
-        exit(1)
+
+
+if __name__ == "__main__":
+    main()

@@ -66,6 +66,8 @@ setup(
             "btk-pipeline = pipeline:main",
             "blobtoolkit-pipeline = pipeline:main",
             "pipeline = pipeline:main",
+            "count-busco-genes = pipeline.lib.count_busco_genes:main",
+            "extract-busco-genes = pipeline.lib.extract_busco_genes:main",
             "generate-config = pipeline.lib.generate_config:main",
             "generate-static-images = pipeline.lib.generate_static_images:main",
             "transfer-completed = pipeline.lib.transfer_completed:main",
