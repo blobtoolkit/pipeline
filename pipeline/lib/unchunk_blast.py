@@ -40,8 +40,7 @@ def parse_args():
         sys.argv["--count"] = snakemake.params.max_target_seqs
         sys.argv["--out"] = snakemake.output[0]
     except NameError as err:
-        logger.info(err)
-        logger.info("Parsing parameters from command line")
+        pass
 
 
 def main():

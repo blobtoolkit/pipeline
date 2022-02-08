@@ -50,8 +50,7 @@ def parse_args():
         sys.argv["--ports"] = str(snakemake.params.ports)
         sys.argv["--timeout"] = int(snakemake.params.timeout)
     except NameError as err:
-        logger.info(err)
-        logger.info("Parsing parameters from command line")
+        pass
 
 
 def main():

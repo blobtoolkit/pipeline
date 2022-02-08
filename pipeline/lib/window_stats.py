@@ -45,8 +45,7 @@ def parse_args():
         sys.argv["--window"] = snakemake.params.window
         sys.argv["--out"] = snakemake.output.tsv
     except NameError as err:
-        logger.info(err)
-        logger.info("Parsing parameters from command line")
+        pass
 
 
 def parse_chunked_values(filename):
