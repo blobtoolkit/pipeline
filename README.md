@@ -122,6 +122,14 @@ wget -q -O $UNIPROT/reference_proteomes.tar.gz \
 cd $UNIPROT
 tar xf reference_proteomes.tar.gz
 
+
+# if the step above fails because of a problem with downloading or untarring the file
+# try replacing:
+#    ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/
+# with:
+#    ftp.expasy.org/databases/uniprot/current_release/knowledgebase/reference_proteomes/
+
+
 touch reference_proteomes.fasta.gz
 find . -mindepth 2 | grep "fasta.gz" | grep -v 'DNA' | grep -v 'additional' | xargs cat >> reference_proteomes.fasta.gz
 
