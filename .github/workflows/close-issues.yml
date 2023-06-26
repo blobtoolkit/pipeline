@@ -1,7 +1,7 @@
 name: Close issues on archived repository
 on:
   schedule:
-    - cron:  '20 1 * * *'
+    - cron:  '30 2 * * 0'
 
 jobs:
   close-issues:
