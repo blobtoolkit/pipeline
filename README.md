@@ -1,3 +1,7 @@
+# ARCHIVED
+
+This repository has been archived as all code is now maintained as part of [blobtoolkit/blobtoolkit](https://github.com/blobtoolkit/blobtoolkit) under `src/blobtoolkit-pipeline`
+
 # BTK Pipeline v2
 
 Splits original pipeline into sub-pipelines that can be run independently or using the `blobtoolkit.smk` meta pipeline.
